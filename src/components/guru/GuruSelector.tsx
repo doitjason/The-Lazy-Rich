@@ -27,8 +27,8 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
     return (
         <div className="space-y-6">
             <div className="text-center space-y-2">
-                <h2 className="text-2xl font-bold">Select Your Guru</h2>
-                <p className="text-muted-foreground">Choose a persona that aligns with your financial goals.</p>
+                <h2 className="text-2xl font-bold">AI 멘토 선택</h2>
+                <p className="text-muted-foreground">당신의 투자 성향에 맞는 멘토를 선택하세요.</p>
             </div>
 
             <motion.div

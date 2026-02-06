@@ -24,7 +24,7 @@ export function PortfolioSummary() {
             <Card className="border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md">
                 <CardHeader className="pb-2">
                     <p className="text-sm text-muted-foreground font-medium uppercase tracking-wide">
-                        Total Net Worth
+                        총 순자산
                     </p>
                     <div className="flex items-baseline justify-between">
                         <CardTitle className="text-4xl font-bold text-primary">
@@ -66,7 +66,7 @@ export function PortfolioSummary() {
                             </PieChart>
                         </ResponsiveContainer>
                         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-xs text-muted-foreground">Assets</span>
+                            <span className="text-xs text-muted-foreground">자산 구성</span>
                             <span className="font-bold">100%</span>
                         </div>
                     </div>

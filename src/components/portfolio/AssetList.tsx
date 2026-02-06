@@ -12,7 +12,7 @@ export function AssetList() {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
-                <h3 className="text-lg font-semibold">Your Assets</h3>
+                <h3 className="text-lg font-semibold">보유 자산</h3>
                 <Button variant="ghost" size="icon-sm" className="h-8 w-8 rounded-full bg-primary/10 hover:bg-primary/20 text-primary">
                     <Plus className="h-4 w-4" />
                 </Button>

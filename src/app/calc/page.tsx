@@ -8,14 +8,14 @@ export default function CalcPage() {
     return (
         <div className="flex min-h-screen flex-col p-4 space-y-6 max-w-md mx-auto">
             <header className="pt-8 pb-2">
-                <h1 className="text-3xl font-bold tracking-tight">Financial Tools</h1>
-                <p className="text-muted-foreground">Analyze and plan your investment.</p>
+                <h1 className="text-3xl font-bold tracking-tight">투자 계산기</h1>
+                <p className="text-muted-foreground">당신의 투자를 분석하고 계획하세요.</p>
             </header>
 
             <Tabs defaultValue="regret" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="regret">Investment Regret</TabsTrigger>
-                    <TabsTrigger value="compound">Compound</TabsTrigger>
+                    <TabsTrigger value="regret">했제 계산기</TabsTrigger>
+                    <TabsTrigger value="compound">복리 계산기</TabsTrigger>
                 </TabsList>
                 <TabsContent value="regret" className="mt-0">
                     <RegretCalculator />

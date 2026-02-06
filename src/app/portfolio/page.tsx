@@ -12,8 +12,8 @@ export default function PortfolioPage() {
         <div className="flex min-h-screen flex-col p-4 max-w-md mx-auto space-y-6 pb-24">
             <header className="pt-8 flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Portfolio</h1>
-                    <p className="text-muted-foreground">Track your wealth.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">내 자산</h1>
+                    <p className="text-muted-foreground">나의 부의 흐름을 추적하세요.</p>
                 </div>
             </header>
 

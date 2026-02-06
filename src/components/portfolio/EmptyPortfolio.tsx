@@ -12,13 +12,13 @@ export function EmptyPortfolio() {
                     <Wallet className="h-10 w-10 text-primary" />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-xl font-bold">Start Your Wealth Journey</h2>
+                    <h2 className="text-xl font-bold">투자를 시작해보세요</h2>
                     <p className="text-sm text-muted-foreground max-w-[200px] mx-auto">
-                        Add your first asset to track your net worth.
+                        자산을 추가하고 당신의 부를 추적해보세요.
                     </p>
                 </div>
                 <Button className="w-full max-w-[200px]" size="lg">
-                    Add Asset
+                    자산 추가
                 </Button>
             </CardContent>
         </Card>
