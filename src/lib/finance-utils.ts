@@ -17,11 +17,21 @@ export function calculateCompoundInterest(
     initial: number,
     monthly: number,
     rate: number,
-    years: number
+    years: number,
+    inflationRate: number = 0
 ): CompoundResult[] {
     const results: CompoundResult[] = [];
     let currentBalance = initial;
     let totalInvested = initial;
+
+    // Calculate real interest rate if inflation is present
+    // Real Rate = (1 + Nominal) / (1 + Inflation) - 1
+    const nominalRate = rate / 100;
+    const inflRate = inflationRate / 100;
+    const realRate = (1 + nominalRate) / (1 + inflRate) - 1;
+
+    // Monthly rate
+    const r = realRate / 12;
 
     // Year 0
     results.push({
@@ -30,8 +40,6 @@ export function calculateCompoundInterest(
         interest: 0,
         totalAmount: initial,
     });
-
-    const r = rate / 100 / 12; // Monthly interest rate
 
     for (let y = 1; y <= years; y++) {
         for (let m = 0; m < 12; m++) {

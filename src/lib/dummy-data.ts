@@ -1,23 +1,8 @@
 import { LucideIcon, TrendingUp, TrendingDown, DollarSign, Wallet, PieChart, Activity } from "lucide-react";
 
 // --- Types ---
-export interface Asset {
-    id: string;
-    name: string;
-    ticker: string;
-    amount: number; // Quantity
-    price: number; // Current Price per unit
-    change24h: number; // Percentage
-    type: "crypto" | "stock" | "cash";
-    color: string;
-}
-
-export interface PortfolioData {
-    totalBalance: number;
-    dailyChange: number;
-    dailyChangePercent: number;
-    assets: Asset[];
-}
+// NOTE: Portfolio data (PORTFOLIO_DATA) has been removed.
+// Real portfolio data is now stored in Supabase and accessed via usePortfolioStore.
 
 export interface NewsItem {
     id: string;
@@ -46,20 +31,6 @@ export interface ChatMessage {
 }
 
 // --- Mock Data ---
-
-export const PORTFOLIO_DATA: PortfolioData = {
-    totalBalance: 124500.00,
-    dailyChange: 1240.50,
-    dailyChangePercent: 1.01,
-    assets: [
-        { id: "1", name: "Bitcoin", ticker: "BTC", amount: 0.45, price: 63200.00, change24h: 1.2, type: "crypto", color: "#F7931A" },
-        { id: "2", name: "Apple Inc.", ticker: "AAPL", amount: 18.5, price: 175.50, change24h: -0.4, type: "stock", color: "#A2AAAD" },
-        { id: "3", name: "Ethereum", ticker: "ETH", amount: 1.2, price: 3400.00, change24h: 3.5, type: "crypto", color: "#627EEA" },
-        { id: "4", name: "Tesla, Inc.", ticker: "TSLA", amount: 4.0, price: 170.20, change24h: -1.1, type: "stock", color: "#E31937" },
-        { id: "5", name: "Nvidia Corp.", ticker: "NVDA", amount: 5.2, price: 880.00, change24h: 4.8, type: "stock", color: "#76B900" },
-        { id: "6", name: "달러 (USD)", ticker: "USD", amount: 12450, price: 1.00, change24h: 0.0, type: "cash", color: "#85bb65" },
-    ],
-};
 
 export const NEWS_DATA: NewsItem[] = [
     {

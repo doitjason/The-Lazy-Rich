@@ -1,12 +1,46 @@
 "use client";
 
-import { Bell, Moon, DollarSign, HelpCircle, Shield, LogOut, ChevronRight, User } from "lucide-react";
+import { useState } from "react";
+import { Bell, Moon, DollarSign, HelpCircle, Shield, LogOut, ChevronRight, User, Mail, Lock, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { useAuth } from "@/contexts/AuthContext";
+
 export function ProfileSettings() {
+    const { currency, setCurrency } = useCurrency();
+    const { user, signUpWithEmail, signInWithEmail, signOut, loading } = useAuth();
+
+    // Auth form state
+    const [isSignUp, setIsSignUp] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [authError, setAuthError] = useState("");
+    const [authLoading, setAuthLoading] = useState(false);
+    const [signUpSuccess, setSignUpSuccess] = useState(false);
+
+    const handleAuth = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setAuthError("");
+        setAuthLoading(true);
+
+        const result = isSignUp
+            ? await signUpWithEmail(email, password)
+            : await signInWithEmail(email, password);
+
+        setAuthLoading(false);
+
+        if (!result.success) {
+            setAuthError(result.error || "Authentication failed");
+        } else if (isSignUp) {
+            setSignUpSuccess(true);
+        }
+    };
+
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -31,16 +65,110 @@ export function ProfileSettings() {
         >
             {/* Header */}
             <motion.div variants={item} className="flex flex-col items-center text-center space-y-3 pt-4">
-                <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center border-2 border-primary/20 shadow-lg">
-                    <User className="h-10 w-10 text-primary" />
+                <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center border-2 border-primary/20 shadow-lg overflow-hidden">
+                    {user?.user_metadata?.avatar_url ? (
+                        <img src={user.user_metadata.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                    ) : (
+                        <User className="h-10 w-10 text-primary" />
+                    )}
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold">Alex Johnson</h2>
+                    <h2 className="text-2xl font-bold">
+                        {user ? (user.user_metadata?.full_name || user.email?.split("@")[0] || "User") : "Guest User"}
+                    </h2>
+                    {user && (
+                        <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
+                    )}
                     <span className="inline-block px-3 py-1 mt-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                        Pro Member
+                        {user ? "Pro Member" : "Free Tier"}
                     </span>
                 </div>
             </motion.div>
+
+            {/* Email Auth Form (Guest Only) */}
+            {!user && (
+                <motion.div variants={item} className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">
+                        {isSignUp ? "Sign Up" : "Sign In"}
+                    </h3>
+                    <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md p-4">
+                        {signUpSuccess ? (
+                            <div className="text-center py-4">
+                                <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
+                                    <Mail className="h-6 w-6 text-green-500" />
+                                </div>
+                                <p className="font-medium text-green-600 dark:text-green-400">Check your email!</p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    We sent a confirmation link to {email}
+                                </p>
+                                <Button
+                                    variant="ghost"
+                                    className="mt-4"
+                                    onClick={() => { setSignUpSuccess(false); setIsSignUp(false); }}
+                                >
+                                    Back to Sign In
+                                </Button>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleAuth} className="space-y-4">
+                                <div className="space-y-2">
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            type="email"
+                                            placeholder="Email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="pl-10 h-12 bg-white/50 dark:bg-black/30"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            type="password"
+                                            placeholder="Password (min 6 characters)"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="pl-10 h-12 bg-white/50 dark:bg-black/30"
+                                            minLength={6}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {authError && (
+                                    <p className="text-sm text-red-500 text-center">{authError}</p>
+                                )}
+
+                                <Button
+                                    type="submit"
+                                    disabled={authLoading}
+                                    className="w-full h-12 bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/20"
+                                >
+                                    {authLoading ? (
+                                        <span className="animate-pulse">Processing...</span>
+                                    ) : isSignUp ? (
+                                        <><UserPlus className="mr-2 h-4 w-4" /> Create Account</>
+                                    ) : (
+                                        <><Mail className="mr-2 h-4 w-4" /> Sign In</>
+                                    )}
+                                </Button>
+
+                                <div className="text-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsSignUp(!isSignUp); setAuthError(""); }}
+                                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                                    >
+                                        {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </Card>
+                </motion.div>
+            )}
 
             {/* Preferences Group */}
             <motion.div variants={item} className="space-y-3">
@@ -67,7 +195,10 @@ export function ProfileSettings() {
                             <Switch />
                         </div>
 
-                        <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+                        <div
+                            className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors"
+                            onClick={() => setCurrency(currency === "KRW" ? "USD" : "KRW")}
+                        >
                             <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
                                     <DollarSign className="h-4 w-4" />
@@ -75,7 +206,7 @@ export function ProfileSettings() {
                                 <span className="font-medium">Currency</span>
                             </div>
                             <div className="flex items-center gap-2 text-muted-foreground">
-                                <span className="text-sm">USD</span>
+                                <span className="text-sm font-medium text-foreground">{currency}</span>
                                 <ChevronRight className="h-4 w-4" />
                             </div>
                         </div>
@@ -111,13 +242,22 @@ export function ProfileSettings() {
                 </Card>
             </motion.div>
 
-            {/* Logout */}
-            <motion.div variants={item} className="pt-4">
-                <Button variant="destructive" className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-12 backdrop-blur-md shadow-none">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log Out
-                </Button>
-                <p className="text-center text-[10px] text-muted-foreground mt-4">
+            {/* Logout (Logged In Only) */}
+            {user && (
+                <motion.div variants={item} className="pt-4">
+                    <Button
+                        variant="destructive"
+                        onClick={signOut}
+                        className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-12 backdrop-blur-md shadow-none"
+                    >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Log Out
+                    </Button>
+                </motion.div>
+            )}
+
+            <motion.div variants={item}>
+                <p className="text-center text-[10px] text-muted-foreground">
                     Version 1.0.0 • Build 2024
                 </p>
             </motion.div>

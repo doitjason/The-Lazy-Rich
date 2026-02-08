@@ -5,6 +5,9 @@ import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/layout/BottomNav";
 
 
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -36,10 +39,14 @@ export default function RootLayout({
           inter.variable
         )}
       >
-        <main className="pb-20">
-          {children}
-        </main>
-        <BottomNav />
+        <AuthProvider>
+          <CurrencyProvider>
+            <main className="pb-20">
+              {children}
+            </main>
+            <BottomNav />
+          </CurrencyProvider>
+        </AuthProvider>
       </body>
     </html>
   );
