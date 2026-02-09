@@ -1,27 +1,63 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GuruSelector } from "@/components/guru/GuruSelector";
 import { ChatInterface } from "@/components/guru/ChatInterface";
-import { GuruPersona } from "@/lib/dummy-data";
+import { GuruPersona } from "@/lib/guru-personas";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function GuruPage() {
     const [selectedGuru, setSelectedGuru] = useState<GuruPersona | null>(null);
+    const [sessionId, setSessionId] = useState<string | null>(null);
+    const { user } = useAuth();
+
+    // Create a new chat session when guru is selected
+    const handleGuruSelect = async (guru: GuruPersona) => {
+        setSelectedGuru(guru);
+
+        if (user) {
+            try {
+                const response = await fetch("/api/chat/sessions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        userId: user.id,
+                        personaId: guru.id,
+                    }),
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setSessionId(data.session?.id || null);
+                }
+            } catch (error) {
+                console.error("Failed to create session:", error);
+            }
+        }
+    };
+
+    // Reset session when going back
+    const handleBack = () => {
+        setSelectedGuru(null);
+        setSessionId(null);
+    };
 
     return (
         <div className="flex min-h-screen flex-col p-4 max-w-md mx-auto pb-24">
             {selectedGuru ? (
                 <ChatInterface
                     guru={selectedGuru}
-                    onBack={() => setSelectedGuru(null)}
+                    onBack={handleBack}
+                    userId={user?.id}
+                    sessionId={sessionId || undefined}
                 />
             ) : (
                 <>
                     <header className="pt-8 pb-6">
                         <h1 className="text-3xl font-bold tracking-tight">AI Guru</h1>
-                        <p className="text-muted-foreground">Your personal investment mentor.</p>
+                        <p className="text-muted-foreground">당신만의 투자 멘토와 대화하세요.</p>
                     </header>
-                    <GuruSelector onSelect={setSelectedGuru} />
+                    <GuruSelector onSelect={handleGuruSelect} />
                 </>
             )}
         </div>

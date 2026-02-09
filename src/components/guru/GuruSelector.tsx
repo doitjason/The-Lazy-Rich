@@ -1,8 +1,9 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { GURU_PERSONAS, GuruPersona } from "@/lib/dummy-data";
+import { GURU_PERSONAS, GuruPersona } from "@/lib/guru-personas";
 import { motion } from "framer-motion";
+import { AlertTriangle } from "lucide-react";
 
 interface GuruSelectorProps {
     onSelect: (guru: GuruPersona) => void;
@@ -14,7 +15,7 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
         show: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1
+                staggerChildren: 0.08
             }
         }
     };
@@ -26,13 +27,21 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
 
     return (
         <div className="space-y-6">
+            {/* Disclaimer Banner */}
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                    이 AI는 가상의 페르소나이며, 투자의 책임은 전적으로 본인에게 있습니다.
+                </p>
+            </div>
+
             <div className="text-center space-y-2">
                 <h2 className="text-2xl font-bold">AI 멘토 선택</h2>
-                <p className="text-muted-foreground">당신의 투자 성향에 맞는 멘토를 선택하세요.</p>
+                <p className="text-muted-foreground text-sm">당신의 투자 성향에 맞는 멘토를 선택하세요.</p>
             </div>
 
             <motion.div
-                className="grid grid-cols-2 gap-4"
+                className="grid grid-cols-2 gap-3"
                 variants={container}
                 initial="hidden"
                 animate="show"
@@ -40,20 +49,23 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
                 {GURU_PERSONAS.map((guru) => (
                     <motion.div key={guru.id} variants={item}>
                         <Card
-                            className="group relative cursor-pointer overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md transition-all hover:bg-white/80 hover:shadow-lg hover:-translate-y-1"
+                            className="group relative cursor-pointer overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md transition-all hover:bg-white/80 hover:shadow-lg hover:-translate-y-1 active:scale-95"
                             onClick={() => onSelect(guru)}
                         >
-                            <div className="p-4 flex flex-col items-center text-center space-y-3">
-                                <div className={`h-12 w-12 rounded-full ${guru.color} flex items-center justify-center text-white shadow-md`}>
-                                    <span className="text-lg font-bold">{guru.avatarInitials}</span>
+                            <div className="p-3 flex flex-col items-center text-center space-y-2">
+                                {/* Avatar with Emoji */}
+                                <div className={`h-12 w-12 rounded-full ${guru.color} flex items-center justify-center text-white shadow-md text-2xl`}>
+                                    {guru.avatarEmoji}
                                 </div>
                                 <div className="space-y-1">
-                                    <h3 className="font-semibold text-sm">{guru.name}</h3>
-                                    <span className="inline-block px-2 py-0.5 rounded-full text-[10px] bg-primary/10 text-primary font-medium">
+                                    <h3 className="font-semibold text-xs leading-tight">{guru.name}</h3>
+                                    <p className="text-[10px] text-muted-foreground">{guru.englishName}</p>
+                                    <span className="inline-block px-2 py-0.5 rounded-full text-[9px] bg-primary/10 text-primary font-medium">
                                         {guru.tag}
                                     </span>
                                 </div>
-                                <p className="text-xs text-muted-foreground line-clamp-2">
+                                {/* Description */}
+                                <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
                                     {guru.description}
                                 </p>
                             </div>
