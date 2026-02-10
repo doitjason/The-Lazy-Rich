@@ -59,8 +59,8 @@ ${holdings}
         const lastMessage = messages[messages.length - 1];
         const questionTickers = extractTickersFromMessage(lastMessage.content || "");
 
-        // 포트폴리오 종목 + 질문 종목 합치기 (중복 제거)
-        const allTickers = Array.from(new Set([...userTickers, ...questionTickers]));
+        // 포트폴리오 종목 + 질문 종목 합치기 (중복 제거, 질문한 종목 우선)
+        const allTickers = Array.from(new Set([...questionTickers, ...userTickers].map(t => t.trim())));
 
         // Fetch persona-specific market data (캐싱 적용)
         let marketDataContext = "";

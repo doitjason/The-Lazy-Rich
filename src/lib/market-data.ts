@@ -253,10 +253,11 @@ async function fetchSummary(
 // ─── 한국 종목 심볼 변환 ───
 
 function resolveKoreanTicker(ticker: string): string {
-    if (/^\d{6}$/.test(ticker)) {
-        return `${ticker}.KS`; // KOSPI default, will fallback
+    const cleanTicker = ticker.trim();
+    if (/^\d{6}$/.test(cleanTicker)) {
+        return `${cleanTicker}.KS`; // KOSPI default, will fallback
     }
-    return ticker.toUpperCase();
+    return cleanTicker.toUpperCase();
 }
 
 // ─── RSI(14) 직접 계산 ───
@@ -611,12 +612,16 @@ export function heroDataToPrompt(data: HeroData): string {
         ? "\n⚠️ [주의] 현재 해당 종목의 상세 재무 데이터(성장률, PEG 등)를 일시적으로 가져올 수 없습니다. 보이는 가격과 추세 중심으로만 조언하세요."
         : "";
 
+    const pegDisplay = data.pegRatio !== null
+        ? formatNum(data.pegRatio)
+        : (data.earningsGrowth !== null && data.earningsGrowth < 0) ? "N/A (이익 역성장으로 산출 불가)" : "N/A";
+
     return `[📊 성장 투자 분석 데이터 - ${data.quote.name} (${data.quote.symbol})]
 현재가: ${formatNum(data.quote.price)} ${data.quote.currency} (${data.quote.changePercent >= 0 ? "+" : ""}${data.quote.changePercent.toFixed(2)}%)
 매출 성장률 (YoY): ${formatPercent(data.revenueGrowth)}
 이익 성장률 (YoY): ${formatPercent(data.earningsGrowth)}
 분기 이익 성장률: ${formatPercent(data.earningsQuarterlyGrowth)}
-PEG Ratio: ${formatNum(data.pegRatio)} (성장주 저평가 기준: 1.0 미만 매우 좋음, 1.5 이하 양호)
+PEG Ratio: ${pegDisplay} (성장주 저평가 기준: 1.0 미만 매우 좋음, 1.5 이하 양호)
 Forward PER: ${formatNum(data.forwardPer)}배
 매출총이익률: ${formatPercent(data.grossMargins)}
 영업현금흐름: ${formatLargeNum(data.operatingCashflow)}
