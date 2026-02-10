@@ -253,7 +253,7 @@ export function PortfolioList() {
                                 <span className="text-xl font-bold">${totalStats.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                                 <span className={`text-sm font-medium ${isTotalProfit ? 'text-red-500' : 'text-blue-500'}`}>
                                     {isTotalProfit ? '+' : ''}${totalStats.totalPnL.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                    ({totalPnLPercent >= 0 ? '+' : ''}{Math.abs(totalPnLPercent).toLocaleString(undefined, { maximumFractionDigits: 0 })}%)
+                                    ({totalPnLPercent >= 0 ? '+' : ''}{(Math.floor(Math.abs(totalPnLPercent) * 100) / 100).toFixed(2)}%)
                                 </span>
                             </div>
                         )}
@@ -419,7 +419,7 @@ export function PortfolioList() {
                                                     <span className="font-bold text-lg text-foreground">{item.ticker}</span>
                                                     {hasData && (
                                                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${profitBg} ${profitColor}`}>
-                                                            {isProfit ? '▲' : '▼'} {Math.abs(pnlPercent).toLocaleString(undefined, { maximumFractionDigits: 0 })}%
+                                                            {isProfit ? '▲' : '▼'} {(Math.floor(Math.abs(pnlPercent) * 100) / 100).toFixed(2)}%
                                                         </span>
                                                     )}
                                                 </div>

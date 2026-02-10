@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Send, ArrowLeft, Bot, User as UserIcon, Bookmark, Loader2, AlertTriangle } from "lucide-react";
+import { Send, ArrowLeft, Bot, User as UserIcon, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GuruPersona, getIntroMessage, SupportedLanguage } from "@/lib/guru-personas";
@@ -48,8 +48,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [streamingContent, setStreamingContent] = useState("");
-    const [isSavingInsight, setIsSavingInsight] = useState(false);
-    const [insightSaved, setInsightSaved] = useState(false);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -148,34 +147,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
         }
     };
 
-    const handleSaveInsight = async () => {
-        if (messages.length < 2 || isSavingInsight) return;
 
-        setIsSavingInsight(true);
-        try {
-            const response = await fetch("/api/insights", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userId,
-                    sessionId,
-                    messages: messages.filter(m => m.id !== "intro").map(m => ({
-                        role: m.role,
-                        content: m.content,
-                    })),
-                }),
-            });
-
-            if (response.ok) {
-                setInsightSaved(true);
-                setTimeout(() => setInsightSaved(false), 3000);
-            }
-        } catch (error) {
-            console.error("Save insight error:", error);
-        } finally {
-            setIsSavingInsight(false);
-        }
-    };
 
     return (
         <motion.div
@@ -367,33 +339,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                     </motion.div>
                 )}
 
-                {/* Save Insight Button */}
-                {messages.length > 2 && userId && (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full bg-white/50 dark:bg-white/5 border-white/20 hover:bg-white/80"
-                        onClick={handleSaveInsight}
-                        disabled={isSavingInsight || insightSaved}
-                    >
-                        {isSavingInsight ? (
-                            <>
-                                <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
-                                요약 중...
-                            </>
-                        ) : insightSaved ? (
-                            <>
-                                <Bookmark className="h-3.5 w-3.5 mr-2 fill-current" />
-                                저장 완료!
-                            </>
-                        ) : (
-                            <>
-                                <Bookmark className="h-3.5 w-3.5 mr-2" />
-                                이 조언 저장하기
-                            </>
-                        )}
-                    </Button>
-                )}
+
 
                 {/* Message Input */}
                 <form onSubmit={handleSubmit} className="relative flex items-center">
