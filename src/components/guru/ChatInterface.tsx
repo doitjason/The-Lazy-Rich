@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Send, ArrowLeft, Bot, User as UserIcon, Loader2, AlertTriangle } from "lucide-react";
+import { Send, ArrowLeft, Bot, User as UserIcon, Loader2, AlertTriangle, BarChart as ChartIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GuruPersona, getIntroMessage, SupportedLanguage } from "@/lib/guru-personas";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { ChartRenderer, ChartData } from "./ChartRenderer";
 
 interface Message {
     id: string;
@@ -207,7 +208,42 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                                     : "bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/20 rounded-tl-none"
                                     }`}
                             >
-                                <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                                {(() => {
+                                    const parts = [];
+                                    const regex = /\[CHART_DATA\]([\s\S]*?)\[\/CHART_DATA\]/g;
+                                    let lastIndex = 0;
+                                    let match;
+
+                                    // Clone content to avoid mutation issues if any
+                                    const content = message.content;
+
+                                    while ((match = regex.exec(content)) !== null) {
+                                        if (match.index > lastIndex) {
+                                            parts.push(<p key={`text-${lastIndex}`} className="whitespace-pre-wrap leading-relaxed mb-2">{content.substring(lastIndex, match.index)}</p>);
+                                        }
+
+                                        try {
+                                            // Handle potential single quotes or trailing commas from LLM
+                                            let jsonStr = match[1];
+                                            // Simple fix for single quotes on keys if present
+                                            if (!jsonStr.includes('"') && jsonStr.includes("'")) {
+                                                jsonStr = jsonStr.replace(/'/g, '"');
+                                            }
+                                            const chartJson = JSON.parse(jsonStr);
+                                            parts.push(<ChartRenderer key={`chart-${match.index}`} chartData={chartJson} />);
+                                        } catch (e) {
+                                            console.warn("Retrying chart parse...", e);
+                                        }
+
+                                        lastIndex = regex.lastIndex;
+                                    }
+
+                                    if (lastIndex < content.length) {
+                                        parts.push(<p key={`text-${lastIndex}`} className="whitespace-pre-wrap leading-relaxed">{content.substring(lastIndex)}</p>);
+                                    }
+
+                                    return parts.length > 0 ? parts : <p className="whitespace-pre-wrap leading-relaxed">{content}</p>;
+                                })()}
                             </div>
                         </motion.div>
                     ))}
@@ -224,7 +260,50 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                             <Bot className="h-3.5 w-3.5 text-muted-foreground" />
                         </div>
                         <div className="bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl rounded-tl-none p-3 max-w-[80%] text-sm shadow-sm">
-                            <p className="whitespace-pre-wrap leading-relaxed">{streamingContent}</p>
+                            {(() => {
+                                // Simple check for streaming: if we have [CHART_DATA] but no closing tag, we might want to hide the raw JSON or show a "Generating chart..." indicator
+                                // For now, we'll just render text, but if a full block exists, render it.
+                                const parts = [];
+                                const regex = /\[CHART_DATA\]([\s\S]*?)\[\/CHART_DATA\]/g;
+                                let lastIndex = 0;
+                                let match;
+
+                                const content = streamingContent;
+
+                                while ((match = regex.exec(content)) !== null) {
+                                    if (match.index > lastIndex) {
+                                        parts.push(<p key={`text-${lastIndex}`} className="whitespace-pre-wrap leading-relaxed mb-2">{content.substring(lastIndex, match.index)}</p>);
+                                    }
+
+                                    try {
+                                        const chartJson = JSON.parse(match[1]);
+                                        parts.push(<ChartRenderer key={`chart-${match.index}`} chartData={chartJson} />);
+                                    } catch (e) {
+                                        // Incomplete JSON or error
+                                    }
+
+                                    lastIndex = regex.lastIndex;
+                                }
+
+                                if (lastIndex < content.length) {
+                                    // Check if we are currently streaming a chart block (partial)
+                                    const remaining = content.substring(lastIndex);
+                                    if (remaining.includes("[CHART_DATA]")) {
+                                        const [before] = remaining.split("[CHART_DATA]");
+                                        parts.push(<p key={`text-${lastIndex}`} className="whitespace-pre-wrap leading-relaxed">{before}</p>);
+                                        parts.push(
+                                            <div key="chart-loading" className="flex items-center gap-2 p-3 bg-muted/20 rounded-lg animate-pulse">
+                                                <ChartIcon className="h-4 w-4 text-muted-foreground" />
+                                                <span className="text-xs text-muted-foreground">차트 생성 중...</span>
+                                            </div>
+                                        );
+                                    } else {
+                                        parts.push(<p key={`text-${lastIndex}`} className="whitespace-pre-wrap leading-relaxed">{remaining}</p>);
+                                    }
+                                }
+
+                                return parts;
+                            })()}
                             <span className="inline-block w-1.5 h-4 bg-primary/50 ml-0.5 animate-pulse" />
                         </div>
                     </motion.div>
@@ -365,6 +444,6 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                     </Button>
                 </form>
             </div>
-        </motion.div>
+        </motion.div >
     );
 }

@@ -772,6 +772,38 @@ async function calculateHistoryMetrics(): Promise<HistoryMetrics | null> {
     }
 }
 
+// ─── 차트용 과거 데이터 (30일) 가져오기 ───
+
+async function fetchPriceHistory(symbol: string): Promise<{ date: string; price: number }[]> {
+    const cacheKey = `history:30d:${symbol}`;
+    const cached = marketCache.get<{ date: string; price: number }[]>(cacheKey);
+    if (cached) return cached;
+
+    try {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 35); // 넉넉히 35일 전
+
+        const result = await yahooFinance.historical(symbol, {
+            period1: startDate,
+            period2: endDate,
+            interval: "1d",
+        });
+
+        // 최근 30개만 추출 및 포맷팅 (YYYY-MM-DD)
+        const data = result.slice(-30).map(item => ({
+            date: item.date.toISOString().split("T")[0],
+            price: item.close
+        }));
+
+        marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
+        return data;
+    } catch (e) {
+        console.warn(`Failed to fetch history for ${symbol}`, e);
+        return [];
+    }
+}
+
 async function fetchCommonMarketData(): Promise<CommonMarketSnapshot> {
     const cacheKey = "common:market-snapshot-v3";
     const cached = marketCache.get<CommonMarketSnapshot>(cacheKey);
@@ -1068,8 +1100,34 @@ export async function getPersonaMarketContext(
             }
         }
 
-        // Step 3: 공통 + 전문 합치기
-        const parts = [commonPrompt, specializedPrompt].filter(Boolean);
+        // Step 3: 차트 생성을 위한 과거 데이터 주입 (모든 페르소나 공통, 요청된 티커 대상)
+        let chartContext = "";
+        if (userTickers.length > 0) {
+            const uniqueTickers = Array.from(new Set(userTickers.map(t => resolveKoreanTicker(t)))).slice(0, 3); // 최대 3개
+            const historyData = await Promise.all(
+                uniqueTickers.map(async (symbol) => {
+                    const history = await fetchPriceHistory(symbol);
+                    if (history.length === 0) return null;
+                    // 토큰 절약을 위해 데이터 압축 (날짜는 생략하고 값만 나열하거나, 간략화)
+                    // 여기서는 JSON 문자열로 제공하여 AI가 바로 파싱해서 차트를 그리게 유도
+                    return `"${symbol}": ${JSON.stringify(history)}`;
+                })
+            );
+
+            const validHistory = historyData.filter(Boolean);
+            if (validHistory.length > 0) {
+                chartContext = `
+[📈 차트 생성용 과거 데이터 (30일)]
+AI는 아래 데이터를 사용하여 선 그래프(Line Chart)를 그려야 합니다.
+{
+  ${validHistory.join(",\n  ")}
+}
+`;
+            }
+        }
+
+        // Step 4: 공통 + 전문 + 차트데이터 합치기
+        const parts = [commonPrompt, specializedPrompt, chartContext].filter(Boolean);
         return parts.join("\n\n");
     } catch (error) {
         console.error(`[MarketData] Failed to get context for ${personaId}:`, error);
