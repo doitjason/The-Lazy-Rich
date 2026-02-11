@@ -6,24 +6,11 @@
 
 import YahooFinance from "yahoo-finance2";
 import { marketCache, MarketDataCache } from "./market-data-cache";
+import { StockQuote, EnrichedPortfolioItem } from "./market-types";
 
 const yahooFinance = new YahooFinance();
 
 // ─── 공통 타입 정의 ───
-
-interface StockQuote {
-    symbol: string;
-    price: number;
-    change: number;
-    changePercent: number;
-    currency: string;
-    name: string;
-    // 추가 상세 데이터 (API 호출 없이 매핑만 추가)
-    fiftyTwoWeekHigh?: number;
-    fiftyTwoWeekLow?: number;
-    fiftyDayAverage?: number;
-    twoHundredDayAverage?: number;
-}
 
 interface SageData {
     quote: StockQuote;
@@ -41,6 +28,9 @@ interface SageData {
     freeCashflow: number | null;
     fiftyTwoWeekHigh: number | null;
     fiftyTwoWeekLow: number | null;
+    // New Indicators
+    enterpriseToEbitda: number | null;
+    netSharePurchaseActivity: number | null; // 내부자 거래 (순매수)
 }
 
 interface HeroData {
@@ -58,6 +48,10 @@ interface HeroData {
     targetHighPrice: number | null;
     targetLowPrice: number | null;
     numberOfAnalysts: number | null;
+    // New Indicators
+    shortPercentOfFloat: number | null; // 공매도 비율
+    recommendationKey: string | null; // 매수 의견 (strong_buy, buy, hold, etc.)
+    earningsSurprise: number | null; // 어닝 서프라이즈 (%)
 }
 
 interface MarketIndicator {
@@ -93,6 +87,9 @@ interface SpeculatorData {
     distanceFrom52WeekHigh: number | null; // %
     distanceFromMA50: number | null; // %
     rsi14: number | null; // RSI(14) 직접 계산
+    atr14: number | null; // ATR(14) 변동성
+    bollingerUpper: number | null; // 볼린저 밴드 상단
+    bollingerLower: number | null; // 볼린저 밴드 하단
 }
 
 interface FatherData {
@@ -104,6 +101,8 @@ interface FatherData {
         changePercent: number;
         dividendYield: number | null;
         expenseRatio: string; // 사전 정의값
+        topSectors: string | null; // 상위 섹터 (Top 3)
+        topHoldings: string | null; // 상위 종목 (Top 3)
     }[];
 }
 
@@ -219,11 +218,11 @@ async function fetchQuote(symbol: string): Promise<StockQuote | null> {
 
 // ─── quoteSummary 가져오기 (캐싱 포함) ───
 
-type SummaryModule = "defaultKeyStatistics" | "financialData" | "summaryDetail";
+type SummaryModule = "defaultKeyStatistics" | "financialData" | "summaryDetail" | "netSharePurchaseActivity" | "earningsHistory" | "fundProfile" | "topHoldings" | "summaryProfile";
 
 async function fetchSummary(
     symbol: string,
-    modules: ("defaultKeyStatistics" | "financialData" | "summaryDetail")[]
+    modules: SummaryModule[]
 ): Promise<Record<string, unknown> | null> {
     const cacheKey = `summary:${symbol}:${modules.join(",")}`;
     const cached = marketCache.get<Record<string, unknown>>(cacheKey);
@@ -309,6 +308,62 @@ async function calculateRSI(symbol: string, period: number = 14): Promise<number
     }
 }
 
+// ─── ATR(14) & Bollinger Bands(20, 2) 계산 ───
+
+async function calculateTechnicalIndicators(symbol: string): Promise<{ atr: number | null; bbUpper: number | null; bbLower: number | null }> {
+    try {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 60); // 60일치 데이터 (SMA20, ATR14 위해 여유있게)
+
+        const historical = await yahooFinance.historical(symbol, {
+            period1: startDate,
+            period2: endDate,
+            interval: "1d",
+        }) as { date: Date; open: number; high: number; low: number; close: number; volume: number }[];
+
+        if (!historical || historical.length < 22) return { atr: null, bbUpper: null, bbLower: null };
+
+        // --- ATR(14) Calculation ---
+        let trSum = 0;
+        // Need at least 15 days including prev close for initial TR
+        const atrPeriod = 14;
+        const atrData = historical.slice(-(atrPeriod + 1));
+
+        // Simple TR average for approximation (Wilder's Smoothing is better but simple avg is okay for prompt)
+        // Or calculate properly: TR = Max(H-L, |H-Cp|, |L-Cp|)
+        let trs: number[] = [];
+        for (let i = 1; i < atrData.length; i++) {
+            const high = atrData[i].high;
+            const low = atrData[i].low;
+            const prevClose = atrData[i - 1].close;
+            const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+            trs.push(tr);
+        }
+        const atr = trs.reduce((a, b) => a + b, 0) / trs.length;
+
+        // --- Bollinger Bands(20, 2) Calculation ---
+        const bbPeriod = 20;
+        const bbStdDev = 2;
+        const bbData = historical.slice(-bbPeriod).map(d => d.close);
+
+        if (bbData.length < bbPeriod) return { atr, bbUpper: null, bbLower: null };
+
+        const sma = bbData.reduce((a, b) => a + b, 0) / bbPeriod;
+        const variance = bbData.reduce((a, b) => a + Math.pow(b - sma, 2), 0) / bbPeriod;
+        const stdDev = Math.sqrt(variance);
+
+        const bbUpper = sma + (stdDev * bbStdDev);
+        const bbLower = sma - (stdDev * bbStdDev);
+
+        return { atr, bbUpper, bbLower };
+
+    } catch (error) {
+        console.error(`[MarketData] Technical indicators failed for ${symbol}:`, error);
+        return { atr: null, bbUpper: null, bbLower: null };
+    }
+}
+
 // ═══════════════════════════════════════════════════════
 // 페르소나별 데이터 Fetch 함수
 // ═══════════════════════════════════════════════════════
@@ -326,11 +381,14 @@ export async function fetchSageData(ticker: string): Promise<SageData | null> {
         "defaultKeyStatistics",
         "financialData",
         "summaryDetail",
+        "netSharePurchaseActivity", // 내부자 거래
     ]);
 
     const stats = (summary?.defaultKeyStatistics || {}) as Record<string, unknown>;
     const financial = (summary?.financialData || {}) as Record<string, unknown>;
     const detail = (summary?.summaryDetail || {}) as Record<string, unknown>;
+    const insider = (summary?.netSharePurchaseActivity || {}) as Record<string, unknown>;
+    const netInsider = (insider?.netPercentInsiderShares as number) ?? (insider?.buyInfoShares as number) ?? 0;
 
     return {
         quote,
@@ -348,6 +406,8 @@ export async function fetchSageData(ticker: string): Promise<SageData | null> {
         freeCashflow: (financial.freeCashflow as number) ?? null,
         fiftyTwoWeekHigh: (detail.fiftyTwoWeekHigh as number) ?? null,
         fiftyTwoWeekLow: (detail.fiftyTwoWeekLow as number) ?? null,
+        enterpriseToEbitda: (stats.enterpriseToEbitda as number) ?? null,
+        netSharePurchaseActivity: netInsider,
     };
 }
 
@@ -363,10 +423,12 @@ export async function fetchHeroData(ticker: string): Promise<HeroData | null> {
     const summary = await fetchSummary(symbol, [
         "defaultKeyStatistics",
         "financialData",
+        "earningsHistory", // 어닝 서프라이즈 확인용
     ]);
 
     const stats = (summary?.defaultKeyStatistics || {}) as Record<string, unknown>;
     const financial = (summary?.financialData || {}) as Record<string, unknown>;
+    const earnings = (summary?.earningsHistory || {}) as { history?: any[] };
 
     return {
         quote,
@@ -383,6 +445,9 @@ export async function fetchHeroData(ticker: string): Promise<HeroData | null> {
         targetHighPrice: (financial.targetHighPrice as number) ?? null,
         targetLowPrice: (financial.targetLowPrice as number) ?? null,
         numberOfAnalysts: (financial.numberOfAnalystOpinions as number) ?? null,
+        shortPercentOfFloat: (stats.shortPercentOfFloat as number) ?? null,
+        recommendationKey: (financial.recommendationKey as string) ?? null,
+        earningsSurprise: (earnings.history && earnings.history[0]?.surprisePercent as number) ?? null, // 최근 분기 서프라이즈
     };
 }
 
@@ -464,6 +529,9 @@ export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorDat
         // RSI(14) 직접 계산
         const rsi14 = await calculateRSI(symbol);
 
+        // ATR & Bollinger Bands 계산
+        const { atr, bbUpper, bbLower } = await calculateTechnicalIndicators(symbol);
+
         const data: SpeculatorData = {
             quote: {
                 symbol: (quote.symbol as string) || symbol,
@@ -486,6 +554,9 @@ export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorDat
             distanceFrom52WeekHigh: high52 ? Math.round(((price - high52) / high52) * 10000) / 100 : null,
             distanceFromMA50: fiftyDayAvg ? Math.round(((price - fiftyDayAvg) / fiftyDayAvg) * 10000) / 100 : null,
             rsi14,
+            atr14: atr,
+            bollingerUpper: bbUpper,
+            bollingerLower: bbLower,
         };
 
         marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
@@ -538,9 +609,30 @@ export async function fetchFatherData(): Promise<FatherData> {
     for (const { symbol, expenseRatio } of etfInfo) {
         const quote = await fetchQuote(symbol);
         if (quote) {
-            // 배당 수익률은 summary에서
-            const summary = await fetchSummary(symbol, ["summaryDetail"]);
+            // 배당 수익률은 summary에서, 섹터/보유종목은 추가 모듈에서
+            const summary = await fetchSummary(symbol, ["summaryDetail", "fundProfile", "topHoldings"]);
             const detail = (summary?.summaryDetail || {}) as Record<string, unknown>;
+            const fund = (summary?.fundProfile || {}) as { sectorWeightings?: { sector: string; weight: number }[] };
+            const holdings = (summary?.topHoldings || {}) as { holdings?: { symbol: string; holdingPercent: number }[] };
+
+            // 상위 3개 섹터 포맷팅
+            let topSectors = null;
+            if (fund.sectorWeightings && fund.sectorWeightings.length > 0) {
+                topSectors = fund.sectorWeightings
+                    .sort((a, b) => b.weight - a.weight)
+                    .slice(0, 3)
+                    .map(s => `${s.sector}(${(s.weight * 100).toFixed(0)}%)`)
+                    .join(", ");
+            }
+
+            // 상위 3개 종목 포맷팅
+            let topHoldings = null;
+            if (holdings.holdings && holdings.holdings.length > 0) {
+                topHoldings = holdings.holdings
+                    .slice(0, 3)
+                    .map(h => `${h.symbol}(${(h.holdingPercent * 100).toFixed(0)}%)`)
+                    .join(", ");
+            }
 
             etfData.push({
                 symbol,
@@ -549,6 +641,8 @@ export async function fetchFatherData(): Promise<FatherData> {
                 changePercent: quote.changePercent,
                 dividendYield: (detail.yield as number) ?? (detail.dividendYield as number) ?? null,
                 expenseRatio,
+                topSectors,
+                topHoldings,
             });
         }
     }
@@ -599,6 +693,8 @@ EPS: ${formatNum(data.eps)}
 유동비율: ${formatNum(data.currentRatio)}
 장부가치: ${formatNum(data.bookValue)}
 잉여현금흐름: ${formatLargeNum(data.freeCashflow)}
+EV/EBITDA: ${formatNum(data.enterpriseToEbitda)}배
+내부자 거래(순매수): ${data.netSharePurchaseActivity ? formatNum(data.netSharePurchaseActivity) + "주" : "N/A"}
 52주 최고: ${formatNum(data.fiftyTwoWeekHigh)} (고점 대비 낙폭: ${dropFromHigh ? dropFromHigh.toFixed(2) + "%" : "N/A"})
 52주 최저: ${formatNum(data.fiftyTwoWeekLow)}
 
@@ -614,7 +710,7 @@ export function heroDataToPrompt(data: HeroData): string {
 
     const pegDisplay = data.pegRatio !== null
         ? formatNum(data.pegRatio)
-        : (data.earningsGrowth !== null && data.earningsGrowth < 0) ? "N/A (이익 역성장으로 산출 불가)" : "N/A";
+        : "N/A (최근 이익이 적자이거나 변동성이 커서 산출 불가)";
 
     return `[📊 성장 투자 분석 데이터 - ${data.quote.name} (${data.quote.symbol})]
 현재가: ${formatNum(data.quote.price)} ${data.quote.currency} (${data.quote.changePercent >= 0 ? "+" : ""}${data.quote.changePercent.toFixed(2)}%)
@@ -629,6 +725,9 @@ Forward PER: ${formatNum(data.forwardPer)}배
 주당 매출: ${formatNum(data.revenuePerShare)}
 애널리스트 목표가: 평균 ${formatNum(data.targetMeanPrice)} (괴리율: ${data.targetMeanPrice ? ((data.targetMeanPrice - data.quote.price) / data.quote.price * 100).toFixed(2) + "%" : "N/A"})
 목표가 최고: ${formatNum(data.targetHighPrice)} | 최저: ${formatNum(data.targetLowPrice)}
+투자의견: ${data.recommendationKey ? data.recommendationKey.toUpperCase().replace("_", " ") : "N/A"}
+공매도 비율: ${formatPercent(data.shortPercentOfFloat)} (20% 이상이면 Short Squeeze 주의)
+어닝 서프라이즈(최근): ${formatPercent(data.earningsSurprise)}
 애널리스트 수: ${formatNum(data.numberOfAnalysts)}명${warning}
 
 위 데이터를 바탕으로 성장 스토리가 건재한지 분석하세요. 
@@ -663,12 +762,23 @@ export function speculatorDataToPrompt(data: SpeculatorData): string {
         else rsiInterpretation = " (중립)";
     }
 
+    // 볼린저 밴드 위치
+    let bbStatus = "";
+    if (data.bollingerUpper && data.bollingerLower) {
+        const price = data.quote.price;
+        if (price >= data.bollingerUpper) bbStatus = "🚨 볼린저 밴드 상단 돌파 (과매수/강한 추세)";
+        else if (price <= data.bollingerLower) bbStatus = "🟢 볼린저 밴드 하단 터치 (과매도/반등 가능성)";
+        else bbStatus = "밴드 내 위치";
+    }
+
     return `[📊 모멘텀 트레이딩 데이터 - ${data.quote.name} (${data.quote.symbol})]
 현재가: ${formatNum(data.quote.price)} ${data.quote.currency} (${data.quote.changePercent >= 0 ? "+" : ""}${data.quote.changePercent.toFixed(2)}%)
 이동평균선 정렬: ${data.maAlignment}
 50일 이동평균: ${formatNum(data.fiftyDayAverage)} (괴리율: ${formatNum(data.distanceFromMA50)}%)
 200일 이동평균: ${formatNum(data.twoHundredDayAverage)}
 RSI(14): ${formatNum(data.rsi14)}${rsiInterpretation}
+볼린저 밴드: ${data.bollingerUpper ? `상단 ${formatNum(data.bollingerUpper)} | 하단 ${formatNum(data.bollingerLower)}` : "N/A"} (${bbStatus})
+변동성 (ATR): ${formatNum(data.atr14)}
 52주 최고: ${formatNum(data.fiftyTwoWeekHigh)} (고점 대비: ${formatNum(data.distanceFrom52WeekHigh)}%)
 거래량 비율: ${formatNum(data.volumeRatio)}배 (평소 대비 ${data.volumeRatio && data.volumeRatio > 1 ? "급증 🔥" : "건조"})
 
@@ -679,25 +789,28 @@ RSI(14): ${formatNum(data.rsi14)}${rsiInterpretation}
 }
 
 export function fatherDataToPrompt(data: FatherData): string {
-    const indexLines = data.indicators.map(
+    const marketLines = data.indicators.map(
         (i) => `${i.name}: ${i.price.toLocaleString()} (${i.changePercent >= 0 ? "+" : ""}${i.changePercent.toFixed(2)}%)`
     );
 
-    const etfLines = data.etfData.map(
-        (e) => `${e.symbol} (${e.name}): $${e.price.toFixed(2)} | 보수: ${e.expenseRatio} | 배당: ${e.dividendYield ? (e.dividendYield * 100).toFixed(2) + "%" : "N/A"}`
-    );
+    const etfLines = data.etfData.map((e) => {
+        let info = `  - [${e.symbol}] ${e.name}: ${formatNum(e.price)} (${e.changePercent >= 0 ? "+" : ""}${e.changePercent.toFixed(2)}%)`;
+        info += ` | 배당률: ${formatPercent(e.dividendYield)} | 보수: ${e.expenseRatio}`;
+        if (e.topSectors) info += `\n    └ 섹터: ${e.topSectors}`;
+        if (e.topHoldings) info += `\n    └ 종목: ${e.topHoldings}`;
+        return info;
+    });
 
-    return `[📊 시장 지수 & ETF 데이터]
-시장 지수:
-${indexLines.join("\n")}
+    return `[📊 인덱스 & ETF 시장 데이터]
+주요 지수:
+${marketLines.join("\n")}
 
-주요 인덱스 ETF:
+주요 ETF 분석:
 ${etfLines.join("\n")}
 
-위 데이터를 바탕으로 시장 전체 관점에서 조언하세요:
-- 개별 종목의 단기 등락보다 시장 전체의 우상향 믿음을 강조하세요
-- "지금 사야 하나요?" 질문에는 "타이밍을 맞추려 말고 꾸준히 모아가라(DCA)"고 조언하세요
-- 보수(Expense Ratio)가 낮은 ETF가 장기적으로 얼마나 유리한지 설명해주세요`;
+위 데이터를 바탕으로 시장 전체의 흐름을 읽고, 장기 적립식 투자의 중요성을 설득하세요.
+- 개별 종목 등락에 일희일비하지 말고 "시장 전체를 사는" ETF 전략을 권장하세요.
+- 섹터 비중을 언급하며 "기술주가 주도하는 장세입니다" 등의 코멘트를 추가하세요.`;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -774,7 +887,7 @@ async function calculateHistoryMetrics(): Promise<HistoryMetrics | null> {
 
 // ─── 차트용 과거 데이터 (30일) 가져오기 ───
 
-async function fetchPriceHistory(symbol: string): Promise<{ date: string; price: number }[]> {
+export async function fetchPriceHistory(symbol: string): Promise<{ date: string; price: number }[]> {
     const cacheKey = `history:30d:${symbol}`;
     const cached = marketCache.get<{ date: string; price: number }[]>(cacheKey);
     if (cached) return cached;
@@ -816,6 +929,12 @@ async function fetchCommonMarketData(): Promise<CommonMarketSnapshot> {
         { symbol: "^DJI", name: "다우존스" },
         { symbol: "^RUT", name: "러셀 2000 (중소형주)" },
         { symbol: "^SOX", name: "필라델피아 반도체 지수 (SOX)" },
+
+        // 섹터 대장주 (시장 분위기 파악용)
+        { symbol: "XLK", name: "기술 섹터 (XLK)" },
+        { symbol: "XLE", name: "에너지 섹터 (XLE)" },
+        { symbol: "XLF", name: "금융 섹터 (XLF)" },
+
         // 변동성
         { symbol: "^VIX", name: "VIX (공포지수)" },
         // 금리
@@ -825,6 +944,7 @@ async function fetchCommonMarketData(): Promise<CommonMarketSnapshot> {
         // 원자재 & 통화
         { symbol: "DX-Y.NYB", name: "달러 인덱스 (DXY)" },
         { symbol: "GC=F", name: "금 (Gold)" },
+        { symbol: "HG=F", name: "구리 (Copper)" },
         { symbol: "CL=F", name: "원유 (WTI)" },
         // 디지털 자산
         { symbol: "BTC-USD", name: "비트코인 (BTC)" },
@@ -924,10 +1044,11 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
     const { indicators, yieldCurveSpread } = snapshot;
     if (indicators.length === 0) return "";
 
-    // 카테고리별 정렬
+    // 카테고리별 정렬 & 추가
     const indexSymbols = ["^GSPC", "^IXIC", "^DJI", "^RUT", "^SOX"];
+    const sectorSymbols = ["XLK", "XLE", "XLF"]; // 기술, 에너지, 금융 (시장 주도 섹터 파악)
     const rateSymbols = ["^TNX", "^TYX", "^IRX"];
-    const commoditySymbols = ["DX-Y.NYB", "GC=F", "CL=F", "BTC-USD"];
+    const commoditySymbols = ["DX-Y.NYB", "GC=F", "HG=F", "CL=F", "BTC-USD"]; // 구리(HG=F) 추가
 
     const formatLine = (i: MarketIndicator) => {
         let details = "";
@@ -941,16 +1062,21 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
         // 이평선 괴리 (추세 관점)
         if (i.ma200) {
             const trend = i.price > i.ma200 ? "상승추세" : "하락추세";
-            // 200일선과 5% 이상 차이나면 언급
             if (Math.abs((i.price - i.ma200) / i.ma200) > 0.05) {
-                details += ` | ${trend}(200일선 위)`;
+                details += ` | ${trend}`;
             }
+        }
+
+        // VIX 특수 처리
+        if (i.symbol === "^VIX") {
+            return `  🚨 ${i.name}: ${i.price.toLocaleString()} (${i.price >= 20 ? "불안" : "안정"})`;
         }
 
         return `  ${i.name}: ${i.price.toLocaleString()} (${i.changePercent >= 0 ? "+" : ""}${i.changePercent.toFixed(2)}%)${details}`;
     };
 
     const indexLines = indicators.filter((i) => indexSymbols.includes(i.symbol)).map(formatLine);
+    const sectorLines = indicators.filter((i) => sectorSymbols.includes(i.symbol)).map(formatLine);
     const rateLines = indicators.filter((i) => rateSymbols.includes(i.symbol)).map(formatLine);
     const commodityLines = indicators.filter((i) => commoditySymbols.includes(i.symbol)).map(formatLine);
 
@@ -960,10 +1086,12 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
     // VIX 해석
     const vix = indicators.find((i) => i.symbol === "^VIX");
     if (vix) {
-        if (vix.price >= 30) comments.push("⚠️ VIX 30+: 시장 극단적 공포");
-        else if (vix.price >= 20) comments.push("⚠️ VIX 20+: 시장 불안 심리 감지");
-        else if (vix.price <= 12) comments.push("✅ VIX 12 이하: 시장 안정/낙관");
+        if (vix.price >= 30) comments.push("🔴 VIX 30+: 시장 극단적 공포");
+        else if (vix.price >= 20) comments.push("🟠 VIX 20+: 시장 불안 심리 감지");
+        else if (vix.price <= 12) comments.push("🟢 VIX 12 이하: 시장 안정/낙관");
     }
+
+    // Put/Call Ratio (VIX로 간접 유추 또는 추후 추가)
 
     // 장단기 금리차 해석
     if (yieldCurveSpread !== null) {
@@ -975,16 +1103,19 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
     // 달러 해석
     const dxy = indicators.find((i) => i.symbol === "DX-Y.NYB");
     if (dxy) {
-        if (dxy.price >= 105) comments.push("💪 달러 강세 (DXY 105+)");
-        else if (dxy.price <= 95) comments.push("📉 달러 약세 (DXY 95-)");
+        if (dxy.price >= 105) comments.push("💪 달러 강세 (DXY 105+): 위험자산 부담");
+        else if (dxy.price <= 95) comments.push("📉 달러 약세 (DXY 95-): 유동성 호재");
     }
 
     // 원유 해석
     const oil = indicators.find((i) => i.symbol === "CL=F");
     if (oil) {
-        if (oil.price >= 90) comments.push("🛢️ 원유 $90+: 인플레이션 우려");
-        else if (oil.price <= 50) comments.push("🛢️ 원유 $50 이하: 경기 둔화 신호");
+        if (oil.price >= 90) comments.push("🔥 유가 급등 ($90+): 인플레 재점화 우려");
     }
+
+    // 비트코인 해석 (유동성 지표)
+    const btc = indicators.find((i) => i.symbol === "BTC-USD");
+    if (btc && btc.changePercent > 5) comments.push("🚀 비트코인 급등: 위험자산 선호 심리 회복 중");
 
     const commentSection = comments.length > 0 ? `\n\n📌 팩트 기반 시장 요약:\n${comments.join("\n")}` : "";
 
@@ -995,6 +1126,9 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
 
 주요 지수:
 ${indexLines.join("\n")}
+
+섹터 동향:
+${sectorLines.join("\n")}
 
 금리:
 ${rateLines.join("\n")}
@@ -1133,4 +1267,61 @@ AI는 아래 데이터를 사용하여 선 그래프(Line Chart)를 그려야 �
         console.error(`[MarketData] Failed to get context for ${personaId}:`, error);
         return "";
     }
+}
+
+// ═══════════════════════════════════════════════════════
+// 포트폴리오 대시보드용 데이터 (Sparklines, Sector, Dividend)
+// ═══════════════════════════════════════════════════════
+
+export async function fetchEnrichedPortfolio(tickers: string[]): Promise<Record<string, EnrichedPortfolioItem>> {
+    const results: Record<string, EnrichedPortfolioItem> = {};
+
+    // Remove duplicates and filter empty
+    const uniqueTickers = Array.from(new Set(tickers)).filter(t => t);
+
+    await Promise.all(
+        uniqueTickers.map(async (ticker) => {
+            try {
+                // Use existing fetchQuote for basic data + caching
+                const quote = await fetchQuote(ticker);
+                if (!quote) return;
+
+                // Sector & Dividend info from summary
+                let sector = undefined;
+                let dividendYield = undefined;
+
+                try {
+                    const summary = await fetchSummary(ticker, ["summaryProfile", "summaryDetail"]);
+                    if (summary) {
+                        const profile = summary.summaryProfile as any;
+                        const detail = summary.summaryDetail as any;
+                        sector = profile?.sector;
+                        // summaryDetail의 dividendYield는 0.0xxx 형태 (e.g. 0.05)
+                        dividendYield = detail?.dividendYield;
+                    }
+                } catch (e) {
+                    // Summary fetch failure is non-critical
+                }
+
+                // Sparkline history (30 days)
+                let sparkline: { date: string; price: number }[] = [];
+                try {
+                    sparkline = await fetchPriceHistory(ticker);
+                } catch (e) {
+                    // History fetch failure is non-critical
+                }
+
+                results[ticker] = {
+                    ...quote,
+                    sector,
+                    dividendYield,
+                    sparkline,
+                };
+            } catch (e) {
+                console.error(`Failed to enrich data for ${ticker}`, e);
+            }
+        })
+    );
+
+    return results;
 }

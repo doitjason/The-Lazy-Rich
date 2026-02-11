@@ -18,7 +18,7 @@ export default function PortfolioPage() {
                 </div>
             </motion.header>
 
-            {/* Real Portfolio from Supabase - No more dummy data! */}
+            {/* Real Portfolio from Supabase */}
             <PortfolioList />
         </div>
     );

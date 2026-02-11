@@ -14,10 +14,12 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 type PriceData = {
     [ticker: string]: {
         price: number;
-        loading: boolean;
+        change?: number;
+        changePercent?: number;
+        loading?: boolean;
         error?: string;
-    };
-};
+    }
+}
 
 // Helper to detect currency symbol based on ticker
 function getCurrencySymbol(ticker: string): string {
@@ -244,6 +246,7 @@ export function PortfolioList() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
         >
+
             <Card className="overflow-hidden border border-white/20 bg-white/10 dark:bg-black/20 backdrop-blur-2xl shadow-2xl">
                 <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-white/10">
                     <div>
