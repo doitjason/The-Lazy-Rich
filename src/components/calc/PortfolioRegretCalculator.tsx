@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Loader2, Plus, Trash2, PieChart, TrendingUp, TrendingDown, Sparkles, HelpCircle, Share2, Download } from "lucide-react";
-import { toPng } from 'html-to-image';
+import { Loader2, Plus, Trash2, PieChart, TrendingUp, TrendingDown, Sparkles, HelpCircle } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -106,60 +106,7 @@ export function PortfolioRegretCalculator() {
     const [isCalculated, setIsCalculated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const resultRef = useRef<HTMLDivElement>(null);
 
-    const handleDownloadImage = useCallback(async () => {
-        if (resultRef.current === null) return;
-
-        try {
-            setIsLoading(true);
-            const dataUrl = await toPng(resultRef.current, {
-                cacheBust: true,
-                backgroundColor: '#000', // Matches deep dark theme
-                style: {
-                    borderRadius: '0'
-                }
-            });
-            const link = document.createElement('a');
-            link.download = `core-backtest-result-${new Date().getTime()}.png`;
-            link.href = dataUrl;
-            link.click();
-        } catch (err) {
-            console.error('Failed to download image', err);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [resultRef]);
-
-    const handleShare = useCallback(async () => {
-        if (!result) return;
-
-        const shareText = `했제? 그때 이 포트폴리오 샀으면 지금쯤 수익률이 ${result.returnRate.toFixed(1)}%라니까! 🔥\n\n` +
-            `📊 백테스팅 기간: ${result.actualPeriod}\n` +
-            `📈 연평균 수익률(CAGR): ${result.cagr.toFixed(1)}%\n` +
-            `📉 최대 낙폭(MDD): ${result.mdd.toFixed(1)}%\n\n` +
-            `지금 CORE에서 당신의 포트폴리오를 점검해보세요!`;
-
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: 'CORE 포트폴리오 했제 계산기 결과',
-                    text: shareText,
-                    url: window.location.href,
-                });
-            } catch (err) {
-                console.log('Share cancelled or failed', err);
-            }
-        } else {
-            // Fallback: Copy to clipboard
-            try {
-                await navigator.clipboard.writeText(shareText + "\n" + window.location.href);
-                alert('결과가 클립보드에 복사되었습니다! 친구에게 공유해보세요.');
-            } catch (err) {
-                console.error('Failed to copy', err);
-            }
-        }
-    }, [result]);
 
     // Update default values when currency changes
     useEffect(() => {
@@ -796,7 +743,7 @@ export function PortfolioRegretCalculator() {
 
             {/* Results Section */}
             {isCalculated && result && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700" ref={resultRef}>
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <Card className="overflow-hidden border border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-xl shadow-2xl">
                         <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-purple-500/5 pointer-events-none" />
                         <CardContent className="pt-8 pb-8 px-6 relative z-10">
@@ -1050,23 +997,7 @@ export function PortfolioRegretCalculator() {
                     </Card>
 
                     {/* Sharing & Download Actions */}
-                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-8 mb-10">
-                        <Button
-                            onClick={handleShare}
-                            className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-sky-500/50 backdrop-blur-md transition-all flex items-center gap-3 group"
-                        >
-                            <Share2 className="w-5 h-5 text-sky-400 group-hover:scale-110 transition-transform" />
-                            <span className="font-bold text-white/90">친구에게 공유하기</span>
-                        </Button>
-                        <Button
-                            onClick={handleDownloadImage}
-                            disabled={isLoading}
-                            className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-sky-500 hover:bg-sky-600 border border-sky-400/30 shadow-lg shadow-sky-500/20 transition-all flex items-center gap-3 group"
-                        >
-                            <Download className="w-5 h-5 text-white group-hover:translate-y-0.5 transition-transform" />
-                            <span className="font-bold text-white">이미지로 저장하기</span>
-                        </Button>
-                    </div>
+
                 </div>
             )}
         </div>
