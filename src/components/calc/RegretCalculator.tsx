@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Loader2, HelpCircle, Share2, Download } from "lucide-react";
+import { toPng } from 'html-to-image';
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { StockSearchInput } from "@/components/ui/StockSearchInput";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -19,8 +21,12 @@ interface RegretResult {
     currentValue: number;
     profit: number;
     returnRate: number;
-    multiple: number;
-    chartData: { name: string; value: number }[];
+    cagr: number;
+    mdd: number;
+    quantity: number;
+    avgPrice: number;
+    dropFromAth: number;
+    chartData: { name: string; value: number; stockPrice: number }[];
     actualPeriod?: string;
 }
 
@@ -34,6 +40,60 @@ export function RegretCalculator() {
     const [isCalculated, setIsCalculated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const resultRef = useRef<HTMLDivElement>(null);
+
+    const handleDownloadImage = useCallback(async () => {
+        if (resultRef.current === null) return;
+
+        try {
+            setIsLoading(true);
+            const dataUrl = await toPng(resultRef.current, {
+                cacheBust: true,
+                backgroundColor: '#ffffff',
+                style: {
+                    borderRadius: '0',
+                    fontFamily: 'Pretendard, sans-serif'
+                }
+            });
+            const link = document.createElement('a');
+            link.download = `core-regret-result-${new Date().getTime()}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (err) {
+            console.error('Failed to download image', err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [resultRef]);
+
+    const handleShare = useCallback(async () => {
+        if (!result) return;
+
+        const shareText = `했제? 그때 ${result.name}(${result.ticker}) 샀으면 지금쯤 수익률이 ${result.returnRate.toFixed(1)}%라니까! 🔥\n\n` +
+            `📊 투자 기간: ${result.actualPeriod} ~ 현재\n` +
+            `📈 연평균 수익률(CAGR): ${result.cagr.toFixed(1)}%\n` +
+            `📉 최대 낙폭(MDD): ${result.mdd.toFixed(1)}%\n\n` +
+            `지금 CORE에서 당신의 후회를 확인해보세요!`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'CORE 했제 계산기 결과',
+                    text: shareText,
+                    url: window.location.href,
+                });
+            } catch (err) {
+                console.log('Share cancelled or failed', err);
+            }
+        } else {
+            try {
+                await navigator.clipboard.writeText(shareText + "\n" + window.location.href);
+                alert('결과가 클립보드에 복사되었습니다! 친구에게 공유해보세요.');
+            } catch (err) {
+                console.error('Failed to copy', err);
+            }
+        }
+    }, [result]);
 
     // Update default amount when currency changes
     useEffect(() => {
@@ -78,7 +138,6 @@ export function RegretCalculator() {
             const currentValueUSD = shares * currentPrice;
             const profitUSD = currentValueUSD - investmentUSD;
             const returnRate = (profitUSD / investmentUSD) * 100;
-            const multiple = currentValueUSD / investmentUSD;
 
             // Convert back to display currency
             const multiplier = currency === "KRW" ? exchangeRate : 1;
@@ -94,6 +153,28 @@ export function RegretCalculator() {
                 };
             });
 
+            // Calculate MDD and Drop From ATH
+            let peakValue = investmentChartData[0].value;
+            let maxDrawdown = 0;
+            let athPrice = investmentChartData[0].stockPrice;
+
+            for (const point of investmentChartData) {
+                // MDD (Portfolio Value)
+                if (point.value > peakValue) peakValue = point.value;
+                const drawdown = (peakValue - point.value) / peakValue;
+                if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+
+                // ATH Price
+                if (point.stockPrice > athPrice) athPrice = point.stockPrice;
+            }
+
+            const mdd = maxDrawdown * 100;
+            const dropFromAth = ((investmentChartData[investmentChartData.length - 1].stockPrice - athPrice) / athPrice) * 100;
+
+            // Calculate CAGR
+            const years = parseInt(period.replace("Y", ""));
+            const cagr = ((Math.pow(currentValueUSD / investmentUSD, 1 / years) - 1) * 100);
+
             setResult({
                 ticker: data.ticker,
                 name: name || stockName,
@@ -104,9 +185,13 @@ export function RegretCalculator() {
                 currentValue: currentValueUSD * multiplier,
                 profit: profitUSD * multiplier,
                 returnRate,
-                multiple,
+                cagr,
+                mdd,
+                quantity: shares,
+                avgPrice: pastPrice * multiplier,
+                dropFromAth,
                 chartData: investmentChartData,
-                actualPeriod: actualStartDate ? `${new Date(actualStartDate).getFullYear()}년부터` : undefined,
+                actualPeriod: actualStartDate ? `${new Date(actualStartDate).getFullYear()}` : undefined,
             });
             setIsCalculated(true);
         } catch (err) {
@@ -194,10 +279,11 @@ export function RegretCalculator() {
                     </div>
 
                     {/* 4. Action Button (Gradient) */}
+                    {/* 4. Action Button (Gradient) */}
                     <Button
                         onClick={onCalculate}
                         disabled={isLoading || !ticker}
-                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/10 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
                     >
                         {isLoading ? (
                             <>
@@ -221,67 +307,149 @@ export function RegretCalculator() {
             )}
 
             {isCalculated && (
-                <>
+                <div className="space-y-6">
                     {result ? (
-                        <Card className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <CardContent className="pt-0 text-center space-y-4">
+                        <Card ref={resultRef} className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 p-6">
+                            <CardContent className="pt-0 text-center space-y-2">
                                 {/* Stock Name Badge */}
-                                <div className="flex items-center justify-center gap-2 mb-2">
-                                    <span className="text-sm font-medium text-sky-500 bg-sky-500/10 border border-sky-500/50 px-2 py-0.5 rounded-md">
+                                <div className="flex items-center justify-center gap-2 mb-2 whitespace-nowrap">
+                                    <span className="text-sm font-medium text-sky-500 bg-sky-500/10 border border-sky-500/50 px-2 py-0.5 rounded-md shrink-0">
                                         {result.ticker}
                                     </span>
-                                    <span className="text-sm text-muted-foreground">{result.name}</span>
+                                    <span className="text-sm text-muted-foreground truncate max-w-[200px]">{result.name}</span>
                                 </div>
 
                                 {result.actualPeriod && (
                                     <p className="text-xs text-muted-foreground">
-                                        * 데이터 기준: {result.actualPeriod}
+                                        {result.actualPeriod}년부터 {currency === "KRW" ? `${formatCompactNumber(result.initialInvestment)}원` : `$${formatCompactNumber(result.initialInvestment)}`} 거치식으로 투자
                                     </p>
                                 )}
 
-                                <div className="space-y-1">
+                                <div className="w-full overflow-hidden px-1 mt-2">
                                     <p className="text-sm font-medium text-muted-foreground">현재 추정 가치</p>
-                                    <h2 className={cn(
-                                        "font-bold text-primary transition-all",
-                                        formatCurrency(result.currentValue).length > 15
-                                            ? "text-2xl sm:text-3xl"
-                                            : formatCurrency(result.currentValue).length > 10
-                                                ? "text-3xl sm:text-4xl"
-                                                : "text-4xl sm:text-5xl"
-                                    )}>
-                                        {formatCurrency(result.currentValue)}
-                                    </h2>
+                                    {(() => {
+                                        const formattedValue = formatCurrency(result.currentValue);
+                                        const len = formattedValue.length;
+
+                                        // Ultra-safe scaling to prevent clipping on any device
+                                        let fontSizeClass = "text-3xl sm:text-6xl";
+                                        if (len > 18) fontSizeClass = "text-xs sm:text-xl";
+                                        else if (len > 15) fontSizeClass = "text-sm sm:text-2xl";
+                                        else if (len > 12) fontSizeClass = "text-lg sm:text-3xl";
+                                        else if (len > 10) fontSizeClass = "text-xl sm:text-4xl";
+                                        else if (len > 8) fontSizeClass = "text-2xl sm:text-5xl";
+
+                                        return (
+                                            <h2 className={cn(
+                                                "font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 whitespace-nowrap px-2 pb-2 text-center w-full",
+                                                fontSizeClass
+                                            )}>
+                                                {formattedValue}
+                                            </h2>
+                                        );
+                                    })()}
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/10 dark:border-white/5">
-                                    <div className="flex flex-col items-center">
-                                        <p className="text-xs text-muted-foreground whitespace-nowrap">수익률</p>
-                                        <p className={`text-lg font-semibold ${result.returnRate >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                            {result.returnRate >= 0 ? '+' : ''}
-                                            {result.returnRate > 10000
+                                <div className="grid grid-cols-3 gap-4 mt-4 w-full max-w-3xl mx-auto">
+                                    {/* 1. Total Profit */}
+                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                                        <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
+                                        <span className={`text-lg font-black flex items-center gap-1 ${result.returnRate >= 0 ? "text-red-500" : "text-blue-500"} whitespace-nowrap`}>
+                                            {result.returnRate >= 0 ? "+" : ""}
+                                            {result.returnRate >= 10000
                                                 ? formatCompactNumber(result.returnRate)
-                                                : result.returnRate.toLocaleString(undefined, { maximumFractionDigits: 1 })
+                                                : result.returnRate.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
                                             }%
-                                        </p>
+                                        </span>
                                     </div>
-                                    <div className="flex flex-col items-center">
-                                        <p className="text-xs text-muted-foreground whitespace-nowrap">총 수익금</p>
-                                        <p className={`text-lg font-semibold ${result.profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                            {result.profit >= 0 ? '+' : ''}
-                                            {currency === "KRW" ? "" : "$"}
-                                            {formatCompactNumber(Math.abs(result.profit))}
-                                            {currency === "KRW" ? "원" : ""}
-                                        </p>
+
+                                    {/* 2. CAGR */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">연평균 수익률</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                </div>
+                                                <span className={`text-lg font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                    {result.cagr >= 0 ? "+" : ""}{result.cagr.toFixed(1)}%
+                                                </span>
+                                            </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
+                                            <p className="font-bold text-sky-400 mb-1">연평균 수익률 (CAGR)</p>
+                                            기하급수적으로 자산이 매년 평균 몇 %씩 성장했는지를 보여주는 지표입니다. 복리 수익을 반영한 실질 성장률입니다.
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    {/* 3. MDD */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                </div>
+                                                <span className="text-lg font-black text-blue-500">
+                                                    -{result.mdd.toFixed(1)}%
+                                                </span>
+                                            </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
+                                            <p className="font-bold text-red-400 mb-1">최대 낙폭 (MDD)</p>
+                                            투자 기간 중 최고점에서 최저점까지 최대 하락했던 정도입니다. 투자자의 인내심을 테스트하는 가장 중요한 리스크 지표입니다.
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    {/* 4. Quantity */}
+                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                                        <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">보유 수량</span>
+                                        <span className="text-lg font-black text-slate-500 whitespace-nowrap">
+                                            약 {Math.round(result.quantity).toLocaleString()}주
+                                        </span>
                                     </div>
-                                    <div className="flex flex-col items-center">
-                                        <p className="text-xs text-muted-foreground whitespace-nowrap">상승 배수</p>
-                                        <p className={`text-lg font-semibold ${result.returnRate >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                            {result.multiple > 1000
-                                                ? formatCompactNumber(result.multiple)
-                                                : (Math.floor(result.multiple * 10) / 10).toLocaleString()
-                                            }배
-                                        </p>
+
+                                    {/* 5. Avg Price */}
+                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                                        <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground whitespace-nowrap">당시 평단가</span>
+                                        <span className="text-lg font-black text-slate-500 whitespace-nowrap">
+                                            {(() => {
+                                                const val = Math.round(result.avgPrice);
+                                                if (currency === "KRW") {
+                                                    let formatted = "";
+                                                    if (val >= 100000000) formatted = `${Math.floor(val / 100000000)}억`;
+                                                    else if (val >= 10000) formatted = `${Math.floor(val / 10000)}만`;
+                                                    else formatted = val.toLocaleString();
+                                                    return `약 ${formatted}원`;
+                                                } else {
+                                                    const formatted = new Intl.NumberFormat("en-US", {
+                                                        notation: "compact",
+                                                        maximumFractionDigits: 0,
+                                                    }).format(val);
+                                                    return `약 $${formatted}`;
+                                                }
+                                            })()}
+                                        </span>
                                     </div>
+
+                                    {/* 6. Drop From ATH */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">고점 대비 하락</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                </div>
+                                                <span className="text-lg font-black text-blue-500">
+                                                    {result.dropFromAth.toFixed(1)}%
+                                                </span>
+                                            </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
+                                            <p className="font-bold text-sky-400 mb-1">고점 대비 하락</p>
+                                            역대 최고가(ATH) 대비 현재 주가의 위치입니다. 0%이면 최고가 경신중이며, 수치가 클수록 전성기 대비 많이 할인된 상태입니다.
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
 
                                 <div className="h-48 w-full mt-8">
@@ -357,10 +525,24 @@ export function RegretCalculator() {
                             </CardContent>
                         </Card>
                     )}
-                    <p className="text-[10px] text-center text-muted-foreground px-4">
-                        이 결과는 시뮬레이션이며 미래의 수익을 보장하지 않습니다. FOMO에 빠지지 마세요.
-                    </p>
-                </>
+                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-6">
+                        <Button
+                            onClick={handleShare}
+                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2"
+                        >
+                            <Share2 className="w-5 h-5 text-white" />
+                            <span>친구에게 공유하기</span>
+                        </Button>
+                        <Button
+                            onClick={handleDownloadImage}
+                            disabled={isLoading}
+                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                        >
+                            <Download className="w-5 h-5 text-white" />
+                            <span>이미지로 저장하기</span>
+                        </Button>
+                    </div>
+                </div>
             )}
         </div>
     );

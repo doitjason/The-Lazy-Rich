@@ -30,7 +30,7 @@ const POPULAR_STOCKS: StockResult[] = [
     { ticker: "AAPL", name: "Apple Inc.", exchange: "NASDAQ", type: "EQUITY" },
     { ticker: "NVDA", name: "NVIDIA Corporation", exchange: "NASDAQ", type: "EQUITY" },
     { ticker: "SPY", name: "S&P 500 ETF", exchange: "NYSE", type: "ETF" },
-    { ticker: "005930.KS", name: "삼성전자", exchange: "Korea", type: "EQUITY" },
+    { ticker: "TSLA", name: "Tesla, Inc.", exchange: "NASDAQ", type: "EQUITY" },
     { ticker: "BTC-USD", name: "Bitcoin USD", exchange: "CCC", type: "CRYPTOCURRENCY" },
 ];
 

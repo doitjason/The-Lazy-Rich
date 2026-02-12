@@ -1,7 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Loader2, Plus, Trash2, PieChart, TrendingUp, TrendingDown, Sparkles } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Loader2, Plus, Trash2, PieChart, TrendingUp, TrendingDown, Sparkles, HelpCircle, Share2, Download } from "lucide-react";
+import { toPng } from 'html-to-image';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,7 +30,11 @@ interface PortfolioResult {
     finalValue: number;
     profit: number;
     returnRate: number;
-    multiple: number;
+    cagr: number;
+    mdd: number;
+    bestYear: { year: number; return: number };
+    worstYear: { year: number; return: number };
+    winRate: number;
     chartData: { name: string; value: number }[];
     actualPeriod?: string;
     rebalanceCount: number;
@@ -34,6 +44,8 @@ interface PortfolioResult {
         initialValue: number;
         finalValue: number;
         returnRate: number;
+        profit: number;
+        contributionShare: number;
     }[];
 }
 
@@ -82,7 +94,7 @@ const PRESETS = [
 ];
 
 export function PortfolioRegretCalculator() {
-    const { currency, exchangeRate, formatCurrency } = useCurrency();
+    const { currency, exchangeRate, formatCurrency, formatCompactNumber } = useCurrency();
     const { user } = useAuth();
     const { items, fetchPortfolio } = usePortfolioStore();
 
@@ -94,6 +106,60 @@ export function PortfolioRegretCalculator() {
     const [isCalculated, setIsCalculated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const resultRef = useRef<HTMLDivElement>(null);
+
+    const handleDownloadImage = useCallback(async () => {
+        if (resultRef.current === null) return;
+
+        try {
+            setIsLoading(true);
+            const dataUrl = await toPng(resultRef.current, {
+                cacheBust: true,
+                backgroundColor: '#000', // Matches deep dark theme
+                style: {
+                    borderRadius: '0'
+                }
+            });
+            const link = document.createElement('a');
+            link.download = `core-backtest-result-${new Date().getTime()}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (err) {
+            console.error('Failed to download image', err);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [resultRef]);
+
+    const handleShare = useCallback(async () => {
+        if (!result) return;
+
+        const shareText = `했제? 그때 이 포트폴리오 샀으면 지금쯤 수익률이 ${result.returnRate.toFixed(1)}%라니까! 🔥\n\n` +
+            `📊 백테스팅 기간: ${result.actualPeriod}\n` +
+            `📈 연평균 수익률(CAGR): ${result.cagr.toFixed(1)}%\n` +
+            `📉 최대 낙폭(MDD): ${result.mdd.toFixed(1)}%\n\n` +
+            `지금 CORE에서 당신의 포트폴리오를 점검해보세요!`;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'CORE 포트폴리오 했제 계산기 결과',
+                    text: shareText,
+                    url: window.location.href,
+                });
+            } catch (err) {
+                console.log('Share cancelled or failed', err);
+            }
+        } else {
+            // Fallback: Copy to clipboard
+            try {
+                await navigator.clipboard.writeText(shareText + "\n" + window.location.href);
+                alert('결과가 클립보드에 복사되었습니다! 친구에게 공유해보세요.');
+            } catch (err) {
+                console.error('Failed to copy', err);
+            }
+        }
+    }, [result]);
 
     // Update default values when currency changes
     useEffect(() => {
@@ -385,13 +451,80 @@ export function PortfolioRegretCalculator() {
             }).filter(Boolean) as PortfolioResult['assets'];
 
 
+            // Calculate CAGR
+            const yearsPassed = minLength / 12;
+            const cagr = yearsPassed > 0
+                ? (Math.pow(finalValue / initialInvestment, 1 / yearsPassed) - 1) * 100
+                : 0;
+
+            // Calculate MDD, Win Rate, and Yearly Returns
+            let peak = portfolioChartData[0].value;
+            let maxDrawdown = 0;
+            let positiveMonths = 0;
+
+            // Yearly tracking
+            const yearlyReturns: { year: number; return: number }[] = [];
+            let currentYear = new Date(portfolioChartData[0].name).getFullYear();
+            let startOfYearVal = portfolioChartData[0].value;
+
+            for (let i = 0; i < portfolioChartData.length; i++) {
+                const point = portfolioChartData[i];
+                const pointYear = new Date(point.name).getFullYear();
+
+                // MDD
+                if (point.value > peak) {
+                    peak = point.value;
+                }
+                const drawdown = (peak - point.value) / peak;
+                if (drawdown > maxDrawdown) {
+                    maxDrawdown = drawdown;
+                }
+
+                // Win Rate (Monthly)
+                if (i > 0) {
+                    if (point.value > portfolioChartData[i - 1].value) {
+                        positiveMonths++;
+                    }
+                }
+
+                // Yearly Return Calculation
+                if (pointYear !== currentYear) {
+                    // Year changed, calculate return for the completed year
+                    // Use previous point as end of year value
+                    const endOfYearVal = portfolioChartData[i - 1].value;
+                    const yearReturn = ((endOfYearVal - startOfYearVal) / startOfYearVal) * 100;
+                    yearlyReturns.push({ year: currentYear, return: yearReturn });
+
+                    // Reset for new year
+                    currentYear = pointYear;
+                    startOfYearVal = endOfYearVal; // Start of new year is end of last year effectively
+                }
+
+                // Handle last point for the final partial year
+                if (i === portfolioChartData.length - 1) {
+                    const yearReturn = ((point.value - startOfYearVal) / startOfYearVal) * 100;
+                    yearlyReturns.push({ year: currentYear, return: yearReturn });
+                }
+            }
+
+            const mdd = maxDrawdown * 100;
+            const winRate = portfolioChartData.length > 1 ? (positiveMonths / (portfolioChartData.length - 1)) * 100 : 0;
+
+            const sortedByReturn = [...yearlyReturns].sort((a, b) => b.return - a.return);
+            const bestYearObj = sortedByReturn.length > 0 ? sortedByReturn[0] : { year: 0, return: 0 };
+            const worstYearObj = sortedByReturn.length > 0 ? sortedByReturn[sortedByReturn.length - 1] : { year: 0, return: 0 };
+
             setResult({
                 period,
                 initialInvestment,
                 finalValue,
                 profit: finalValue - initialInvestment,
                 returnRate: ((finalValue - initialInvestment) / initialInvestment) * 100,
-                multiple: finalValue / initialInvestment,
+                cagr,
+                mdd,
+                bestYear: bestYearObj,
+                worstYear: worstYearObj,
+                winRate,
                 chartData: portfolioChartData,
                 actualPeriod: commonStartDateStr,
                 rebalanceCount,
@@ -403,11 +536,19 @@ export function PortfolioRegretCalculator() {
                     const finalAssetVal = holding.units * lastPrice * multiplier;
                     const initialAssetVal = initialAssetInv.initialAmount * multiplier;
 
+                    const assetProfit = Math.round(finalAssetVal - initialAssetVal);
+                    const totalPortfolioProfit = finalValue - initialInvestment;
+                    const contributionShare = totalPortfolioProfit !== 0
+                        ? (assetProfit / Math.abs(totalPortfolioProfit)) * 100
+                        : 0;
+
                     return {
                         ticker: holding.ticker,
                         initialValue: Math.round(initialAssetVal),
                         finalValue: Math.round(finalAssetVal),
-                        returnRate: ((finalAssetVal / initialAssetVal) - 1) * 100
+                        returnRate: ((finalAssetVal / initialAssetVal) - 1) * 100,
+                        profit: assetProfit,
+                        contributionShare: contributionShare
                     };
                 })
             });
@@ -655,7 +796,7 @@ export function PortfolioRegretCalculator() {
 
             {/* Results Section */}
             {isCalculated && result && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700" ref={resultRef}>
                     <Card className="overflow-hidden border border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-xl shadow-2xl">
                         <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-purple-500/5 pointer-events-none" />
                         <CardContent className="pt-8 pb-8 px-6 relative z-10">
@@ -666,24 +807,120 @@ export function PortfolioRegretCalculator() {
                                     </span>
                                 </div>
                                 <h2 className="text-lg font-medium text-muted-foreground/80">최종 평가 금액</h2>
-                                <div className="flex items-baseline justify-center gap-1">
-                                    <h1 className="text-4xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 tracking-tight">
-                                        {formatCurrency(result.finalValue)}
-                                    </h1>
+                                <div className="flex items-baseline justify-center gap-1 w-full overflow-hidden">
+                                    {(() => {
+                                        const formattedFinalValue = formatCurrency(result.finalValue);
+                                        const len = formattedFinalValue.length;
+                                        // Adjust breakpoints to be safer. Count includes commas and currency symbol.
+                                        // e.g., "66,870,825원" is 11 chars.
+                                        let fontSizeClass = "text-4xl sm:text-6xl"; // Default for short (< 10 chars)
+
+                                        if (len > 20) fontSizeClass = "text-xl sm:text-3xl";
+                                        else if (len > 14) fontSizeClass = "text-2xl sm:text-4xl";
+                                        else if (len > 9) fontSizeClass = "text-3xl sm:text-5xl";
+
+                                        return (
+                                            <h1 className={cn(
+                                                "font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 tracking-tight whitespace-nowrap px-1",
+                                                fontSizeClass
+                                            )}>
+                                                {formattedFinalValue}
+                                            </h1>
+                                        );
+                                    })()}
                                 </div>
-                                <div className="flex items-center justify-center gap-3 mt-4">
-                                    <div className={`px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-1.5 ${result.profit >= 0 ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-blue-500/10 text-blue-500 border border-blue-500/20"}`}>
-                                        {result.profit >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                                        {result.profit >= 0 ? "+" : ""}{result.returnRate.toFixed(2)}%
+                                <div className="grid grid-cols-3 gap-4 mt-8 w-full max-w-3xl mx-auto">
+                                    {/* 1. Total Profit */}
+                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                                        <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
+                                        <span className={`text-lg font-black flex items-center gap-1 ${result.profit >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                            {result.profit >= 0 ? "+" : ""}{(Math.trunc(result.returnRate * 10) / 10).toFixed(1)}%
+                                        </span>
                                     </div>
-                                    <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-muted-foreground text-sm font-bold backdrop-blur-sm">
-                                        {result.multiple.toFixed(2)}배 수익
+
+                                    {/* 2. CAGR */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">연평균 수익률</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                </div>
+                                                <span className={`text-lg font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                    {result.cagr >= 0 ? "+" : ""}{result.cagr.toFixed(1)}%
+                                                </span>
+                                            </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
+                                            <p className="font-bold text-sky-400 mb-1">연평균 수익률 (CAGR)</p>
+                                            기하급수적으로 자산이 매년 평균 몇 %씩 성장했는지를 보여주는 지표입니다. CAGR이라는 약어로 불리며, 복리 수익을 반영한 실질 성장률을 의미합니다.
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    {/* 3. MDD */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                </div>
+                                                <span className="text-lg font-black text-blue-500">
+                                                    -{result.mdd.toFixed(1)}%
+                                                </span>
+                                            </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
+                                            <p className="font-bold text-red-400 mb-1">최대 낙폭 (MDD)</p>
+                                            투자 기간 중 특정 고점에서 전 저점까지의 최대 하락폭을 의미합니다. 자산 가치가 가장 크게 깎였던 고통의 크기를 보여주는 대표적인 리스크 지표입니다.
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    {/* 4. Best Year */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최고의 해</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                </div>
+                                                <span className={`text-lg font-black ${result.bestYear.return >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                    {result.bestYear.return > 0 ? "+" : ""}{result.bestYear.return.toFixed(1)}%
+                                                </span>
+                                            </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
+                                            <p className="font-bold text-sky-400 mb-1">최고의 해 ({result.bestYear.year}년)</p>
+                                            백테스팅 기간 중 연간 수익률(1월~12월 기준)이 가장 높았던 해입니다. {result.bestYear.year}년에 가장 뛰어난 성과를 기록했습니다.
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    {/* 5. Worst Year */}
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최악의 해</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                </div>
+                                                <span className={`text-lg font-black ${result.worstYear.return >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                    {result.worstYear.return > 0 ? "+" : ""}{result.worstYear.return.toFixed(1)}%
+                                                </span>
+                                            </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
+                                            <p className="font-bold text-red-400 mb-1">최악의 해 ({result.worstYear.year}년)</p>
+                                            백테스팅 기간 중 연간 수익률(1월~12월 기준)이 가장 낮았던 해입니다. {result.worstYear.year}년에 가장 저조한 성과를 기록했습니다.
+                                        </PopoverContent>
+                                    </Popover>
+
+                                    {/* 6. Win Rate */}
+                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                                        <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">월별 승률</span>
+                                        <span className={`text-lg font-black ${result.winRate >= 50 ? "text-red-500" : "text-blue-500"}`}>
+                                            {result.winRate.toFixed(1)}%
+                                        </span>
                                     </div>
-                                    {result.rebalancePeriodUsed !== "none" && (
-                                        <div className="px-4 py-1.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-500 text-sm font-bold backdrop-blur-sm">
-                                            {rebalanceLabelMap[result.rebalancePeriodUsed]} 리밸런싱 {result.rebalanceCount}회
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 
@@ -747,27 +984,62 @@ export function PortfolioRegretCalculator() {
                             </div>
 
                             {/* Individual Asset Performance Table */}
-                            <div className="bg-white/5 dark:bg-black/20 rounded-2xl p-5 border border-white/5">
-                                <h3 className="text-xs font-bold text-muted-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                                    <PieChart className="w-3.5 h-3.5" />
-                                    종목별 기여도 분석
+                            <div className="bg-white/5 dark:bg-black/20 rounded-3xl p-6 border border-white/5 backdrop-blur-md">
+                                <h3 className="text-xs font-black text-muted-foreground/60 mb-6 uppercase tracking-[0.2em] flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <PieChart className="w-4 h-4 text-sky-500" />
+                                        종목별 기여도 분석
+                                    </div>
+                                    <span className="text-[10px] font-medium lowercase italic opacity-50">Contribution Details</span>
                                 </h3>
-                                <div className="space-y-3">
-                                    {result.assets.map((asset, idx) => (
-                                        <div key={asset.ticker} className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition-colors group">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500/20 to-blue-600/20 flex items-center justify-center font-bold text-sky-500 text-xs border border-sky-500/10 shadow-sm group-hover:scale-105 transition-transform">
-                                                    {asset.ticker}
+
+                                <div className="space-y-4">
+                                    {[...result.assets].sort((a, b) => b.finalValue - a.finalValue).map((asset, idx) => (
+                                        <div
+                                            key={asset.ticker}
+                                            className="relative overflow-hidden p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-500/30 transition-all duration-300 group shadow-sm hover:shadow-sky-500/5"
+                                        >
+                                            <div className="relative z-10 flex items-center justify-between gap-3">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    {/* Custom Ticker Icon */}
+                                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-transparent flex-shrink-0 flex items-center justify-center font-black text-foreground/90 text-[10px] border border-white/10 shadow-inner group-hover:scale-105 transition-transform duration-500">
+                                                        {asset.ticker}
+                                                    </div>
+                                                    <div className="space-y-1 min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="font-black text-sm text-foreground tracking-tight truncate">{asset.ticker}</p>
+                                                            {asset.returnRate > result.returnRate && (
+                                                                <Popover>
+                                                                    <PopoverTrigger asChild>
+                                                                        <span className="cursor-help flex-shrink-0 text-[8px] font-black px-1.2 py-0.3 rounded-md bg-green-500/10 text-green-500 border border-green-500/20 uppercase tracking-tighter shadow-sm hover:bg-green-500/20 transition-colors">
+                                                                            Ace
+                                                                        </span>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-48 text-[11px] font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed p-3">
+                                                                        <p className="font-bold text-green-400 mb-1">Ace 종목</p>
+                                                                        포트폴리오의 평균 수익률({result.returnRate.toFixed(1)}%)보다 높은 성과를 기록하여 전체 성장을 견인한 우수 종목입니다.
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-muted-foreground/50 tracking-wide whitespace-nowrap">
+                                                            {formatCompactNumber(asset.initialValue)}{currency === "KRW" ? " 원" : ""} 투자
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-sm text-foreground">{asset.ticker}</p>
-                                                    <p className="text-xs text-muted-foreground">{formatCurrency(asset.initialValue)} 투자</p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-bold text-sm text-foreground">{formatCurrency(asset.finalValue)}</p>
-                                                <div className={`text-xs font-bold flex items-center justify-end gap-0.5 ${asset.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`}>
-                                                    {asset.returnRate >= 0 ? "+" : ""}{asset.returnRate.toFixed(1)}%
+
+                                                <div className="text-right flex-shrink-0">
+                                                    <p className="font-black text-sm text-foreground tabular-nums tracking-tight whitespace-nowrap">
+                                                        {formatCurrency(asset.finalValue)}
+                                                    </p>
+                                                    <div className="flex flex-col items-end gap-1 mt-1">
+                                                        <span className={`text-[10px] font-bold tabular-nums whitespace-nowrap ${asset.profit >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                            {asset.profit >= 0 ? "+" : ""}{formatCompactNumber(asset.profit)}{currency === "KRW" ? " 원" : ""}
+                                                        </span>
+                                                        <span className={`flex-shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-sm ${asset.returnRate >= 0 ? "bg-red-500 text-white" : "bg-blue-500 text-white"}`}>
+                                                            {asset.returnRate >= 0 ? "+" : ""}{asset.returnRate.toFixed(1)}%
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -776,6 +1048,25 @@ export function PortfolioRegretCalculator() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Sharing & Download Actions */}
+                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-8 mb-10">
+                        <Button
+                            onClick={handleShare}
+                            className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-sky-500/50 backdrop-blur-md transition-all flex items-center gap-3 group"
+                        >
+                            <Share2 className="w-5 h-5 text-sky-400 group-hover:scale-110 transition-transform" />
+                            <span className="font-bold text-white/90">친구에게 공유하기</span>
+                        </Button>
+                        <Button
+                            onClick={handleDownloadImage}
+                            disabled={isLoading}
+                            className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-sky-500 hover:bg-sky-600 border border-sky-400/30 shadow-lg shadow-sky-500/20 transition-all flex items-center gap-3 group"
+                        >
+                            <Download className="w-5 h-5 text-white group-hover:translate-y-0.5 transition-transform" />
+                            <span className="font-bold text-white">이미지로 저장하기</span>
+                        </Button>
+                    </div>
                 </div>
             )}
         </div>
