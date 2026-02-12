@@ -123,7 +123,7 @@ export function RegretCalculator() {
             <Card className="overflow-hidden border border-white/20 bg-white/10 dark:bg-black/20 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
                 <CardHeader className="pb-2">
                     <p className="text-sm font-medium text-muted-foreground/80 tracking-wide">
-                        그때 투자했더라면 지금 얼마일지 확인해보세요.
+                        그때 그 종목에 투자했었더라면 지금은 어떻게 되었을지 확인해보세요.
                     </p>
                 </CardHeader>
                 <CardContent className="space-y-9">

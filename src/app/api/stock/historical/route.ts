@@ -54,23 +54,14 @@ export async function GET(request: NextRequest) {
         // First record is the past price
         const pastPrice = historical[0]?.close || historical[0]?.adjClose;
 
-        // Build chart data (sample points for smooth chart)
-        const chartData = historical
-            .filter((_, i) => i % Math.max(1, Math.floor(historical.length / 20)) === 0 || i === historical.length - 1)
-            .map((item, idx, arr) => {
-                let label = "";
-                if (idx === 0) label = "투자 시점";
-                else if (idx === arr.length - 1) label = "현재";
-                else {
-                    const date = new Date(item.date);
-                    label = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}`;
-                }
-                return {
-                    name: label,
-                    price: item.close || item.adjClose,
-                    date: item.date,
-                };
-            });
+        // Build full chart data (monthly) for accurate calculations
+        const chartData = historical.map((item) => {
+            const date = new Date(item.date);
+            return {
+                name: date.toISOString().split('T')[0], // YYYY-MM-DD
+                price: item.adjClose || item.close, // Use Adjusted Close for dividends/splits if available
+            };
+        });
 
         return NextResponse.json({
             ticker: ticker.toUpperCase(),

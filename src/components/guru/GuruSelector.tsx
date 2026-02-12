@@ -84,7 +84,7 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
     return (
         <div className="space-y-4">
             {/* Disclaimer Banner */}
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2">
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2 mx-10">
                 <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-amber-600 dark:text-amber-400">
                     이 AI는 가상의 페르소나이며, 투자의 책임은 전적으로 본인에게 있습니다.
@@ -195,13 +195,15 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
             </p>
 
             {/* CTA Button */}
-            <Button
-                onClick={() => onSelect(currentGuru)}
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-sky-600 hover:from-primary/90 hover:to-sky-600/90 shadow-lg shadow-primary/20 rounded-xl transition-all active:scale-[0.98]"
-            >
-                <MessageCircle className="h-5 w-5 mr-2" />
-                {currentGuru.name}와 대화 시작하기
-            </Button>
+            <div className="px-10">
+                <Button
+                    onClick={() => onSelect(currentGuru)}
+                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-sky-600 hover:from-primary/90 hover:to-sky-600/90 shadow-lg shadow-primary/20 rounded-xl transition-all active:scale-[0.98]"
+                >
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    {currentGuru.name}와 대화 시작하기
+                </Button>
+            </div>
         </div>
     );
 }

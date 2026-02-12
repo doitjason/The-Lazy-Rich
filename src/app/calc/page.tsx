@@ -3,6 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RegretCalculator } from "@/components/calc/RegretCalculator";
 import { CompoundCalculator } from "@/components/calc/CompoundCalculator";
+import { PortfolioRegretCalculator } from "@/components/calc/PortfolioRegretCalculator";
 
 export default function CalcPage() {
     return (
@@ -13,12 +14,16 @@ export default function CalcPage() {
             </header>
 
             <Tabs defaultValue="regret" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="regret">했제 계산기</TabsTrigger>
-                    <TabsTrigger value="compound">복리 계산기</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-3 mb-6">
+                    <TabsTrigger value="regret">했제 계산기 V1</TabsTrigger>
+                    <TabsTrigger value="regret-v2">했제 계산기 V2</TabsTrigger>
+                    <TabsTrigger value="compound">자유 계산기</TabsTrigger>
                 </TabsList>
                 <TabsContent value="regret" className="mt-0">
                     <RegretCalculator />
+                </TabsContent>
+                <TabsContent value="regret-v2" className="mt-0">
+                    <PortfolioRegretCalculator />
                 </TabsContent>
                 <TabsContent value="compound" className="mt-0">
                     <CompoundCalculator />

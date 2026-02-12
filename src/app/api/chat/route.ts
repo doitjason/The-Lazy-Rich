@@ -65,9 +65,19 @@ ${holdings}
         // Fetch persona-specific market data (캐싱 적용)
         let marketDataContext = "";
         try {
-            const fetchedMarketData = await getPersonaMarketContext(personaId, allTickers);
-            if (fetchedMarketData) {
-                marketDataContext = `\n\n${fetchedMarketData}`;
+            const [commonData, personaData] = await Promise.all([
+                import("@/lib/market-data").then(m => m.fetchCommonMarketData()),
+                getPersonaMarketContext(personaId, allTickers)
+            ]);
+
+            let commonContext = "";
+            if (commonData) {
+                const { commonDataToPrompt } = await import("@/lib/market-data");
+                commonContext = commonDataToPrompt(commonData);
+            }
+
+            if (personaData || commonContext) {
+                marketDataContext = `\n\n${commonContext}\n\n${personaData || ""}`;
             }
         } catch (error) {
             console.error("[Chat] Market data fetch failed (non-blocking):", error);
