@@ -6,7 +6,7 @@
 
 import YahooFinance from "yahoo-finance2";
 import { marketCache, MarketDataCache } from "./market-data-cache";
-import { StockQuote, EnrichedPortfolioItem, CommonMarketData, MarketIndicator, SageData, HeroData, ArchitectData, SpeculatorData, FatherData } from "./market-types";
+import { StockQuote, EnrichedPortfolioItem, CommonMarketData, MarketIndicator, SageData, HeroData, ArchitectData, SpeculatorData, FatherData, DividendCalendarData } from "./market-types";
 
 const yahooFinance = new YahooFinance();
 
@@ -322,7 +322,7 @@ async function fetchQuote(symbol: string): Promise<StockQuote | null> {
 
 // ─── quoteSummary 가져오기 (캐싱 포함) ───
 
-type SummaryModule = "defaultKeyStatistics" | "financialData" | "summaryDetail" | "netSharePurchaseActivity" | "earningsHistory" | "fundProfile" | "topHoldings" | "summaryProfile";
+type SummaryModule = "defaultKeyStatistics" | "financialData" | "summaryDetail" | "netSharePurchaseActivity" | "earningsHistory" | "fundProfile" | "topHoldings" | "summaryProfile" | "calendarEvents";
 
 async function fetchSummary(
     symbol: string,
@@ -1632,46 +1632,52 @@ AI는 아래 데이터를 사용하여 선 그래프(Line Chart)를 그려야 �
 
 export async function fetchEnrichedPortfolio(tickers: string[]): Promise<Record<string, EnrichedPortfolioItem>> {
     const results: Record<string, EnrichedPortfolioItem> = {};
-
-    // Remove duplicates and filter empty
     const uniqueTickers = Array.from(new Set(tickers)).filter(t => t);
 
     await Promise.all(
         uniqueTickers.map(async (ticker) => {
             try {
-                // Use existing fetchQuote for basic data + caching
-                const quote = await fetchQuote(ticker);
+                const queryTicker = resolveKoreanTicker(ticker);
+                const quote = await fetchQuote(queryTicker);
                 if (!quote) return;
 
-                // Sector & Dividend info from summary
                 let sector = undefined;
                 let dividendYield = undefined;
+                let beta = undefined;
 
                 try {
-                    const summary = await fetchSummary(ticker, ["summaryProfile", "summaryDetail"]);
+                    const summary = await fetchSummary(queryTicker, ["summaryProfile", "summaryDetail", "defaultKeyStatistics", "fundProfile"]);
                     if (summary) {
                         const profile = summary.summaryProfile as any;
                         const detail = summary.summaryDetail as any;
-                        sector = profile?.sector;
-                        // summaryDetail의 dividendYield는 0.0xxx 형태 (e.g. 0.05)
-                        dividendYield = detail?.dividendYield;
+                        const stats = summary.defaultKeyStatistics as any;
+                        const fund = summary.fundProfile as any;
+
+                        sector = profile?.sector ?? fund?.categoryName; // ETF category fallback
+
+                        // Priority: dividendYield (Stock) -> yield (Bond/ETF) -> trailingAnnualDividendYield -> fundProfile.yield
+                        dividendYield = detail?.dividendYield
+                            ?? detail?.yield
+                            ?? detail?.trailingAnnualDividendYield
+                            ?? fund?.yield
+                            ?? stats?.yield;
+
+                        beta = stats?.beta ?? detail?.beta ?? fund?.beta3Year; // ETF beta fallback
+                        console.log(`[MarketData Debug] ${ticker}: Sector=${sector}, DividendYield=${dividendYield}, Beta=${beta}`);
                     }
                 } catch (e) {
-                    // Summary fetch failure is non-critical
+                    console.warn(`Failed to fetch summary for ${ticker}`, e);
                 }
 
-                // Sparkline history (30 days)
-                let sparkline: { date: string; price: number }[] = [];
-                try {
-                    sparkline = await fetchPriceHistory(ticker);
-                } catch (e) {
-                    // History fetch failure is non-critical
-                }
+                // Sparkline history (30 days) - Optional, can be removed if not used
+                const sparkline: { date: string; price: number }[] = [];
+                // Removed sparkline fetch to save bandwidth as per previous request to remove sparklines from UI
 
                 results[ticker] = {
                     ...quote,
                     sector,
                     dividendYield,
+                    beta,
                     sparkline,
                 };
             } catch (e) {
@@ -1681,4 +1687,100 @@ export async function fetchEnrichedPortfolio(tickers: string[]): Promise<Record<
     );
 
     return results;
+}
+
+// ═══════════════════════════════════════════════════════
+// 배당 캘린더 데이터 (Dividend Calendar)
+// ═══════════════════════════════════════════════════════
+
+export async function fetchDividendCalendar(tickers: string[]): Promise<DividendCalendarData> {
+    const events: DividendCalendarData = [];
+    const uniqueTickers = Array.from(new Set(tickers)).filter(t => t);
+
+    // Get dates for 1 year range (Past 1 year + potential future via calendarEvents)
+    const now = new Date();
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(now.getFullYear() - 1);
+
+    // Cache key
+    const cacheKey = `dividends:${uniqueTickers.sort().join(",")}`;
+    const cached = marketCache.get<DividendCalendarData>(cacheKey);
+    if (cached) return cached;
+
+    // Helper to format date
+    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+
+    await Promise.all(
+        uniqueTickers.map(async (ticker) => {
+            try {
+                const queryTicker = resolveKoreanTicker(ticker);
+
+                // 1. Past Dividends (Historical) - Fetch last 12 months
+                try {
+                    const history = await yahooFinance.historical(queryTicker, {
+                        period1: oneYearAgo,
+                        period2: new Date(),
+                        interval: "1d",
+                        events: 'dividends'
+                    });
+
+                    history.forEach((e: any) => {
+                        if (e.dividends) {
+                            events.push({
+                                ticker: ticker,
+                                date: formatDate(new Date(e.date)),
+                                amount: e.dividends,
+                                exDate: formatDate(new Date(e.date))
+                            });
+                        }
+                    });
+                } catch (e) {
+                    // Historical fetch might fail for some
+                }
+
+                // 2. Future/Next Dividend (Calendar Events)
+                try {
+                    const summary = await fetchSummary(queryTicker, ["calendarEvents", "summaryDetail"]);
+                    if (summary && summary.calendarEvents) {
+                        const cal = summary.calendarEvents as any;
+                        if (cal.exDividendDate) {
+                            const exDate = new Date(cal.exDividendDate);
+                            const dateStr = formatDate(exDate);
+                            const payDate = cal.dividendDate ? new Date(cal.dividendDate) : undefined;
+                            const payDateStr = payDate ? formatDate(payDate) : undefined;
+
+                            // Check duplicate by date
+                            const exists = events.some(e => e.ticker === ticker && e.date === dateStr);
+
+                            if (!exists && exDate > new Date()) {
+                                let amount = 0;
+                                // Estimate amount from last known dividend
+                                const lastDiv = events.filter(e => e.ticker === ticker).sort((a, b) => b.date.localeCompare(a.date))[0];
+                                if (lastDiv) amount = lastDiv.amount;
+
+                                if (amount > 0) {
+                                    events.push({
+                                        ticker: ticker,
+                                        date: dateStr,
+                                        amount: amount,
+                                        exDate: dateStr,
+                                        paymentDate: payDateStr
+                                    });
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Calendar fetch fail
+                }
+
+            } catch (error) {
+                console.warn(`Failed dividend fetch for ${ticker}`, error);
+            }
+        })
+    );
+
+    events.sort((a, b) => b.date.localeCompare(a.date));
+    marketCache.set(cacheKey, events, 24 * 60 * 60);
+    return events;
 }

@@ -15,6 +15,7 @@ export interface StockQuote {
 export interface EnrichedPortfolioItem extends StockQuote {
     sector?: string;
     dividendYield?: number;
+    beta?: number;
     sparkline: { date: string; price: number }[];
 }
 
@@ -195,3 +196,13 @@ export interface FatherData {
         sharpeRatio: number | null; // (Return - RiskFree) / StdDev (Approx)
     }[];
 }
+
+export interface DividendEvent {
+    ticker: string;
+    date: string; // ISO Date String (YYYY-MM-DD) - Payment Date or Ex-Date
+    amount: number;
+    exDate?: string;
+    paymentDate?: string;
+}
+
+export type DividendCalendarData = DividendEvent[];
