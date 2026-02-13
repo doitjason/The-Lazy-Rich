@@ -37,6 +37,16 @@ export interface CommonMarketData {
         snp500: MarketIndicator;
         nasdaq: MarketIndicator;
         dow: MarketIndicator;
+        russell2000: MarketIndicator; // 러셀 2000 (중소형주)
+    };
+    m7: {
+        aapl: MarketIndicator;
+        msft: MarketIndicator;
+        googl: MarketIndicator;
+        amzn: MarketIndicator;
+        tsla: MarketIndicator;
+        meta: MarketIndicator;
+        nvda: MarketIndicator;
     };
     macro: {
         vix: number; // 공포 지수
@@ -44,6 +54,21 @@ export interface CommonMarketData {
         dollarIndex: number; // 달러 인덱스
         gold: number; // 금 가격
         wti: number; // 원유 가격
+        // New Indicators
+        rspChangePercent: number | null; // S&P 500 Equal Weight (시장 건전성)
+        hygPrice: number | null; // High Yield Corporate Bond (신용 위험)
+        jpyRate: number | null; // JPY/USD Exchange Rate (글로벌 유동성)
+        // New Indicators (Growth vs Value & Semi)
+        ivwChangePercent: number | null; // S&P 500 Growth
+        iveChangePercent: number | null; // S&P 500 Value
+        soxxChangePercent: number | null; // PHLX Semiconductor
+        // Final Indicators (Risk & Real Economy)
+        btcPrice: number | null; // Bitcoin (위험자산 심리)
+        btcChangePercent: number | null;
+        copperPrice: number | null; // Copper (실물 경기)
+        yieldSpread10Y2Y: number | null; // 장단기 금리차 (10Y-2Y Proxy)
+        tipPrice: number | null; // TIPS (실질 금리/인플레 방어)
+        embPrice: number | null; // Emerging Market Bond (신흥국/글로벌 리스크)
     };
     sectorRotation: {
         leaders: string[]; // 오늘 강세 섹터
@@ -77,6 +102,10 @@ export interface SageData {
     enterpriseToEbitda: number | null;
     netSharePurchaseActivity: number | null; // 내부자 거래 (순매수)
     netInsiderBuy: number | null; // 내부자 순매수 (주식수) - Alias
+    // Sage (Added)
+    fcfYield: number | null; // Free Cash Flow Yield
+    roic: number | null; // Return on Invested Capital (Proxy: ROE + DEbt adjustment or just ROE/ROA focus)
+    // Removed institutionalOwnership due to unavailability
 }
 
 export interface HeroData {
@@ -94,16 +123,25 @@ export interface HeroData {
     targetHighPrice: number | null;
     targetLowPrice: number | null;
     numberOfAnalysts: number | null;
-    // New Indicators
-    shortPercentOfFloat: number | null; // 공매도 비율
-    shortRatio: number | null; // 공매도 상환 일수 (Days to Cover)
-    recommendationKey: string | null; // 매수 의견 (strong_buy, buy, hold, etc.)
-    earningsSurprise: number | null; // 어닝 서프라이즈 (%)
+    shortPercentOfFloat: number | null;
+    shortRatio: number | null; // Days to Cover
+    recommendationKey: string | null;
+    earningsSurprise: number | null;
+
+    // Hero (Added)
+    psr: number | null; // Price to Sales Ratio
 }
 
 export interface ArchitectData {
     indicators: MarketIndicator[];
-    yieldSpread10Y2Y: number | null; // 장단기 금리차 (10Y - 2Y)
+    yieldSpread10Y2Y: number | null;
+
+    // Architect (Added)
+    moveIndex: number | null; // Bond Volatility
+    xlyPrice: number | null; // Discretionary
+    xlpPrice: number | null; // Staples
+    sphbPrice: number | null; // High Beta
+    splvPrice: number | null; // Low Volatility
 }
 
 export interface SpeculatorData {
@@ -116,22 +154,28 @@ export interface SpeculatorData {
     avgVolume10Day: number | null;
     avgVolume3Month: number | null;
     beta: number | null;
-    // 계산된 지표
-    maAlignment: string; // "정배열" | "역배열" | "혼조"
-    volumeRatio: number | null; // 현재거래량 / 평균거래량
+    maAlignment: string; // 정배열, 역배열 등
+    volumeRatio: number | null; // 10일 평균 대비 현재 거래량 비율
     distanceFrom52WeekHigh: number | null; // %
     distanceFromMA50: number | null; // %
-    rsi14: number | null; // RSI(14) 직접 계산
-    atr14: number | null; // ATR(14) 변동성
-    bollingerUpper: number | null; // 볼린저 밴드 상단
-    bollingerLower: number | null; // 볼린저 밴드 하단
+
+    // Technical Indicators
+    rsi14: number | null;
+    atr14: number | null;
+    bollingerUpper: number | null;
+    bollingerLower: number | null;
     macd: {
         macd: number;
         signal: number;
         histogram: number;
         trend: "Bullish" | "Bearish" | "Neutral";
     } | null;
-    moneyFlow: number | null; // MFI (Money Flow Index) - Optional
+
+    // Speculator (Added)
+    moneyFlowIndex: number | null; // MFI (Volume-weighted RSI)
+    stochasticK: number | null; // Slow Stochastic %K
+    stochasticD: number | null; // Slow Stochastic %D
+    obvTrend: "Up" | "Down" | "Neutral"; // On Balance Volume Trend
 }
 
 export interface FatherData {
@@ -142,8 +186,12 @@ export interface FatherData {
         price: number;
         changePercent: number;
         dividendYield: number | null;
-        expenseRatio: string; // 사전 정의값
-        topSectors: string | null; // 상위 섹터 (Top 3)
-        topHoldings: string | null; // 상위 종목 (Top 3)
+        expenseRatio: string;
+        topSectors: string | null;
+        topHoldings: string | null;
+
+        // Father (Added)
+        beta: number | null;
+        sharpeRatio: number | null; // (Return - RiskFree) / StdDev (Approx)
     }[];
 }

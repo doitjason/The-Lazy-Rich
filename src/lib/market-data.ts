@@ -11,6 +11,9 @@ import { StockQuote, EnrichedPortfolioItem, CommonMarketData, MarketIndicator, S
 const yahooFinance = new YahooFinance();
 
 // ... (existing imports)
+// ... (existing imports)
+
+// ... (existing imports)
 
 // ─── 공통 시장 데이터 (Common Context) ───
 
@@ -21,7 +24,14 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
 
     try {
         // 1. 주요 지표 병렬 호출
-        const symbols = ["^GSPC", "^IXIC", "^DJI", "^TNX", "^VIX", "DX-Y.NYB", "GC=F", "CL=F"];
+        const symbols = [
+            "^GSPC", "^IXIC", "^DJI", "^TNX", "^IRX", "^VIX", // Indices & Rates
+            "DX-Y.NYB", "GC=F", "CL=F", "HG=F", // Macro
+            "RSP", "HYG", "JPY=X", "TIP", "EMB", // Risk & Real Rates
+            "IVW", "IVE", "SOXX", // Style
+            "BTC-USD", "^RUT", // Crypto & Small Cap
+            "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA" // M7
+        ];
         const quotes = await Promise.all(symbols.map(s => fetchQuote(s)));
 
         const getQuote = (sym: string) => quotes.find(q => q?.symbol === sym);
@@ -29,13 +39,41 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
         const snp500 = getQuote("^GSPC");
         const nasdaq = getQuote("^IXIC");
         const dow = getQuote("^DJI");
-        const tnx = getQuote("^TNX");
+        const rut = getQuote("^RUT"); // Russell 2000
+        const tnx = getQuote("^TNX"); // 10 Year
+        const irx = getQuote("^IRX"); // 3 Month (Proxy for Short Term)
         const vix = getQuote("^VIX");
         const dxy = getQuote("DX-Y.NYB");
         const gold = getQuote("GC=F");
         const wti = getQuote("CL=F");
+        const rsp = getQuote("RSP");
+        const hyg = getQuote("HYG");
+        const jpy = getQuote("JPY=X");
+        const tip = getQuote("TIP"); // TIPS
+        const emb = getQuote("EMB"); // Emerging Market
+
+        const ivw = getQuote("IVW"); // Growth
+        const ive = getQuote("IVE"); // Value
+        const soxx = getQuote("SOXX"); // Semi
+        const btc = getQuote("BTC-USD");
+        const copper = getQuote("HG=F");
+
+        // M7
+        const aapl = getQuote("AAPL");
+        const msft = getQuote("MSFT");
+        const googl = getQuote("GOOGL");
+        const amzn = getQuote("AMZN");
+        const tsla = getQuote("TSLA");
+        const meta = getQuote("META");
+        const nvda = getQuote("NVDA");
 
         if (!snp500 || !vix || !tnx) return null; // 필수 데이터 누락 시
+
+        // Yield Spread Calculation (10Y - 3M)
+        let yieldSpread = null;
+        if (tnx && irx) {
+            yieldSpread = tnx.price - irx.price;
+        }
 
         // 2. 공포/탐욕 지수 (Proxy Calculation)
         // VIX와 S&P500 모멘텀(RSI)을 기반으로 추정
@@ -76,6 +114,16 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                 snp500: { symbol: "^GSPC", name: "S&P 500", price: snp500.price, change: snp500.change, changePercent: snp500.changePercent },
                 nasdaq: { symbol: "^IXIC", name: "Nasdaq", price: nasdaq?.price ?? 0, change: nasdaq?.change ?? 0, changePercent: nasdaq?.changePercent ?? 0 },
                 dow: { symbol: "^DJI", name: "Dow Jones", price: dow?.price ?? 0, change: dow?.change ?? 0, changePercent: dow?.changePercent ?? 0 },
+                russell2000: { symbol: "^RUT", name: "Russell 2000", price: rut?.price ?? 0, change: rut?.change ?? 0, changePercent: rut?.changePercent ?? 0 },
+            },
+            m7: {
+                aapl: { symbol: "AAPL", name: "Apple", price: aapl?.price ?? 0, change: aapl?.change ?? 0, changePercent: aapl?.changePercent ?? 0 },
+                msft: { symbol: "MSFT", name: "Microsoft", price: msft?.price ?? 0, change: msft?.change ?? 0, changePercent: msft?.changePercent ?? 0 },
+                googl: { symbol: "GOOGL", name: "Alphabet", price: googl?.price ?? 0, change: googl?.change ?? 0, changePercent: googl?.changePercent ?? 0 },
+                amzn: { symbol: "AMZN", name: "Amazon", price: amzn?.price ?? 0, change: amzn?.change ?? 0, changePercent: amzn?.changePercent ?? 0 },
+                tsla: { symbol: "TSLA", name: "Tesla", price: tsla?.price ?? 0, change: tsla?.change ?? 0, changePercent: tsla?.changePercent ?? 0 },
+                meta: { symbol: "META", name: "Meta", price: meta?.price ?? 0, change: meta?.change ?? 0, changePercent: meta?.changePercent ?? 0 },
+                nvda: { symbol: "NVDA", name: "Nvidia", price: nvda?.price ?? 0, change: nvda?.change ?? 0, changePercent: nvda?.changePercent ?? 0 },
             },
             macro: {
                 vix: vix.price,
@@ -83,6 +131,18 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                 dollarIndex: dxy?.price ?? 0,
                 gold: gold?.price ?? 0,
                 wti: wti?.price ?? 0,
+                rspChangePercent: rsp?.changePercent ?? null,
+                hygPrice: hyg?.price ?? null,
+                jpyRate: jpy?.price ?? null,
+                ivwChangePercent: ivw?.changePercent ?? null,
+                iveChangePercent: ive?.changePercent ?? null,
+                soxxChangePercent: soxx?.changePercent ?? null,
+                btcPrice: btc?.price ?? null,
+                btcChangePercent: btc?.changePercent ?? null,
+                copperPrice: copper?.price ?? null,
+                yieldSpread10Y2Y: yieldSpread,
+                tipPrice: tip?.price ?? null,
+                embPrice: emb?.price ?? null,
             },
             sectorRotation: {
                 leaders,
@@ -104,25 +164,48 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
 }
 
 export function commonDataToPrompt(data: CommonMarketData): string {
-    return `[🌍 공통 시장 컨텍스트 (Market Context)]
-1. 시장 심리 (Fear & Greed): ${data.fearAndGreedIndex.status} (점수: ${data.fearAndGreedIndex.score}/100)
-   - VIX (공포지수): ${data.macro.vix.toFixed(2)} (20 이하면 안정, 30 이상이면 공포)
-2. 거시 경제 지표:
-   - 미국 10년물 국채금리: ${data.macro.tenYearBondYield.toFixed(2)}% (4.0% 이상이면 주식에 부담)
-   - 달러 인덱스: ${data.macro.dollarIndex.toFixed(2)}
-   - 원유(WTI): $${data.macro.wti.toFixed(2)} | 금: $${data.macro.gold.toFixed(2)}
-3. 시장 흐름:
-   - S&P 500: ${data.indices.snp500.price.toFixed(2)} (${data.indices.snp500.changePercent > 0 ? "+" : ""}${data.indices.snp500.changePercent.toFixed(2)}%)
-   - 나스닥: ${data.indices.nasdaq.price.toFixed(2)} (${data.indices.nasdaq.changePercent > 0 ? "+" : ""}${data.indices.nasdaq.changePercent.toFixed(2)}%)
-4. 섹터 로테이션:
-   - 강세: ${data.sectorRotation.leaders.join(", ")}
-   - 약세: ${data.sectorRotation.laggards.join(", ")}
+    return `[🌍 공통 시장 대시보드 (Real-time Market Dashboard)]
+1. 📊 [시장 지수] 전체적 흐름
+   - S&P 500: ${data.indices.snp500.price.toFixed(2)} (${formatChangePercent(data.indices.snp500.changePercent)})
+   - 나스닥 (Tech): ${data.indices.nasdaq.price.toFixed(2)} (${formatChangePercent(data.indices.nasdaq.changePercent)})
+   - 다우존스 (Blue Chip): ${data.indices.dow.price.toFixed(2)} (${formatChangePercent(data.indices.dow.changePercent)})
+   - 러셀 2000 (Small Cap): ${data.indices.russell2000.price.toFixed(2)} (${formatChangePercent(data.indices.russell2000.changePercent)}) → ${data.indices.russell2000.changePercent > 0.5 ? "온기 확산 긍정적" : "대형주 쏠림 주의"}
 
-[지침]
-위 시장 상황을 대화의 "배경"으로 깔고 답변하세요.
-- 예: "VIX가 15로 안정적이니 개별 종목에 집중하세요."
-- 예: "공포 탐욕 지수가 'Extreme Greed'입니다. 추격 매수는 자제하세요."
-- 예: "금리가 4.5%를 뚫고 올라오고 있어 성장주 밸류에이션 부담이 있습니다."`;
+2. 🌏 [거시 경제] 밸류에이션 환경
+   - 10년물 국채금리: ${data.macro.tenYearBondYield.toFixed(2)}% (상승 시 주식 할인율 증가)
+   - 달러 인덱스 (DXY): ${data.macro.dollarIndex.toFixed(2)} (기준 100)
+   - 원유 (WTI): $${data.macro.wti.toFixed(2)} | 금: $${data.macro.gold.toFixed(2)}
+   - [경기 침체 경고] 장단기 금리차(10Y-3M): ${data.macro.yieldSpread10Y2Y !== null ? data.macro.yieldSpread10Y2Y.toFixed(2) + "%p" : "N/A"} (${data.macro.yieldSpread10Y2Y !== null && data.macro.yieldSpread10Y2Y < 0 ? "🚨 역전됨 (1년 내 침체 확률 80% 이상)" : "정상 구간"})
+
+3. ⚠️ [위험 신호 & 유동성] 스트레스 테스트
+   - VIX (공포지수): ${data.macro.vix.toFixed(2)} (20 이하면 안정, 30 이상이면 공포)
+   - 하이일드 채권 (HYG): ${formatNum(data.macro.hygPrice)} (기업 부도 위험 측정, 하락 시 위험)
+   - 신흥국 채권 (EMB): ${formatNum(data.macro.embPrice)} (글로벌 약한 고리, 자금 이탈 여부)
+   - 엔/달러 환율: ${data.macro.jpyRate !== null ? data.macro.jpyRate.toFixed(2) : "N/A"} (엔 캐리 청산 감시)
+
+4. 🏥 [시장 건전성 & 로테이션] 질적 분석
+   - S&P 500 동일가중 (RSP): ${formatChangePercent(data.macro.rspChangePercent)} (지수 대비 낮으면 대형주 쏠림 심화)
+   - 스타일 전쟁: 성장주(IVW) ${formatChangePercent(data.macro.ivwChangePercent)} vs 가치주(IVE) ${formatChangePercent(data.macro.iveChangePercent)} → ${(data.macro.ivwChangePercent || 0) > (data.macro.iveChangePercent || 0) ? "성장주 우위 (Risk On)" : "가치주 우위 (Risk Off)"
+        }
+   - 반도체 (SOXX): ${formatChangePercent(data.macro.soxxChangePercent)} (AI/기술주 랠리의 선행 카나리아)
+
+5. 🔮 [선행 지표 & 실물 경기] 미래 예측
+   - 비트코인 (BTC): ${formatChangePercent(data.macro.btcChangePercent)} (가장 민감한 투기 심리/유동성 지표)
+   - 구리 (Copper): ${data.macro.copperPrice ? formatNum(data.macro.copperPrice) : "N/A"} (실물 경기 제조업 수요 대변)
+   - 물가연동채 (TIP): ${formatNum(data.macro.tipPrice)} (실질 금리 및 인플레 방어 수요)
+
+6. 🏢 [M7 주도주] 시장 견인력
+   - 🍎AAPL ${formatChangePercent(data.m7.aapl.changePercent)} | 🤖NVDA ${formatChangePercent(data.m7.nvda.changePercent)} | ☁️MSFT ${formatChangePercent(data.m7.msft.changePercent)}
+   - 📦AMZN ${formatChangePercent(data.m7.amzn.changePercent)} | 🔍GOOGL ${formatChangePercent(data.m7.googl.changePercent)} | 📘META ${formatChangePercent(data.m7.meta.changePercent)} | 🚗TSLA ${formatChangePercent(data.m7.tsla.changePercent)}
+
+[⭐️ 페르소나 행동 지침: 시황 분석 요청 시]
+Q: "요즘 시황 어때?" 또는 "시장 상황 분석해줘" 라는 질문을 받으면,
+반드시 **위 6개 카테고리의 데이터를 모두 종합하여** IB(투자은행) 리포트 수준의 깊이 있는 답변을 제공하세요.
+- 단순 나열 금지. 지표 간의 **'연관성'**을 찾아내어 스토리텔링하세요.
+  (예: "지수는 올랐지만(1번), 신흥국 채권과 구리가 빠지는 걸 보니(3번, 5번) 이는 건전하지 않은 유동성 랠리일 수 있습니다.")
+- 장단기 금리차 역전 여부와 반도체(SOXX)의 방향성은 필수로 언급하세요.
+- 비트코인 급등락이 있다면 시장 심리와 연결 지어 설명하세요.
+`;
 }
 
 // [Interfaces moved to market-types.ts]
@@ -232,7 +315,7 @@ async function fetchQuote(symbol: string): Promise<StockQuote | null> {
         marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
         return data;
     } catch (error) {
-        console.error(`[MarketData] Failed to fetch quote for ${symbol}:`, error);
+        console.error(`[MarketData] Failed to fetch quote for ${symbol}: `, error);
         return null;
     }
 }
@@ -265,7 +348,7 @@ async function fetchSummary(
         }
         return result;
     } catch (error) {
-        console.error(`[MarketData] Failed to fetch summary for ${symbol}:`, error);
+        console.error(`[MarketData] Failed to fetch summary for ${symbol}: `, error);
         return null;
     }
 }
@@ -324,7 +407,7 @@ async function calculateRSI(symbol: string, period: number = 14): Promise<number
         marketCache.set(cacheKey, rsi, MarketDataCache.STOCK_TTL);
         return rsi;
     } catch (error) {
-        console.error(`[MarketData] RSI calculation failed for ${symbol}:`, error);
+        console.error(`[MarketData] RSI calculation failed for ${symbol}: `, error);
         return null;
     }
 }
@@ -380,7 +463,7 @@ async function calculateTechnicalIndicators(symbol: string): Promise<{ atr: numb
         return { atr, bbUpper, bbLower };
 
     } catch (error) {
-        console.error(`[MarketData] Technical indicators failed for ${symbol}:`, error);
+        console.error(`[MarketData] Technical indicators failed for ${symbol}: `, error);
         return { atr: null, bbUpper: null, bbLower: null };
     }
 }
@@ -430,6 +513,9 @@ export async function fetchSageData(ticker: string): Promise<SageData | null> {
         enterpriseToEbitda: (stats.enterpriseToEbitda as number) ?? null,
         netSharePurchaseActivity: netInsider,
         netInsiderBuy: netInsider,
+        // Sage (Added)
+        fcfYield: (financial.freeCashflow && detail.marketCap) ? (financial.freeCashflow as number) / (detail.marketCap as number) : null,
+        roic: (financial.returnOnEquity as number) ?? null, // ROE as proxy for now, heavily correlated for high quality firms
     };
 }
 
@@ -446,11 +532,13 @@ export async function fetchHeroData(ticker: string): Promise<HeroData | null> {
         "defaultKeyStatistics",
         "financialData",
         "earningsHistory", // 어닝 서프라이즈 확인용
+        "summaryDetail" // Added for PriceToSales
     ]);
 
     const stats = (summary?.defaultKeyStatistics || {}) as Record<string, unknown>;
     const financial = (summary?.financialData || {}) as Record<string, unknown>;
     const earnings = (summary?.earningsHistory || {}) as { history?: any[] };
+    const detail = (summary?.summaryDetail || {}) as Record<string, unknown>; // Added
 
     return {
         quote,
@@ -471,6 +559,8 @@ export async function fetchHeroData(ticker: string): Promise<HeroData | null> {
         shortRatio: (stats.shortRatio as number) ?? null,
         recommendationKey: (financial.recommendationKey as string) ?? null,
         earningsSurprise: (earnings.history && earnings.history[0]?.surprisePercent as number) ?? null, // 최근 분기 서프라이즈
+        // Hero (Added)
+        psr: (detail.priceToSalesTrailing12Months as number) ?? null,
     };
 }
 
@@ -493,6 +583,12 @@ export async function fetchArchitectData(): Promise<ArchitectData> {
         { symbol: "CL=F", name: "원유 (WTI)" },
         { symbol: "DX-Y.NYB", name: "달러 인덱스 (DXY)" },
         { symbol: "^IRX", name: "미국 3개월물 국채금리" },
+        // Architect (Added)
+        { symbol: "^MOVE", name: "채권 변동성 (MOVE)" },
+        { symbol: "XLY", name: "경기민감주 (XLY)" },
+        { symbol: "XLP", name: "필수소비재 (XLP)" },
+        { symbol: "SPHB", name: "High Beta (SPHB)" },
+        { symbol: "SPLV", name: "Low Volatility (SPLV)" },
     ];
 
     const indicators: MarketIndicator[] = [];
@@ -522,9 +618,20 @@ export async function fetchArchitectData(): Promise<ArchitectData> {
         yieldSpread = tnx.price - termShort.price;
     }
 
+    const move = indicators.find(i => i.symbol === "^MOVE")?.price ?? null;
+    const xly = indicators.find(i => i.symbol === "XLY")?.price ?? null;
+    const xlp = indicators.find(i => i.symbol === "XLP")?.price ?? null;
+    const sphb = indicators.find(i => i.symbol === "SPHB")?.price ?? null;
+    const splv = indicators.find(i => i.symbol === "SPLV")?.price ?? null;
+
     const data: ArchitectData = {
         indicators,
-        yieldSpread10Y2Y: yieldSpread
+        yieldSpread10Y2Y: yieldSpread,
+        moveIndex: move,
+        xlyPrice: xly,
+        xlpPrice: xlp,
+        sphbPrice: sphb,
+        splvPrice: splv
     };
     marketCache.set(cacheKey, data, MarketDataCache.MARKET_TTL);
     return data;
@@ -605,8 +712,148 @@ async function calculateMACD(symbol: string): Promise<{ macd: number; signal: nu
 
 /**
  * 🕵️ 전설의 투기꾼 (Speculator) - 모멘텀 트레이딩
- * 이동평균선, 거래량, 52주 고저, 모멘텀 지표 (MACD, RSI, BB)
+ * 이동평균선, 거래량, 52주 고저, 모멘텀 지표 (MACD, RSI, BB, MFI, Stoch, OBV)
  */
+async function calculateMFI(symbol: string, period: number = 14): Promise<number | null> {
+    try {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - (period * 4));
+
+        const historical = await yahooFinance.historical(symbol, {
+            period1: startDate, period2: endDate, interval: "1d",
+        }) as { high: number; low: number; close: number; volume: number }[];
+
+        if (!historical || historical.length < period + 1) return null;
+
+        const data = historical.slice(-(period + 1));
+        let posFlow = 0;
+        let negFlow = 0;
+
+        for (let i = 1; i < data.length; i++) {
+            const tp = (data[i].high + data[i].low + data[i].close) / 3;
+            const prevTp = (data[i - 1].high + data[i - 1].low + data[i - 1].close) / 3;
+            const flow = tp * data[i].volume;
+
+            if (tp > prevTp) posFlow += flow;
+            else if (tp < prevTp) negFlow += flow;
+        }
+
+        if (negFlow === 0) return 100;
+        const mfr = posFlow / negFlow;
+        return 100 - (100 / (1 + mfr));
+    } catch (e) {
+        return null;
+    }
+}
+
+async function calculateStochastic(symbol: string, period: number = 14, kPeriod: number = 3, dPeriod: number = 3): Promise<{ k: number; d: number } | null> {
+    try {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - (period + kPeriod + dPeriod + 30));
+
+        const historical = await yahooFinance.historical(symbol, {
+            period1: startDate, period2: endDate, interval: "1d",
+        }) as { high: number; low: number; close: number }[];
+
+        if (!historical || historical.length < period + kPeriod) return null;
+
+        const closes = historical.map(d => d.close);
+        const highs = historical.map(d => d.high);
+        const lows = historical.map(d => d.low);
+
+        const getK = (idx: number) => {
+            // idx is the end index (exclusive in slice logic, but here inclusive for window)
+            // We need window [idx - period + 1, idx]
+            if (idx < period - 1) return 0;
+            const windowCloses = closes.slice(idx - period + 1, idx + 1);
+            const windowHighs = highs.slice(idx - period + 1, idx + 1);
+            const windowLows = lows.slice(idx - period + 1, idx + 1);
+
+            const currentClose = closes[idx];
+            const lowestLow = Math.min(...windowLows);
+            const highestHigh = Math.max(...windowHighs);
+
+            if (highestHigh === lowestLow) return 50;
+            return ((currentClose - lowestLow) / (highestHigh - lowestLow)) * 100;
+        };
+
+        // Calculate K line
+        const kLine: number[] = [];
+        for (let i = 0; i < closes.length; i++) {
+            kLine.push(getK(i));
+        }
+
+        // Smooth K (Fast %K -> Slow %K)
+        const slowK = [];
+        for (let i = 0; i < kLine.length; i++) {
+            if (i < kPeriod - 1) { slowK.push(kLine[i]); continue; }
+            const sum = kLine.slice(i - kPeriod + 1, i + 1).reduce((a, b) => a + b, 0);
+            slowK.push(sum / kPeriod);
+        }
+
+        // Calculate D (SMA of Slow K)
+        const slowD = [];
+        for (let i = 0; i < slowK.length; i++) {
+            if (i < dPeriod - 1) { slowD.push(slowK[i]); continue; }
+            const sum = slowK.slice(i - dPeriod + 1, i + 1).reduce((a, b) => a + b, 0);
+            slowD.push(sum / dPeriod);
+        }
+
+        return {
+            k: slowK[slowK.length - 1],
+            d: slowD[slowD.length - 1]
+        };
+
+    } catch (e) {
+        return null;
+    }
+}
+
+async function calculateOBV(symbol: string): Promise<"Up" | "Down" | "Neutral"> {
+    try {
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 30); // Last 30 days trend
+
+        const historical = await yahooFinance.historical(symbol, {
+            period1: startDate, period2: endDate, interval: "1d",
+        }) as { close: number; volume: number }[];
+
+        if (!historical || historical.length < 10) return "Neutral";
+
+        let obv = 0;
+        const obvLine = [0];
+
+        for (let i = 1; i < historical.length; i++) {
+            const change = historical[i].close - historical[i - 1].close;
+            if (change > 0) obv += historical[i].volume;
+            else if (change < 0) obv -= historical[i].volume;
+            obvLine.push(obv);
+        }
+
+        // Simple Linear Regression Slope for Trend
+        const n = obvLine.length;
+        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+        for (let i = 0; i < n; i++) {
+            sumX += i;
+            sumY += obvLine[i];
+            sumXY += i * obvLine[i];
+            sumXX += i * i;
+        }
+
+        const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+
+        if (slope > 0) return "Up";
+        if (slope < 0) return "Down";
+        return "Neutral";
+
+    } catch (e) {
+        return "Neutral";
+    }
+}
+
 export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorData | null> {
     const symbol = resolveKoreanTicker(ticker);
 
@@ -642,6 +889,11 @@ export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorDat
         const { atr, bbUpper, bbLower } = await calculateTechnicalIndicators(symbol);
         const macd = await calculateMACD(symbol);
 
+        // Speculator (Added) - Advanced Technicals
+        const mfi = await calculateMFI(symbol);
+        const stoch = await calculateStochastic(symbol);
+        const obv = await calculateOBV(symbol);
+
         const data: SpeculatorData = {
             quote: {
                 symbol: (quote.symbol as string) || symbol,
@@ -668,13 +920,19 @@ export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorDat
             bollingerUpper: bbUpper,
             bollingerLower: bbLower,
             macd,
-            moneyFlow: null // 
+            moneyFlow: null, // Deprecated field in prompt logic, keeping for type safety if needed or remove
+
+            // Speculator (Added)
+            moneyFlowIndex: mfi,
+            stochasticK: stoch?.k ?? null,
+            stochasticD: stoch?.d ?? null,
+            obvTrend: obv
         };
 
         marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
         return data;
     } catch (error) {
-        console.error(`[MarketData] Speculator fetch failed for ${symbol}:`, error);
+        console.error(`[MarketData] Speculator fetch failed for ${symbol}: `, error);
         return null;
     }
 }
@@ -722,8 +980,9 @@ export async function fetchFatherData(): Promise<FatherData> {
         const quote = await fetchQuote(symbol);
         if (quote) {
             // 배당 수익률은 summary에서, 섹터/보유종목은 추가 모듈에서
-            const summary = await fetchSummary(symbol, ["summaryDetail", "fundProfile", "topHoldings"]);
+            const summary = await fetchSummary(symbol, ["summaryDetail", "fundProfile", "topHoldings", "defaultKeyStatistics"]);
             const detail = (summary?.summaryDetail || {}) as Record<string, unknown>;
+            const stats = (summary?.defaultKeyStatistics || {}) as Record<string, unknown>; // Added for beta
             const fund = (summary?.fundProfile || {}) as { sectorWeightings?: { sector: string; weight: number }[] };
             const holdings = (summary?.topHoldings || {}) as { holdings?: { symbol: string; holdingPercent: number }[] };
 
@@ -733,7 +992,7 @@ export async function fetchFatherData(): Promise<FatherData> {
                 topSectors = fund.sectorWeightings
                     .sort((a, b) => b.weight - a.weight)
                     .slice(0, 3)
-                    .map(s => `${s.sector}(${(s.weight * 100).toFixed(0)}%)`)
+                    .map(s => `${s.sector} (${(s.weight * 100).toFixed(0)}%)`)
                     .join(", ");
             }
 
@@ -742,7 +1001,7 @@ export async function fetchFatherData(): Promise<FatherData> {
             if (holdings.holdings && holdings.holdings.length > 0) {
                 topHoldings = holdings.holdings
                     .slice(0, 3)
-                    .map(h => `${h.symbol}(${(h.holdingPercent * 100).toFixed(0)}%)`)
+                    .map(h => `${h.symbol} (${(h.holdingPercent * 100).toFixed(0)}%)`)
                     .join(", ");
             }
 
@@ -755,6 +1014,9 @@ export async function fetchFatherData(): Promise<FatherData> {
                 expenseRatio,
                 topSectors,
                 topHoldings,
+                // Father (Added)
+                beta: (detail.beta as number) ?? (stats.beta as number) ?? null,
+                sharpeRatio: (detail.trailingAnnualDividendYield as number) ? ((detail.trailingAnnualDividendYield as number) / 0.15) : null, // Very rough proxy: Yield / Volatility assumption (0.15)
             });
         }
     }
@@ -778,6 +1040,11 @@ function formatPercent(n: number | null): string {
     return `${(n * 100).toFixed(2)}%`;
 }
 
+function formatChangePercent(n: number | null): string {
+    if (n === null || n === undefined) return "N/A";
+    return `${n.toFixed(2)}%`;
+}
+
 function formatLargeNum(n: number | null): string {
     if (n === null || n === undefined) return "N/A";
     if (Math.abs(n) >= 1e12) return `${(n / 1e12).toFixed(2)}조`;
@@ -797,27 +1064,31 @@ export function sageDataToPrompt(data: SageData): string {
         : "N/A";
 
     return `[📊 가치 투자 분석 데이터 - ${data.quote.name} (${data.quote.symbol})]
-현재가: ${formatNum(data.quote.price)} ${data.quote.currency} (${data.quote.changePercent >= 0 ? "+" : ""}${data.quote.changePercent.toFixed(2)}%)
-PER (현재): ${formatNum(data.per)}배 | PER (예상): ${formatNum(data.forwardPer)}배
-PBR: ${formatNum(data.pbr)}배
-ROE: ${formatPercent(data.roe)}
-EPS: ${formatNum(data.eps)}
-배당 수익률: ${formatPercent(data.dividendYield)}
-부채비율 (D/E): ${formatNum(data.debtToEquity)}%
-영업이익률: ${formatPercent(data.operatingMargins)}
-순이익률: ${formatPercent(data.profitMargins)}
-유동비율: ${formatNum(data.currentRatio)}
-장부가치: ${formatNum(data.bookValue)}
-잉여현금흐름: ${formatLargeNum(data.freeCashflow)}
-EV/EBITDA: ${formatNum(data.enterpriseToEbitda)}배
-내부자 거래(순매수): ${insiderText}
-52주 최고: ${formatNum(data.fiftyTwoWeekHigh)} (고점 대비 낙폭: ${dropFromHigh ? dropFromHigh.toFixed(2) + "%" : "N/A"})
-52주 최저: ${formatNum(data.fiftyTwoWeekLow)}
+    현재가: ${formatNum(data.quote.price)} ${data.quote.currency} (${data.quote.changePercent >= 0 ? "+" : ""}${data.quote.changePercent.toFixed(2)}%)
+    PER(현재): ${formatNum(data.per)}배 | PER(예상): ${formatNum(data.forwardPer)}배
+    PBR: ${formatNum(data.pbr)}배
+    ROE: ${formatPercent(data.roe)}
+    EPS: ${formatNum(data.eps)}
+    배당 수익률: ${formatPercent(data.dividendYield)}
+    부채비율(D/E): ${formatNum(data.debtToEquity)}%
+    영업이익률: ${formatPercent(data.operatingMargins)}
+    순이익률: ${formatPercent(data.profitMargins)}
+    유동비율: ${formatNum(data.currentRatio)}
+    장부가치: ${formatNum(data.bookValue)}
+    잉여현금흐름: ${formatLargeNum(data.freeCashflow)}
+    EV/EBITDA: ${formatNum(data.enterpriseToEbitda)}배
+    내부자 거래(순매수): ${insiderText}
+    52주 최고: ${formatNum(data.fiftyTwoWeekHigh)} (고점 대비 낙폭: ${dropFromHigh ? dropFromHigh.toFixed(2) + "%" : "N/A"})
+    52주 최저: ${formatNum(data.fiftyTwoWeekLow)}
+    
+    [핵심 지표 (Pro)]
+    FCF Yield: ${formatPercent(data.fcfYield)} (국채금리보다 높으면 저평가)
+    ROIC(Proxy): ${formatPercent(data.roic)} (높을수록 해자 강력)
 
-위 데이터를 바탕으로 내재 가치, 안전 마진, 경제적 해자 관점에서 분석해주세요.
-- 고점 대비 낙폭이 크고(-20% 이상) 펀더멘탈(ROE, 이익률)이 견고하다면 "안전마진" 구간일 수 있습니다.
-- PER/PBR이 역사적 평균보다 낮은지 추론해보세요.
-- 내부자 순매수량이 양수라면 경영진의 자신감으로 해석하세요.`;
+    위 데이터를 바탕으로 내재 가치, 안전 마진, 경제적 해자 관점에서 분석해주세요.
+    - 고점 대비 낙폭이 크고(-20% 이상) 펀더멘탈(ROE, 이익률)이 견고하다면 "안전마진" 구간일 수 있습니다.
+    - FCF Yield가 4~5% 이상이면 매력적인 구간입니다.
+    - 내부자 순매수량이 양수라면 경영진의 자신감으로 해석하세요.`;
 }
 
 export function heroDataToPrompt(data: HeroData): string {
@@ -830,28 +1101,29 @@ export function heroDataToPrompt(data: HeroData): string {
         : "N/A (최근 이익이 적자이거나 변동성이 커서 산출 불가)";
 
     return `[📊 성장 투자 분석 데이터 - ${data.quote.name} (${data.quote.symbol})]
-현재가: ${formatNum(data.quote.price)} ${data.quote.currency} (${data.quote.changePercent >= 0 ? "+" : ""}${data.quote.changePercent.toFixed(2)}%)
-매출 성장률 (YoY): ${formatPercent(data.revenueGrowth)}
-이익 성장률 (YoY): ${formatPercent(data.earningsGrowth)}
-분기 이익 성장률: ${formatPercent(data.earningsQuarterlyGrowth)}
-PEG Ratio: ${pegDisplay} (성장주 저평가 기준: 1.0 미만 매우 좋음, 1.5 이하 양호)
-Forward PER: ${formatNum(data.forwardPer)}배
-매출총이익률: ${formatPercent(data.grossMargins)}
-영업현금흐름: ${formatLargeNum(data.operatingCashflow)}
-총 매출액: ${formatLargeNum(data.totalRevenue)}
-주당 매출: ${formatNum(data.revenuePerShare)}
-애널리스트 목표가: 평균 ${formatNum(data.targetMeanPrice)} (괴리율: ${data.targetMeanPrice ? ((data.targetMeanPrice - data.quote.price) / data.quote.price * 100).toFixed(2) + "%" : "N/A"})
-목표가 최고: ${formatNum(data.targetHighPrice)} | 최저: ${formatNum(data.targetLowPrice)}
-투자의견: ${data.recommendationKey ? data.recommendationKey.toUpperCase().replace("_", " ") : "N/A"}
-공매도 비율: ${formatPercent(data.shortPercentOfFloat)} (20% 이상이면 Short Squeeze 주의)
-공매도 상환 일수: ${formatNum(data.shortRatio)}일
-어닝 서프라이즈(최근): ${formatPercent(data.earningsSurprise)}
-애널리스트 수: ${formatNum(data.numberOfAnalysts)}명${warning}
+    현재가: ${formatNum(data.quote.price)} ${data.quote.currency} (${data.quote.changePercent >= 0 ? "+" : ""}${data.quote.changePercent.toFixed(2)}%)
+    매출 성장률(YoY): ${formatPercent(data.revenueGrowth)}
+    이익 성장률(YoY): ${formatPercent(data.earningsGrowth)}
+    분기 이익 성장률: ${formatPercent(data.earningsQuarterlyGrowth)}
+    PEG Ratio: ${pegDisplay} (성장주 저평가 기준: 1.0 미만 매우 좋음, 1.5 이하 양호)
+    PSR (매출배수): ${formatNum(data.psr)}배
+    Forward PER: ${formatNum(data.forwardPer)}배
+    매출총이익률: ${formatPercent(data.grossMargins)}
+    영업현금흐름: ${formatLargeNum(data.operatingCashflow)}
+    총 매출액: ${formatLargeNum(data.totalRevenue)}
+    주당 매출: ${formatNum(data.revenuePerShare)}
+    애널리스트 목표가: 평균 ${formatNum(data.targetMeanPrice)} (괴리율: ${data.targetMeanPrice ? ((data.targetMeanPrice - data.quote.price) / data.quote.price * 100).toFixed(2) + "%" : "N/A"})
+    목표가 최고: ${formatNum(data.targetHighPrice)} | 최저: ${formatNum(data.targetLowPrice)}
+    투자의견: ${data.recommendationKey ? data.recommendationKey.toUpperCase().replace("_", " ") : "N/A"}
+    공매도 비율: ${formatPercent(data.shortPercentOfFloat)} (20% 이상이면 Short Squeeze 주의)
+    공매도 상환 일수: ${formatNum(data.shortRatio)}일
+    어닝 서프라이즈(최근): ${formatPercent(data.earningsSurprise)}
+    애널리스트 수: ${formatNum(data.numberOfAnalysts)}명${warning}
 
-위 데이터를 바탕으로 성장 스토리가 건재한지 분석하세요. 
-- PEG Ratio가 핵심입니다. 고성장(20%+)이면서 PEG가 낮다면 강력한 매수 신호일 수 있습니다.
-- 목표가 괴리율이 높다면 상승 여력이 충분하다는 뜻입니다.
-- 공매도 비율이 높다면 숏 스퀴즈 가능성을 언급하세요.`;
+    위 데이터를 바탕으로 성장 스토리가 건재한지 분석하세요. 
+    - PEG Ratio가 핵심입니다. 고성장(20%+)이면서 PEG가 낮다면 강력한 매수 신호일 수 있습니다.
+    - PSR이 동종 업계 대비 너무 높지 않은지 체크하세요.
+    - 공매도 비율이 높고 상환 일수가 5일 이상이면 숏 스퀴즈 가능성을 강력하게 언급하세요.`;
 }
 
 export function architectDataToPrompt(data: ArchitectData): string {
@@ -860,20 +1132,28 @@ export function architectDataToPrompt(data: ArchitectData): string {
     );
 
     const yieldSpreadInfo = data.yieldSpread10Y2Y !== null
-        ? `장단기 금리차 (10Y-3M Proxy): ${data.yieldSpread10Y2Y.toFixed(2)}%p (${data.yieldSpread10Y2Y < 0 ? "⚠️ 역전됨 (경기침체 경고)" : "정상"})`
+        ? `장단기 금리차(10Y-3M Proxy): ${data.yieldSpread10Y2Y.toFixed(2)}%p (${data.yieldSpread10Y2Y < 0 ? "⚠️ 역전됨 (경기침체 경고)" : "정상"})`
         : "장단기 금리차: 데이터 확인 필요";
 
-    return `[📊 거시경제 & 자산 배분 데이터]
+    // New Architect Indicators Formatting
+    const moveInfo = data.moveIndex ? `채권 변동성(MOVE): ${data.moveIndex.toFixed(2)} (채권 시장의 공포지수)` : "MOVE: N/A";
+    const xlyXlp = (data.xlyPrice && data.xlpPrice) ? `경기민감(XLY)/필수소비(XLP) 비율: ${(data.xlyPrice / data.xlpPrice).toFixed(2)} (${(data.xlyPrice / data.xlpPrice) > 1.5 ? "경기 확장 기대" : "경기 침체 우려"})` : "XLY/XLP: N/A";
+    const sphbSplv = (data.sphbPrice && data.splvPrice) ? `High Beta(SPHB)/Low Vol(SPLV) 비율: ${(data.sphbPrice / data.splvPrice).toFixed(2)} (${(data.sphbPrice / data.splvPrice) > 1 ? "Risk On (공격적)" : "Risk Off (방어적)"})` : "Beta/Vol: N/A";
+
+    return `[📊 거시경제 & 자산 배분 데이터 (Macro & Cycle)]
 ${lines.join("\n")}
 ${yieldSpreadInfo}
 
+[심화 주기 판단 (Deep Cycle Analysis)]
+${moveInfo}
+${xlyXlp}
+${sphbSplv}
+
 위 데이터를 바탕으로 현재 시장의 사이클 위치를 판단하세요:
-- VIX 20 이상이면 공포 구간, 30 이상이면 극단적 공포
-- 10년물 금리 상승 → 채권 가격 하락, 성장주 압박
-- 금/달러 강세 → 안전자산 선호 심리
-- 원유 급등 → 인플레이션 우려
-- 장단기 금리차 역전 시 경기 침체 가능성 강조
-이 환경에서 포트폴리오 리밸런싱 방향을 제시해주세요.`;
+- MOVE 지수가 급등하면 주식 시장 폭락 전조일 수 있습니다.
+- XLY/XLP 비율이 하락하면 '방어적 태세'를 권고하세요.
+- SPHB/SPLV 비율이 낮다면 시장 참여자들이 겁을 먹고 있다는 뜻입니다.
+이 환경에서 포트폴리오 리밸런싱(주식 비중 축소/확대) 방향을 명확히 제시해주세요.`;
 }
 
 export function speculatorDataToPrompt(data: SpeculatorData): string {
@@ -902,6 +1182,11 @@ export function speculatorDataToPrompt(data: SpeculatorData): string {
         macdStatus = `MACD: ${data.macd.macd.toFixed(2)} | Signal: ${data.macd.signal.toFixed(2)} | Hist: ${data.macd.histogram.toFixed(2)} (${data.macd.trend})`;
     }
 
+    // New Indicators
+    const mfiStatus = data.moneyFlowIndex ? `MFI(14): ${data.moneyFlowIndex.toFixed(2)} (${data.moneyFlowIndex > 80 ? "세력 과열(매도)" : data.moneyFlowIndex < 20 ? "세력 침체(매수)" : "중립"})` : "MFI: N/A";
+    const stochStatus = (data.stochasticK && data.stochasticD) ? `Stochastic Slow(5,3,3): K ${data.stochasticK.toFixed(2)} / D ${data.stochasticD.toFixed(2)}` : "Stoch: N/A";
+    const obvStatus = `OBV Trend: ${data.obvTrend} (주가와 다이버전스 체크)`;
+
     return `[📊 모멘텀 트레이딩 데이터 - ${data.quote.name} (${data.quote.symbol})]
 현재가: ${formatNum(data.quote.price)} ${data.quote.currency} (${data.quote.changePercent >= 0 ? "+" : ""}${data.quote.changePercent.toFixed(2)}%)
 이동평균선 정렬: ${data.maAlignment}
@@ -909,16 +1194,20 @@ export function speculatorDataToPrompt(data: SpeculatorData): string {
 200일 이동평균: ${formatNum(data.twoHundredDayAverage)}
 RSI(14): ${formatNum(data.rsi14)}${rsiInterpretation}
 볼린저 밴드: ${data.bollingerUpper ? `상단 ${formatNum(data.bollingerUpper)} | 하단 ${formatNum(data.bollingerLower)}` : "N/A"} (${bbStatus})
-MACD(12,26,9): ${macdStatus}
-변동성 (ATR): ${formatNum(data.atr14)}
-52주 최고: ${formatNum(data.fiftyTwoWeekHigh)} (고점 대비: ${formatNum(data.distanceFrom52WeekHigh)}%)
+MACD(12, 26, 9): ${macdStatus}
+변동성(ATR): ${formatNum(data.atr14)}
+
+[고급 수급 지표]
+${mfiStatus}
+${stochStatus}
+${obvStatus}
+
 거래량 비율: ${formatNum(data.volumeRatio)}배 (평소 대비 ${data.volumeRatio && data.volumeRatio > 1 ? "급증 🔥" : "건조"})
 
 위 데이터를 바탕으로 지금이 '진입할 때'인지 '빠져나올 때'인지 날카롭게 판단하세요:
-- 50일 이평선 위에 있고(+괴리율) RSI가 70 미만이면 "상승 추세 유지"
-- RSI 70 이상 + 거래량 폭발 = 단기 고점 징후 (매도 관점)
-- MACD 히스토그램이 양수로 전환되거나 증가하면 매수 신호 (Golden Cross)
-- 역배열 + 200일선 아래 = "떨어지는 칼날" (진입 금지)`;
+- MFI가 80 이상이면 '스마트 머니'가 빠져나갈 준비를 하는 것입니다.
+- 주가는 오르는데 OBV Trend가 Down이면 '개미 꼬시기'일 수 있습니다.
+- 스토캐스틱 골든크로스가 발생했는지 체크하세요.`;
 }
 
 export function fatherDataToPrompt(data: FatherData): string {
@@ -928,9 +1217,9 @@ export function fatherDataToPrompt(data: FatherData): string {
 
     const etfLines = data.etfData.map((e) => {
         let info = `  - [${e.symbol}] ${e.name}: ${formatNum(e.price)} (${e.changePercent >= 0 ? "+" : ""}${e.changePercent.toFixed(2)}%)`;
-        info += ` | 배당률: ${formatPercent(e.dividendYield)} | 보수: ${e.expenseRatio}`;
-        if (e.topSectors) info += `\n    └ 섹터: ${e.topSectors}`;
-        if (e.topHoldings) info += `\n    └ 종목: ${e.topHoldings}`;
+        info += ` | 배당률: ${formatPercent(e.dividendYield)} | 보수: ${e.expenseRatio} `;
+        if (e.topSectors) info += `\n    └ 섹터: ${e.topSectors} `;
+        if (e.topHoldings) info += `\n    └ 종목: ${e.topHoldings} `;
         return info;
     });
 
@@ -1021,7 +1310,7 @@ async function calculateHistoryMetrics(): Promise<HistoryMetrics | null> {
 // ─── 차트용 과거 데이터 (30일) 가져오기 ───
 
 export async function fetchPriceHistory(symbol: string): Promise<{ date: string; price: number }[]> {
-    const cacheKey = `history:30d:${symbol}`;
+    const cacheKey = `history: 30d:${symbol} `;
     const cached = marketCache.get<{ date: string; price: number }[]>(cacheKey);
     if (cached) return cached;
 
@@ -1056,8 +1345,8 @@ export async function fetchPriceHistory(symbol: string): Promise<{ date: string;
 
 function getPersonaMarketLens(personaId: string): string {
     const commonInstruction = `
-🚨 [답변 태도: 명확하되 안전하게]
-- "확인해보세요" 같은 회피형 답변 금지. 대신 "데이터상 ~한 구간으로 판단됩니다"라고 명확히 의견을 내세요.
+🚨[답변 태도: 명확하되 안전하게]
+    - "확인해보세요" 같은 회피형 답변 금지.대신 "데이터상 ~한 구간으로 판단됩니다"라고 명확히 의견을 내세요.
 - 단, "무조건 사세요/파세요" 같은 명령조는 금지. "매력적인 진입 시점입니다", "리스크 관리가 필요합니다" 처럼 전문적인 뉘앙스로 말하세요.
 - 모든 판단의 근거는 반드시 위 데이터에서 찾아서 인용하세요.`;
 
@@ -1065,40 +1354,40 @@ function getPersonaMarketLens(personaId: string): string {
         case "sage":
             return `
 ${commonInstruction}
-🔍 [현인의 판단 기준]
-- "지금 사야 하나요?" → 고점 대비 낙폭과 밸류에이션(PER/PBR)을 근거로 가치 평가를 내리세요.
+🔍[현인의 판단 기준]
+    - "지금 사야 하나요?" → 고점 대비 낙폭과 밸류에이션(PER / PBR)을 근거로 가치 평가를 내리세요.
 - 데이터가 싸다면 "안전마진이 확보된 매력적인 구간"이라고 분명히 말하세요.
 - 단정 짓지 말고 "확률적으로 잃지 않을 가능성이 높은 자리"라는 점을 강조하세요.`;
 
         case "hero":
             return `
 ${commonInstruction}
-🔍 [영웅의 판단 기준]
-- "지금 사야 하나요?" → 단순히 싸다고 권하지 말고, "상승 추세"와 "성장 스토리"가 살아있는지 판단하세요.
+🔍[영웅의 판단 기준]
+    - "지금 사야 하나요?" → 단순히 싸다고 권하지 말고, "상승 추세"와 "성장 스토리"가 살아있는지 판단하세요.
 - 신고가 근처라면 "추세 추종 전략이 유효한 구간"이라고, 꺾였으면 "모멘텀 둔화로 인한 관망 필요"라고 진단하세요.
 - "상승 여력이 충분해 보입니다" 또는 "성장성 대비 과열권입니다"라고 의견을 제시하세요.`;
 
         case "architect":
             return `
 ${commonInstruction}
-🔍 [원칙가의 판단 기준]
-- "지금 사야 하나요?" → 종목 자체보다 "포트폴리오 내 역할"을 기준으로 답변하세요.
+🔍[원칙가의 판단 기준]
+    - "지금 사야 하나요?" → 종목 자체보다 "포트폴리오 내 역할"을 기준으로 답변하세요.
 - "현재 시장 상황에서는 주식 비중을 줄이고 안전자산을 늘리는 리밸런싱이 유리합니다" 처럼 구체적인 배분 전략을 제시하세요.
 - 경기 사이클 신호(금리차 등)를 근거로 "방어적 태세" 또는 "적극적 투자"를 권고하세요.`;
 
         case "speculator":
             return `
 ${commonInstruction}
-🔍 [투기꾼의 판단 기준]
-- "지금 사야 하나요?" → 철저히 가격과 거래량, 추세(이평선)로만 판단하세요.
-- 50일선 위+상승 추세라면 "매수 우위 구간(Buy Zone)"이라고, 역배열이면 "진입 금지(No Action)"라고 명명하세요.
+🔍[투기꾼의 판단 기준]
+    - "지금 사야 하나요?" → 철저히 가격과 거래량, 추세(이평선)로만 판단하세요.
+- 50일선 위 + 상승 추세라면 "매수 우위 구간(Buy Zone)"이라고, 역배열이면 "진입 금지(No Action)"라고 명명하세요.
 - RSI 과열 시 "단기적 조정 가능성이 높으니 차익 실현을 고려하세요"라고 날카롭게 조언하세요.`;
 
         case "father":
             return `
 ${commonInstruction}
-🔍 [아버지의 판단 기준]
-- "지금 사야 하나요?" → "타이밍을 예측하려는 시도 자체가 무의미함"을 강조하세요.
+🔍[아버지의 판단 기준]
+    - "지금 사야 하나요?" → "타이밍을 예측하려는 시도 자체가 무의미함"을 강조하세요.
 - 기업 분석보다는 "자본주의와 시장의 우상향"을 근거로 "꾸준한 적립식 매수(DCA)가 최선의 전략"임을 설득하세요.
 - 불안해하는 유저에게는 "지금의 하락은 장기적으로 싼 가격에 모을 기회"라고 안심시키세요.`;
 
@@ -1123,14 +1412,14 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
         // 고점 대비 낙폭 (장기 관점)
         if (i.high52) {
             const drop = ((i.price - i.high52) / i.high52) * 100;
-            if (drop < -10) details += ` | 고점대비 ${drop.toFixed(1)}%`;
+            if (drop < -10) details += ` | 고점대비 ${drop.toFixed(1)}% `;
         }
 
         // 이평선 괴리 (추세 관점)
         if (i.ma200) {
             const trend = i.price > i.ma200 ? "상승추세" : "하락추세";
             if (Math.abs((i.price - i.ma200) / i.ma200) > 0.05) {
-                details += ` | ${trend}`;
+                details += ` | ${trend} `;
             }
         }
 
@@ -1139,7 +1428,7 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
             return `  🚨 ${i.name}: ${i.price.toLocaleString()} (${i.price >= 20 ? "불안" : "안정"})`;
         }
 
-        return `  ${i.name}: ${i.price.toLocaleString()} (${i.changePercent >= 0 ? "+" : ""}${i.changePercent.toFixed(2)}%)${details}`;
+        return `  ${i.name}: ${i.price.toLocaleString()} (${i.changePercent >= 0 ? "+" : ""}${i.changePercent.toFixed(2)}%)${details} `;
     };
 
     const indexLines = indicators.filter((i) => indexSymbols.includes(i.symbol)).map(formatLine);
@@ -1162,9 +1451,9 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
 
     // 장단기 금리차 해석
     if (yieldCurveSpread !== null) {
-        if (yieldCurveSpread < 0) comments.push(`🔴 장단기 금리 역전 (${yieldCurveSpread}%p): 경기침체 경고 신호`);
-        else if (yieldCurveSpread < 0.5) comments.push(`🟡 장단기 금리차 협소 (${yieldCurveSpread}%p): 경기 둔화 우려`);
-        else comments.push(`🟢 장단기 금리차 정상 (${yieldCurveSpread}%p): 경기 확장 구간`);
+        if (yieldCurveSpread < 0) comments.push(`🔴 장단기 금리 역전(${yieldCurveSpread} % p): 경기침체 경고 신호`);
+        else if (yieldCurveSpread < 0.5) comments.push(`🟡 장단기 금리차 협소(${yieldCurveSpread} % p): 경기 둔화 우려`);
+        else comments.push(`🟢 장단기 금리차 정상(${yieldCurveSpread} % p): 경기 확장 구간`);
     }
 
     // 달러 해석
@@ -1184,7 +1473,7 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
     const btc = indicators.find((i) => i.symbol === "BTC-USD");
     if (btc && btc.changePercent > 5) comments.push("🚀 비트코인 급등: 위험자산 선호 심리 회복 중");
 
-    const commentSection = comments.length > 0 ? `\n\n📌 팩트 기반 시장 요약:\n${comments.join("\n")}` : "";
+    const commentSection = comments.length > 0 ? `\n\n📌 팩트 기반 시장 요약: \n${comments.join("\n")} ` : "";
 
     // 페르소나별 해석 렌즈
     const personaLens = getPersonaMarketLens(personaId);
@@ -1199,7 +1488,7 @@ ${sectorLines.join("\n")}
 
 금리:
 ${rateLines.join("\n")}
-  장단기 금리차 (10Y-3M): ${yieldCurveSpread !== null ? `${yieldCurveSpread}%p` : "N/A"}
+  장단기 금리차(10Y - 3M): ${yieldCurveSpread !== null ? `${yieldCurveSpread}%p` : "N/A"}
 
 원자재·통화·디지털자산:
 ${commodityLines.join("\n")}
@@ -1214,19 +1503,19 @@ ${personaLens}
 // 페르소나별 성향에 맞는 기간 수익률 문자열 생성
 function getPersonaHistoryString(history: HistoryMetrics | null, personaId: string): string {
     if (!history) return "";
-    const p = (n: number | null) => n !== null ? `${(n * 100).toFixed(2)}%` : "N/A";
+    const p = (n: number | null) => n !== null ? `${(n * 100).toFixed(2)}% ` : "N/A";
 
     switch (personaId) {
         case "speculator": // 단기 추세
-            return `📊 S&P 500 단기 추세: 1주(${p(history.change1W)}) | 1개월(${p(history.change1M)})`;
+            return `📊 S & P 500 단기 추세: 1주(${p(history.change1W)}) | 1개월(${p(history.change1M)})`;
         case "hero": // 중기 모멘텀
-            return `📊 S&P 500 성장 모멘텀: 3개월(${p(history.change3M)}) | 6개월(${p(history.change6M)}) | YTD(${p(history.changeYTD)})`;
+            return `📊 S & P 500 성장 모멘텀: 3개월(${p(history.change3M)}) | 6개월(${p(history.change6M)}) | YTD(${p(history.changeYTD)})`;
         case "architect": // 사이클
-            return `📊 시장 사이클 지표 (S&P 500): 1개월(${p(history.change1M)}) | 3개월(${p(history.change3M)}) | 1년(${p(history.change1Y)})`;
+            return `📊 시장 사이클 지표(S & P 500): 1개월(${p(history.change1M)}) | 3개월(${p(history.change3M)}) | 1년(${p(history.change1Y)})`;
         case "sage": // 장기 가치 & 낙폭
-            return `📊 S&P 500 장기 성과: YTD(${p(history.changeYTD)}) | 1년(${p(history.change1Y)}) | 고점대비 낙폭(${p(history.dropFromHigh)})`;
+            return `📊 S & P 500 장기 성과: YTD(${p(history.changeYTD)}) | 1년(${p(history.change1Y)}) | 고점대비 낙폭(${p(history.dropFromHigh)})`;
         case "father": // 장기 투자
-            return `📊 시장 성과 (S&P 500): 올해 수익률 ${p(history.changeYTD)} (역사적 연평균 약 10% 내외)`;
+            return `📊 시장 성과(S & P 500): 올해 수익률 ${p(history.changeYTD)} (역사적 연평균 약 10 % 내외)`;
         default:
             return "";
     }
@@ -1312,14 +1601,14 @@ export async function getPersonaMarketContext(
                     if (history.length === 0) return null;
                     // 토큰 절약을 위해 데이터 압축 (날짜는 생략하고 값만 나열하거나, 간략화)
                     // 여기서는 JSON 문자열로 제공하여 AI가 바로 파싱해서 차트를 그리게 유도
-                    return `"${symbol}": ${JSON.stringify(history)}`;
+                    return `"${symbol}": ${JSON.stringify(history)} `;
                 })
             );
 
             const validHistory = historyData.filter(Boolean);
             if (validHistory.length > 0) {
                 chartContext = `
-[📈 차트 생성용 과거 데이터 (30일)]
+[📈 차트 생성용 과거 데이터(30일)]
 AI는 아래 데이터를 사용하여 선 그래프(Line Chart)를 그려야 합니다.
 {
   ${validHistory.join(",\n  ")}
@@ -1332,7 +1621,7 @@ AI는 아래 데이터를 사용하여 선 그래프(Line Chart)를 그려야 �
         const parts = [commonPrompt, specializedPrompt, chartContext].filter(Boolean);
         return parts.join("\n\n");
     } catch (error) {
-        console.error(`[MarketData] Failed to get context for ${personaId}:`, error);
+        console.error(`[MarketData] Failed to get context for ${personaId}: `, error);
         return "";
     }
 }
