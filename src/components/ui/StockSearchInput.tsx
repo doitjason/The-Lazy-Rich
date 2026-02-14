@@ -27,6 +27,7 @@ type StockResult = {
 
 // Popular stocks to show when no search query
 const POPULAR_STOCKS: StockResult[] = [
+    { ticker: "META", name: "Meta Platforms, Inc.", exchange: "NASDAQ", type: "EQUITY" },
     { ticker: "AAPL", name: "Apple Inc.", exchange: "NASDAQ", type: "EQUITY" },
     { ticker: "NVDA", name: "NVIDIA Corporation", exchange: "NASDAQ", type: "EQUITY" },
     { ticker: "SPY", name: "S&P 500 ETF", exchange: "NYSE", type: "ETF" },

@@ -10,10 +10,12 @@ import { motion } from "framer-motion";
 
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "next-themes";
 
 export function ProfileSettings() {
     const { currency, setCurrency } = useCurrency();
     const { user, signUpWithEmail, signInWithEmail, signOut, loading } = useAuth();
+    const { theme, setTheme } = useTheme();
 
     // Auth form state
     const [isSignUp, setIsSignUp] = useState(false);
@@ -192,7 +194,10 @@ export function ProfileSettings() {
                                 </div>
                                 <span className="font-medium">Dark Mode</span>
                             </div>
-                            <Switch />
+                            <Switch
+                                checked={theme === "dark"}
+                                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+                            />
                         </div>
 
                         <div
@@ -243,24 +248,26 @@ export function ProfileSettings() {
             </motion.div>
 
             {/* Logout (Logged In Only) */}
-            {user && (
-                <motion.div variants={item} className="pt-4">
-                    <Button
-                        variant="destructive"
-                        onClick={signOut}
-                        className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-12 backdrop-blur-md shadow-none"
-                    >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Log Out
-                    </Button>
-                </motion.div>
-            )}
+            {
+                user && (
+                    <motion.div variants={item} className="pt-4">
+                        <Button
+                            variant="destructive"
+                            onClick={signOut}
+                            className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-12 backdrop-blur-md shadow-none"
+                        >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Log Out
+                        </Button>
+                    </motion.div>
+                )
+            }
 
             <motion.div variants={item}>
                 <p className="text-center text-[10px] text-muted-foreground">
                     Version 1.0.0 • Build 2024
                 </p>
             </motion.div>
-        </motion.div>
+        </motion.div >
     );
 }

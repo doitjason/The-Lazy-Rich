@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -41,10 +42,17 @@ export default function RootLayout({
       >
         <AuthProvider>
           <CurrencyProvider>
-            <main className="pb-20">
-              {children}
-            </main>
-            <BottomNav />
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem={false}
+              disableTransitionOnChange
+            >
+              <main className="pb-20">
+                {children}
+              </main>
+              <BottomNav />
+            </ThemeProvider>
           </CurrencyProvider>
         </AuthProvider>
       </body>

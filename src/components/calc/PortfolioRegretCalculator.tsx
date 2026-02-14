@@ -6,7 +6,13 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Loader2, Plus, Trash2, PieChart, TrendingUp, TrendingDown, Sparkles, HelpCircle } from "lucide-react";
+import { Loader2, Plus, Trash2, PieChart, TrendingUp, TrendingDown, Sparkles, HelpCircle, ChevronDown } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -37,6 +43,10 @@ interface PortfolioResult {
     winRate: number;
     chartData: { name: string; value: number }[];
     actualPeriod?: string;
+    mddPeriod?: {
+        start: string;
+        end: string;
+    };
     rebalanceCount: number;
     rebalancePeriodUsed: string;
     assets: {
@@ -57,29 +67,41 @@ const PRESETS = [
         icon: "👤"
     },
     {
-        name: "60/40 포트폴리오",
-        id: "60-40",
-        description: "주식 60% : 채권 40%",
+        name: "워렌 버핏 (버크셔)",
+        id: "buffett",
+        description: "애플, 코카콜라 등 가치주 5선",
         assets: [
-            { ticker: "SPY", weight: 60, name: "S&P 500" },
-            { ticker: "AGG", weight: 40, name: "US Aggregate Bond" }
+            { ticker: "AAPL", weight: 45, name: "Apple" },
+            { ticker: "BAC", weight: 15, name: "Bank of America" },
+            { ticker: "AXP", weight: 15, name: "American Express" },
+            { ticker: "KO", weight: 15, name: "Coca-Cola" },
+            { ticker: "OXY", weight: 10, name: "Occidental Petroleum" }
         ],
-        icon: "⚖️"
+        icon: "👴"
     },
     {
-        name: "영구 포트폴리오",
-        id: "permanent",
-        description: "주식/채권/금/현금 4등분",
+        name: "국민연금 (NPS)",
+        id: "nps",
+        description: "삼성전자와 미 지수 분산 투자",
         assets: [
-            { ticker: "SPY", weight: 25, name: "S&P 500" },
-            { ticker: "TLT", weight: 25, name: "20+ Year Treasury Bond" },
-            { ticker: "GLD", weight: 25, name: "Gold" },
-            { ticker: "SHY", weight: 25, name: "1-3 Year Treasury Bond" }
+            { ticker: "005930.KS", weight: 20, name: "삼성전자" },
+            { ticker: "SPY", weight: 30, name: "S&P 500" },
+            { ticker: "AGG", weight: 35, name: "US Aggregate Bond" },
+            { ticker: "GLD", weight: 15, name: "Gold" }
         ],
-        icon: "🏛️"
+        icon: "🇰🇷"
     },
     {
-        name: "올웨더 포트폴리오",
+        name: "나스닥 100 (QQQ)",
+        id: "nasdaq-100",
+        description: "미국 기술주 중심의 성장 투자",
+        assets: [
+            { ticker: "QQQ", weight: 100, name: "Invesco QQQ Trust" }
+        ],
+        icon: "🚀"
+    },
+    {
+        name: "레이 달리오 올웨더",
         id: "all-weather",
         description: "사계절 내내 안정적인 수익",
         assets: [
@@ -104,6 +126,7 @@ export function PortfolioRegretCalculator() {
     const [rebalancePeriod, setRebalancePeriod] = useState<"monthly" | "semi-annually" | "annually" | "none">("annually");
     const [result, setResult] = useState<PortfolioResult | null>(null);
     const [isCalculated, setIsCalculated] = useState(false);
+    const [selectedPreset, setSelectedPreset] = useState<string>("내 포트폴리오");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -126,6 +149,13 @@ export function PortfolioRegretCalculator() {
         }
     }, [user, fetchPortfolio]);
 
+    // Auto-apply "My Portfolio" once loaded
+    useEffect(() => {
+        if (items && items.length > 0 && selectedPreset === "내 포트폴리오" && assets.length === 1 && assets[0].ticker === "") {
+            applyMyPortfolio();
+        }
+    }, [items, selectedPreset, assets]);
+
     // Construct "My Portfolio" logic
     const applyMyPortfolio = () => {
         if (!items || items.length === 0) {
@@ -139,6 +169,7 @@ export function PortfolioRegretCalculator() {
             return;
         }
 
+        setSelectedPreset("내 포트폴리오");
         const myAssets: PortfolioAsset[] = items.map(item => ({
             ticker: item.ticker,
             weight: Number((((item.quantity * item.avg_price) / totalValue) * 100).toFixed(2)),
@@ -167,6 +198,7 @@ export function PortfolioRegretCalculator() {
         const preset = PRESETS.find(p => p.id === presetId);
         if (preset && preset.assets) {
             setAssets([...preset.assets]);
+            setSelectedPreset(preset.name);
             setIsCalculated(false);
             setResult(null);
             setError(null);
@@ -404,9 +436,12 @@ export function PortfolioRegretCalculator() {
                 ? (Math.pow(finalValue / initialInvestment, 1 / yearsPassed) - 1) * 100
                 : 0;
 
-            // Calculate MDD, Win Rate, and Yearly Returns
+            // MDD
             let peak = portfolioChartData[0].value;
+            let peakDate = portfolioChartData[0].name;
             let maxDrawdown = 0;
+            let mddStart = portfolioChartData[0].name;
+            let mddEnd = portfolioChartData[0].name;
             let positiveMonths = 0;
 
             // Yearly tracking
@@ -421,10 +456,13 @@ export function PortfolioRegretCalculator() {
                 // MDD
                 if (point.value > peak) {
                     peak = point.value;
+                    peakDate = point.name;
                 }
                 const drawdown = (peak - point.value) / peak;
                 if (drawdown > maxDrawdown) {
                     maxDrawdown = drawdown;
+                    mddStart = peakDate;
+                    mddEnd = point.name;
                 }
 
                 // Win Rate (Monthly)
@@ -474,6 +512,10 @@ export function PortfolioRegretCalculator() {
                 winRate,
                 chartData: portfolioChartData,
                 actualPeriod: commonStartDateStr,
+                mddPeriod: {
+                    start: mddStart,
+                    end: mddEnd
+                },
                 rebalanceCount,
                 rebalancePeriodUsed: rebalancePeriod,
                 assets: currentHoldings.map(holding => {
@@ -545,24 +587,50 @@ export function PortfolioRegretCalculator() {
                             <Sparkles className="w-3 h-3 text-yellow-500" />
                             추천 포트폴리오 프리셋
                         </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                            {PRESETS.map((preset) => (
-                                <button
-                                    key={preset.id}
-                                    onClick={() => applyPreset(preset.id)}
-                                    className="relative flex flex-col items-center justify-center p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-sky-500/50 transition-all gap-3 group overflow-hidden"
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className="w-full h-12 justify-between bg-white/5 border-white/10 hover:bg-white/10 hover:border-sky-500/50 transition-all rounded-xl px-4"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-tr from-sky-500/0 to-sky-500/0 group-hover:from-sky-500/5 group-hover:to-purple-500/5 transition-all duration-500" />
-                                    <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform duration-300">{preset.icon}</span>
-                                    <div className="text-center space-y-1 z-10">
-                                        <span className="text-xs font-bold block text-foreground/90 group-hover:text-foreground">{preset.name}</span>
-                                        <span className="text-[10px] text-muted-foreground leading-tight block opacity-0 h-0 group-hover:h-auto group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                                            {preset.description}
-                                        </span>
+                                    <div className="flex items-center gap-2">
+                                        {(() => {
+                                            const preset = PRESETS.find(p => p.name === selectedPreset);
+                                            if (preset) return <span className="text-xl">{preset.icon}</span>;
+                                            if (selectedPreset === "나만의 조합 만들기") return <Plus className="w-4 h-4 text-sky-500" />;
+                                            return <Sparkles className="w-4 h-4 text-yellow-500" />;
+                                        })()}
+                                        <span className="font-semibold text-foreground">{selectedPreset}</span>
                                     </div>
-                                </button>
-                            ))}
-                        </div>
+                                    <ChevronDown className="w-4 h-4 opacity-50" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-64 bg-black/90 border-white/10 backdrop-blur-xl rounded-xl p-1 shadow-2xl overflow-hidden" align="start">
+                                {PRESETS.map((preset) => (
+                                    <DropdownMenuItem
+                                        key={preset.id}
+                                        onClick={() => applyPreset(preset.id)}
+                                        className="flex flex-col items-start gap-1 p-3 cursor-pointer focus:bg-white/10 transition-colors rounded-lg"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-lg">{preset.icon}</span>
+                                            <span className="font-bold text-sm text-foreground">{preset.name}</span>
+                                        </div>
+                                        <span className="text-xs text-muted-foreground ml-7 line-clamp-1">{preset.description}</span>
+                                    </DropdownMenuItem>
+                                ))}
+                                <DropdownMenuItem
+                                    onClick={() => {
+                                        setAssets([{ ticker: "", weight: 100 }]);
+                                        setSelectedPreset("나만의 조합 만들기");
+                                    }}
+                                    className="flex items-center gap-2 p-3 cursor-pointer focus:bg-white/10 transition-colors rounded-lg text-sky-500 font-semibold"
+                                >
+                                    <Plus className="w-4 h-4 ml-1 text-sky-500" />
+                                    <span>직접 구성하기 (초기화)</span>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
 
                     {/* Assets Input Section */}
@@ -719,7 +787,7 @@ export function PortfolioRegretCalculator() {
                     <Button
                         onClick={onCalculate}
                         disabled={isLoading}
-                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98]"
+                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98]"
                     >
                         {isLoading ? (
                             <>
@@ -778,7 +846,7 @@ export function PortfolioRegretCalculator() {
                                 </div>
                                 <div className="grid grid-cols-3 gap-4 mt-8 w-full max-w-3xl mx-auto">
                                     {/* 1. Total Profit */}
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
                                         <span className={`text-lg font-black flex items-center gap-1 ${result.profit >= 0 ? "text-red-500" : "text-blue-500"}`}>
                                             {result.profit >= 0 ? "+" : ""}{(Math.trunc(result.returnRate * 10) / 10).toFixed(1)}%
@@ -788,7 +856,7 @@ export function PortfolioRegretCalculator() {
                                     {/* 2. CAGR */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">연평균 수익률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -807,7 +875,7 @@ export function PortfolioRegretCalculator() {
                                     {/* 3. MDD */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -820,13 +888,29 @@ export function PortfolioRegretCalculator() {
                                         <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
                                             <p className="font-bold text-red-400 mb-1">최대 낙폭 (MDD)</p>
                                             투자 기간 중 특정 고점에서 전 저점까지의 최대 하락폭을 의미합니다. 자산 가치가 가장 크게 깎였던 고통의 크기를 보여주는 대표적인 리스크 지표입니다.
+                                            {result.mddPeriod && (
+                                                <div className="mt-2 pt-2 border-t border-white/10 text-sky-400/80">
+                                                    <p className="font-semibold text-[10px] uppercase opacity-70 mb-0.5">최대 낙폭 기간</p>
+                                                    <p className="text-[11px] font-bold">
+                                                        {result.mddPeriod.start.substring(0, 7)} ~ {result.mddPeriod.end.substring(0, 7)}
+                                                        {(() => {
+                                                            const s = new Date(result.mddPeriod.start);
+                                                            const e = new Date(result.mddPeriod.end);
+                                                            const m = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+                                                            if (m > 0) return ` (${m}개월)`;
+                                                            const d = Math.ceil(Math.abs(e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+                                                            return d > 0 ? ` (${d}일)` : "";
+                                                        })()}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </PopoverContent>
                                     </Popover>
 
                                     {/* 4. Best Year */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최고의 해</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -845,7 +929,7 @@ export function PortfolioRegretCalculator() {
                                     {/* 5. Worst Year */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최악의 해</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -862,12 +946,23 @@ export function PortfolioRegretCalculator() {
                                     </Popover>
 
                                     {/* 6. Win Rate */}
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
-                                        <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">월별 승률</span>
-                                        <span className={`text-lg font-black ${result.winRate >= 50 ? "text-red-500" : "text-blue-500"}`}>
-                                            {result.winRate.toFixed(1)}%
-                                        </span>
-                                    </div>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">월별 승률</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                </div>
+                                                <span className={`text-lg font-black ${result.winRate >= 50 ? "text-red-500" : "text-blue-500"}`}>
+                                                    {result.winRate.toFixed(1)}%
+                                                </span>
+                                            </div>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
+                                            <p className="font-bold text-sky-400 mb-1">월별 승률</p>
+                                            전체 투자 기간 중 전월 대비 자산 가치가 상승하며 마감한 달의 비율입니다. 승률이 높을수록 하락하는 달보다 수익을 내는 달이 더 많았음을 의미하는 지표입니다.
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                             </div>
 

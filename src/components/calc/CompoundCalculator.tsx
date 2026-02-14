@@ -8,7 +8,7 @@ import { Slider } from "@/components/ui/slider";
 import { calculateCompoundInterest, CompoundResult } from "@/lib/finance-utils";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, Calculator } from "lucide-react";
 import {
     Popover,
     PopoverContent,
@@ -46,6 +46,11 @@ export function CompoundCalculator() {
         setIsCalculated(false);
     }, [currency]);
 
+    // Reset results when any input changes
+    useEffect(() => {
+        setIsCalculated(false);
+    }, [initial, monthly, rate, years, inflation]);
+
     const onCalculate = () => {
         const results = calculateCompoundInterest(initial, monthly, rate, years, inflation);
         setData(results);
@@ -72,6 +77,23 @@ export function CompoundCalculator() {
     const realValue = isCalculated ? finalResult.totalAmount : 0;
     const lifetimeMonthlyIncome = isCalculated ? Math.round(realValue * 0.04 / 12) : 0;
     const multiplier = totalInvestedNominal > 0 ? (finalNominalAsset / totalInvestedNominal).toFixed(1) : "0";
+
+    const formattedIncome = (() => {
+        const val = Math.round(lifetimeMonthlyIncome);
+        if (currency === "KRW") {
+            let formatted = "";
+            if (val >= 100000000) formatted = `${Math.floor(val / 100000000)}억`;
+            else if (val >= 10000) formatted = `${Math.floor(val / 10000)}만`;
+            else formatted = val.toLocaleString();
+            return `약 ${formatted}원`;
+        } else {
+            const formatted = new Intl.NumberFormat("en-US", {
+                notation: "compact",
+                maximumFractionDigits: 0,
+            }).format(val);
+            return `$${formatted}`;
+        }
+    })();
 
     // Create Nominal Chart Data
     const chartData = data.map((item) => {
@@ -100,9 +122,13 @@ export function CompoundCalculator() {
         <div className="space-y-8">
             {/* Input Card: Premium Glassmorphism */}
             <Card className="overflow-hidden border border-white/20 bg-white/10 dark:bg-black/20 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-4 border-b border-white/10">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Calculator className="w-5 h-5 text-sky-500" />
+                        <h3 className="text-lg font-bold text-foreground tracking-tight">경제적 자유 시뮬레이션</h3>
+                    </div>
                     <p className="text-sm font-medium text-muted-foreground/80 tracking-wide">
-                        시간이 만드는 복리의 마법을 확인해보세요.
+                        복리의 마법이 가져다줄 경제적 자유를 시뮬레이션 해보세요
                     </p>
                 </CardHeader>
                 <CardContent className="space-y-9">
@@ -122,19 +148,19 @@ export function CompoundCalculator() {
                             className="h-12 bg-white/5 dark:bg-black/10 border-white/10 focus:border-sky-500/50 focus:ring-sky-500/20 transition-all rounded-xl text-lg font-medium"
                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
                         />
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-nowrap overflow-x-auto gap-1.5 pb-2 -mx-1 px-1 scrollbar-none">
                             {(currency === "KRW"
-                                ? [10000000, 50000000, 100000000, 500000000, 1000000000]
-                                : [10000, 50000, 100000, 500000, 1000000]
+                                ? [10000000, 50000000, 100000000, 300000000, 500000000, 1000000000]
+                                : [10000, 50000, 100000, 300000, 500000, 1000000]
                             ).map((amt) => (
                                 <button
                                     key={amt}
                                     onClick={() => setInitial(amt)}
                                     className={cn(
-                                        "px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200",
+                                        "px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-200 whitespace-nowrap shrink-0",
                                         initial === amt
                                             ? "bg-sky-500/10 text-sky-500 border border-sky-500/50"
-                                            : "bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground border border-transparent"
+                                            : "bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-foreground border border-transparent hover:border-white/10"
                                     )}
                                 >
                                     {currency === "KRW"
@@ -201,14 +227,18 @@ export function CompoundCalculator() {
                     </div>
 
                     {/* 3. Annual Rate */}
-                    <div className="space-y-3">
-                        <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider ml-1">연평균 목표(명목) 수익률 (%)</label>
-                        <Input
-                            type="number"
-                            value={rate}
-                            onChange={(e) => setRate(Number(e.target.value))}
-                            className="h-12 bg-white/5 dark:bg-black/10 border-white/10 focus:border-sky-500/50 focus:ring-sky-500/20 transition-all rounded-xl text-lg font-medium"
-                            onKeyDown={(e) => e.key === "Enter" && onCalculate()}
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-end">
+                            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider ml-1">연평균 목표(명목) 수익률 (%)</label>
+                            <span className="text-sm font-bold text-sky-500">{rate}%</span>
+                        </div>
+                        <Slider
+                            value={[rate]}
+                            max={30}
+                            min={0}
+                            step={0.5}
+                            onValueChange={(vals) => setRate(vals[0])}
+                            className="py-2"
                         />
                         <div className="flex flex-wrap gap-2">
                             {[
@@ -296,7 +326,7 @@ export function CompoundCalculator() {
 
                     <Button
                         onClick={onCalculate}
-                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98]"
+                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98]"
                     >
                         자유 계산하기
                     </Button>
@@ -333,7 +363,7 @@ export function CompoundCalculator() {
                             {/* 1. Total Invested */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">총 원금 합계</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
@@ -352,7 +382,7 @@ export function CompoundCalculator() {
                             {/* 2. Return Rate */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">총 수익률</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
@@ -375,7 +405,7 @@ export function CompoundCalculator() {
                             {/* 3. Real Value */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">실질 가치</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
@@ -394,7 +424,7 @@ export function CompoundCalculator() {
                             {/* 4. Net Profit */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">순수익 합계</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
@@ -413,39 +443,27 @@ export function CompoundCalculator() {
                             {/* 5. Lifetime Monthly Income */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">평생 실질 월급</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
                                         </div>
                                         <span className="text-lg font-black text-red-500 whitespace-nowrap">
-                                            {(() => {
-                                                const val = Math.round(lifetimeMonthlyIncome);
-                                                if (currency === "KRW") {
-                                                    let formatted = "";
-                                                    if (val >= 100000000) formatted = `${Math.floor(val / 100000000)}억`;
-                                                    else if (val >= 10000) formatted = `${Math.floor(val / 10000)}만`;
-                                                    else formatted = val.toLocaleString();
-                                                    return `약 ${formatted}원`;
-                                                } else {
-                                                    const formatted = new Intl.NumberFormat("en-US", {
-                                                        notation: "compact",
-                                                        maximumFractionDigits: 0,
-                                                    }).format(val);
-                                                    return `$${formatted}`;
-                                                }
-                                            })()}
+                                            {formattedIncome}
                                         </span>
                                     </div>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed shadow-2xl">
-                                    <p className="font-bold text-amber-400 mb-1">평생 실질 월급 (4% 법칙)</p>
-                                    실질 자산의 연 4%를 매년 인출한다고 가정했을 때의 월 수령액입니다. 원금을 보존하면서 평생 인출 가능한 '경제적 자유'의 척도입니다.
+                                    <p className="font-bold text-amber-400 mb-1.5">평생 실질 월급 (4% 법칙)</p>
+                                    <p className="mb-2">자산의 원금을 유지하면서 평생 인출 가능한 금액입니다. 이 금액이 당신의 한 달 생활비를 넘어선다면, 그것이 바로 <span className="text-amber-200">경제적 자유</span>입니다.</p>
+                                    <div className="pt-2 border-t border-white/10 text-[10px] text-muted-foreground">
+                                        * 물가 상승을 고려하여 현재의 화폐 가치로 환산된 수치입니다. 즉, "미래에 받을 돈이 현재의 {formattedIncome}과 같은 가치"임을 의미합니다.
+                                    </div>
                                 </PopoverContent>
                             </Popover>
 
                             {/* 6. Investment Period */}
-                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2">
                                 <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">투자 기간</span>
                                 <span className="text-lg font-black text-slate-500">
                                     {years}년

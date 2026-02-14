@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Loader2, HelpCircle, Share2, Download } from "lucide-react";
+import { Loader2, HelpCircle, Share2, Download, TrendingUp } from "lucide-react";
 import { toPng } from 'html-to-image';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -28,6 +28,10 @@ interface RegretResult {
     dropFromAth: number;
     chartData: { name: string; value: number; stockPrice: number }[];
     actualPeriod?: string;
+    mddPeriod?: {
+        start: string;
+        end: string;
+    };
 }
 
 export function RegretCalculator() {
@@ -155,14 +159,24 @@ export function RegretCalculator() {
 
             // Calculate MDD and Drop From ATH
             let peakValue = investmentChartData[0].value;
+            let peakDate = investmentChartData[0].name;
             let maxDrawdown = 0;
+            let mddStart = investmentChartData[0].name;
+            let mddEnd = investmentChartData[0].name;
             let athPrice = investmentChartData[0].stockPrice;
 
             for (const point of investmentChartData) {
                 // MDD (Portfolio Value)
-                if (point.value > peakValue) peakValue = point.value;
+                if (point.value > peakValue) {
+                    peakValue = point.value;
+                    peakDate = point.name;
+                }
                 const drawdown = (peakValue - point.value) / peakValue;
-                if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+                if (drawdown > maxDrawdown) {
+                    maxDrawdown = drawdown;
+                    mddStart = peakDate;
+                    mddEnd = point.name;
+                }
 
                 // ATH Price
                 if (point.stockPrice > athPrice) athPrice = point.stockPrice;
@@ -192,6 +206,10 @@ export function RegretCalculator() {
                 dropFromAth,
                 chartData: investmentChartData,
                 actualPeriod: actualStartDate ? `${new Date(actualStartDate).getFullYear()}` : undefined,
+                mddPeriod: {
+                    start: mddStart,
+                    end: mddEnd
+                }
             });
             setIsCalculated(true);
         } catch (err) {
@@ -206,7 +224,11 @@ export function RegretCalculator() {
         <div className="space-y-8">
             {/* Input Card: Premium Glassmorphism */}
             <Card className="overflow-hidden border border-white/20 bg-white/10 dark:bg-black/20 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-4 border-b border-white/10">
+                    <div className="flex items-center gap-2 mb-1">
+                        <TrendingUp className="w-5 h-5 text-sky-500" />
+                        <h3 className="text-lg font-bold text-foreground tracking-tight">개별 종목 백테스팅</h3>
+                    </div>
                     <p className="text-sm font-medium text-muted-foreground/80 tracking-wide">
                         그때 그 종목에 투자했었더라면 지금은 어떻게 되었을지 확인해보세요.
                     </p>
@@ -283,7 +305,7 @@ export function RegretCalculator() {
                     <Button
                         onClick={onCalculate}
                         disabled={isLoading || !ticker}
-                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
+                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
                     >
                         {isLoading ? (
                             <>
@@ -325,8 +347,8 @@ export function RegretCalculator() {
                                     </p>
                                 )}
 
-                                <div className="w-full overflow-hidden px-1 mt-2">
-                                    <p className="text-sm font-medium text-muted-foreground">현재 추정 가치</p>
+                                <div className="w-full overflow-hidden px-1 mt-6">
+                                    <p className="text-base font-semibold text-muted-foreground mb-1">현재 추정 가치</p>
                                     {(() => {
                                         const formattedValue = formatCurrency(result.currentValue);
                                         const len = formattedValue.length;
@@ -352,7 +374,7 @@ export function RegretCalculator() {
 
                                 <div className="grid grid-cols-3 gap-4 mt-4 w-full max-w-3xl mx-auto">
                                     {/* 1. Total Profit */}
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
                                         <span className={`text-lg font-black flex items-center gap-1 ${result.returnRate >= 0 ? "text-red-500" : "text-blue-500"} whitespace-nowrap`}>
                                             {result.returnRate >= 0 ? "+" : ""}
@@ -366,7 +388,7 @@ export function RegretCalculator() {
                                     {/* 2. CAGR */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">연평균 수익률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -385,7 +407,7 @@ export function RegretCalculator() {
                                     {/* 3. MDD */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -398,11 +420,27 @@ export function RegretCalculator() {
                                         <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
                                             <p className="font-bold text-red-400 mb-1">최대 낙폭 (MDD)</p>
                                             투자 기간 중 최고점에서 최저점까지 최대 하락했던 정도입니다. 투자자의 인내심을 테스트하는 가장 중요한 리스크 지표입니다.
+                                            {result.mddPeriod && (
+                                                <div className="mt-2 pt-2 border-t border-white/10 text-sky-400/80">
+                                                    <p className="font-semibold text-[10px] uppercase opacity-70 mb-0.5">최대 낙폭 기간</p>
+                                                    <p className="text-[11px] font-bold">
+                                                        {result.mddPeriod.start.substring(0, 7)} ~ {result.mddPeriod.end.substring(0, 7)}
+                                                        {(() => {
+                                                            const s = new Date(result.mddPeriod.start);
+                                                            const e = new Date(result.mddPeriod.end);
+                                                            const m = (e.getFullYear() - s.getFullYear()) * 12 + (e.getMonth() - s.getMonth());
+                                                            if (m > 0) return ` (${m}개월)`;
+                                                            const d = Math.ceil(Math.abs(e.getTime() - s.getTime()) / (1000 * 60 * 60 * 24));
+                                                            return d > 0 ? ` (${d}일)` : "";
+                                                        })()}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </PopoverContent>
                                     </Popover>
 
                                     {/* 4. Quantity */}
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">보유 수량</span>
                                         <span className="text-lg font-black text-slate-500 whitespace-nowrap">
                                             약 {Math.round(result.quantity).toLocaleString()}주
@@ -410,7 +448,7 @@ export function RegretCalculator() {
                                     </div>
 
                                     {/* 5. Avg Price */}
-                                    <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px]">
+                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground whitespace-nowrap">당시 평단가</span>
                                         <span className="text-lg font-black text-slate-500 whitespace-nowrap">
                                             {(() => {
@@ -435,7 +473,7 @@ export function RegretCalculator() {
                                     {/* 6. Drop From ATH */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="px-3 py-3 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-col items-center justify-center min-w-[100px] cursor-help transition-colors hover:bg-white/10">
+                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">고점 대비 하락</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -472,6 +510,20 @@ export function RegretCalculator() {
                                                 axisLine={false}
                                                 interval="preserveStartEnd"
                                                 minTickGap={30}
+                                                tickFormatter={(value) => {
+                                                    try {
+                                                        const date = new Date(value);
+                                                        if (isNaN(date.getTime())) return value;
+
+                                                        const now = new Date();
+                                                        const diffYears = now.getFullYear() - date.getFullYear();
+
+                                                        if (diffYears <= 0) return "현재";
+                                                        return `${diffYears}년전`;
+                                                    } catch {
+                                                        return value;
+                                                    }
+                                                }}
                                             />
                                             <YAxis
                                                 fontSize={12}
@@ -528,7 +580,7 @@ export function RegretCalculator() {
                     <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-6">
                         <Button
                             onClick={handleShare}
-                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2"
+                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2"
                         >
                             <Share2 className="w-5 h-5 text-white" />
                             <span>친구에게 공유하기</span>
@@ -536,7 +588,7 @@ export function RegretCalculator() {
                         <Button
                             onClick={handleDownloadImage}
                             disabled={isLoading}
-                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 hover:from-sky-400 hover:via-blue-400 hover:to-indigo-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             <Download className="w-5 h-5 text-white" />
                             <span>이미지로 저장하기</span>
