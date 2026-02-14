@@ -1784,3 +1784,164 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
     marketCache.set(cacheKey, events, 24 * 60 * 60);
     return events;
 }
+
+// ─── 유저 벤치마크 히스토리 (백테스팅) ───
+
+export async function fetchBenchmarkHistory(
+    holdings: { ticker: string; quantity: number }[],
+    range: "1W" | "1M" | "3M" | "6M" | "1Y" | "YTD"
+): Promise<{ date: string; portfolio: number; benchmark: number }[]> {
+    const endDate = new Date();
+    const startDate = new Date();
+    switch (range) {
+        case "1W": startDate.setDate(endDate.getDate() - 7); break;
+        case "1M": startDate.setMonth(endDate.getMonth() - 1); break;
+        case "3M": startDate.setMonth(endDate.getMonth() - 3); break;
+        case "6M": startDate.setMonth(endDate.getMonth() - 6); break;
+        case "1Y": startDate.setFullYear(endDate.getFullYear() - 1); break;
+        // YTD starts from previous year end. Fetch from Dec 1 to be absolutely safe against timezone/holiday gaps.
+        case "YTD":
+            startDate.setFullYear(endDate.getFullYear() - 1);
+            startDate.setMonth(11, 1);
+            break;
+    }
+
+    // Exclude Exchange Rate volatility (Use Fixed Rate for pure price return)
+    const tickers = [...holdings.map(h => h.ticker), "SPY"];
+    const uniqueTickers = Array.from(new Set(tickers));
+
+    const historyPromises = uniqueTickers.map(async (t) => {
+        const symbol = resolveKoreanTicker(t);
+        try {
+            const result = await yahooFinance.historical(symbol, {
+                period1: startDate,
+                period2: endDate,
+                interval: "1d"
+            });
+            return { symbol: t, data: result as { date: Date; close: number }[] };
+        } catch (e) {
+            console.error(`Failed to fetch history for ${t}`, e);
+            return { symbol: t, data: [] };
+        }
+    });
+
+    const histories = await Promise.all(historyPromises);
+    const historyMap = new Map<string, Map<string, number>>();
+
+    histories.forEach(({ symbol, data }) => {
+        const dateMap = new Map<string, number>();
+        data.forEach((row: any) => {
+            const dateStr = row.date.toISOString().split('T')[0];
+            // Use standard 'close' to match Google Finance price return
+            dateMap.set(dateStr, row.close);
+        });
+        historyMap.set(symbol, dateMap);
+    });
+
+    const spyData = histories.find(h => h.symbol === "SPY")?.data || [];
+    const validDates = spyData.map((d) => d.date.toISOString().split('T')[0]).sort();
+
+    const result: { date: string; portfolio: number; benchmark: number }[] = [];
+    let basePortfolioValue = 0;
+    let baseBenchmarkValue = 0;
+
+    // Use Fixed Exchange Rate to remove FX volatility 
+    const FIXED_KRW_RATE = 1400;
+    const lastPrices = new Map<string, number>();
+
+    // Determine Chart Range & Base Date
+    let chartDates = validDates;
+    let baseDate: string | null = null;
+
+    if (range === "YTD") {
+        const currentYearStr = new Date().getFullYear().toString();
+        // String comparison is safer than Date object for Year filtering to avoid Timezone issues
+        const lastYearDates = validDates.filter(d => !d.startsWith(currentYearStr));
+
+        // Base is last trading day of previous year
+        if (lastYearDates.length > 0) {
+            baseDate = lastYearDates[lastYearDates.length - 1];
+            // Chart shows only this year
+            chartDates = validDates.filter(d => d.startsWith(currentYearStr));
+        }
+    }
+
+    // Set to track which tickers have valid base data
+    const validTickersForBase = new Set<string>();
+
+    // Pre-calculate Base Values
+    if (baseDate || chartDates.length > 0) {
+        const targetBaseDate = baseDate || chartDates[0];
+
+        const spyBase = historyMap.get("SPY")?.get(targetBaseDate);
+        if (spyBase) {
+            baseBenchmarkValue = spyBase * FIXED_KRW_RATE;
+
+            // Calculate Portfolio Base Value
+            basePortfolioValue = 0;
+            for (const h of holdings) {
+                const price = historyMap.get(h.ticker)?.get(targetBaseDate);
+                if (price) {
+                    const symbol = resolveKoreanTicker(h.ticker);
+                    const isKrwAsset = symbol.endsWith(".KS");
+                    const p = isKrwAsset ? price : (price * FIXED_KRW_RATE);
+                    basePortfolioValue += p * h.quantity;
+                    validTickersForBase.add(h.ticker);
+                }
+            }
+        }
+    }
+
+    if (basePortfolioValue === 0 || baseBenchmarkValue === 0) return []; // Fail safe
+
+    for (const date of chartDates) {
+        // SPY (Apply fixed rate)
+        const spyPriceUsd = historyMap.get("SPY")?.get(date);
+        if (!spyPriceUsd) continue;
+        const spyPriceKrw = spyPriceUsd * FIXED_KRW_RATE;
+
+        let currentPortfolioValue = 0;
+        let isPortfolioValid = true;
+
+        for (const h of holdings) {
+            // Only include tickers that were present in the base calculation (Apple-to-Apple comparison)
+            if (!validTickersForBase.has(h.ticker)) continue;
+
+            let price = historyMap.get(h.ticker)?.get(date);
+
+            // Fill Forward
+            if (price) {
+                lastPrices.set(h.ticker, price);
+            } else {
+                price = lastPrices.get(h.ticker);
+            }
+
+            if (!price) {
+                // If a base ticker is missing current price even after fill-forward, invalidate this date
+                isPortfolioValid = false;
+                break;
+            }
+
+            // Currency Check
+            const symbol = resolveKoreanTicker(h.ticker);
+            const isKrwAsset = symbol.endsWith(".KS");
+
+            // Apply Fixed Rate only to USD assets
+            const priceInKrw = isKrwAsset ? price : (price * FIXED_KRW_RATE);
+            currentPortfolioValue += priceInKrw * h.quantity;
+        }
+
+        if (!isPortfolioValid) continue;
+
+        const portfolioReturn = ((currentPortfolioValue - basePortfolioValue) / basePortfolioValue) * 100;
+        const benchmarkReturn = ((spyPriceKrw - baseBenchmarkValue) / baseBenchmarkValue) * 100;
+
+        result.push({
+            date,
+            portfolio: portfolioReturn,
+            benchmark: benchmarkReturn
+        });
+    }
+
+    return result;
+}

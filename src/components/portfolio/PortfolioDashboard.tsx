@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { usePortfolioStore } from "@/store/usePortfolioStore";
-import { getPortfolioData } from "@/app/actions/portfolio-actions";
+import { getPortfolioData, getBenchmarkData } from "@/app/actions/portfolio-actions";
 import { EnrichedPortfolioItem } from "@/lib/market-types";
 import { formatCurrency, formatPercent, cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, LineChart, Line } from "recharts";
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { DividendCalendarDialog } from "./DividendCalendarDialog";
+import { BenchmarkCard } from "./BenchmarkCard";
 
 interface PortfolioDashboardProps {
     onAdd: () => void;
@@ -37,12 +38,25 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     const [enrichedData, setEnrichedData] = useState<Record<string, EnrichedPortfolioItem>>({});
     const [loading, setLoading] = useState(true);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [showReturnPercent, setShowReturnPercent] = useState(true);
+    const [marketReturn, setMarketReturn] = useState(0);
 
-    // Initial Portfolio Fetch
+    // Toggle return display every 4 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setShowReturnPercent(prev => !prev);
+        }, 4000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Initial Portfolio & Benchmark Fetch
     useEffect(() => {
         if (user?.id) {
             fetchPortfolio(user.id);
         }
+
+        // Fetch Benchmark
+        getBenchmarkData().then(ret => setMarketReturn(ret));
     }, [user?.id]);
 
     // Fetch enriched data when items change
@@ -144,23 +158,37 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 <div className="absolute inset-0 bg-gradient-to-r from-sky-500 to-blue-600 opacity-90" />
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
 
-                <CardContent className="relative z-10 p-6 flex flex-col items-center justify-center text-white space-y-2">
-                    <div className="text-white/80 text-sm font-medium tracking-wide">총 순자산 (Total Balance)</div>
-                    <div className="text-5xl font-bold tracking-tight">
+                <CardContent className="relative z-10 py-1.5 px-6 flex flex-col items-center justify-center gap-3 text-white">
+                    <div className="text-white/80 text-base font-medium tracking-wide">총 순자산</div>
+                    <div className="text-5xl leading-none font-bold tracking-tight">
                         {formatCurrency(totalValue)}
                     </div>
-                    <div className="flex items-center gap-3 mt-2 bg-white/10 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/20 shadow-inner">
-                        <div className={cn("text-sm font-semibold flex items-center", totalDayChange >= 0 ? "text-emerald-300" : "text-rose-300")}>
-                            {totalDayChange >= 0 ? <ArrowUpRight className="w-4 h-4 mr-1" /> : <ArrowDownRight className="w-4 h-4 mr-1" />}
-                            {formatCurrency(Math.abs(totalDayChange))} ({formatPercent(dayChangePercent)})
+                    <div className="flex flex-col gap-1 w-full max-w-[280px] bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
+                        <div className="flex justify-between items-center text-[13px] font-medium">
+                            <span className="text-white/70">일간 수익</span>
+                            <div className={cn("flex items-center font-bold", totalDayChange >= 0 ? "text-emerald-300" : "text-rose-300")}>
+                                {totalDayChange >= 0 ? <ArrowUpRight className="w-3.5 h-3.5 mr-1" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-1" />}
+                                {formatCurrency(Math.abs(totalDayChange))} ({formatPercent(dayChangePercent)})
+                            </div>
                         </div>
-                        <div className="h-3 w-px bg-white/20" />
-                        <div className={cn("text-xs font-medium", totalReturn >= 0 ? "text-emerald-200" : "text-rose-200")}>
-                            총 수익: {formatPercent(totalReturnPercent)}
+                        <div className="h-px w-full bg-white/10" />
+                        <div className="flex justify-between items-center text-[13px] font-medium">
+                            <span className="text-white/70">총 수익</span>
+                            <div className={cn("flex items-center font-bold", totalReturn >= 0 ? "text-emerald-300" : "text-rose-300")}>
+                                {totalReturn >= 0 ? <ArrowUpRight className="w-3.5 h-3.5 mr-1" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-1" />}
+                                {formatCurrency(Math.abs(totalReturn), "USD", 0)} ({formatPercent(totalReturnPercent)})
+                            </div>
                         </div>
                     </div>
                 </CardContent>
             </Card>
+
+            {/* 1.5. Benchmark Card (New) */}
+            <BenchmarkCard
+                userReturn={dayChangePercent}
+                marketReturn={marketReturn}
+                holdings={useMemo(() => items.map(i => ({ ticker: i.ticker, quantity: i.quantity })), [items])}
+            />
 
             {/* 2. Asset Allocation & Stats Grid */}
             <div className="grid grid-cols-1 gap-4">
