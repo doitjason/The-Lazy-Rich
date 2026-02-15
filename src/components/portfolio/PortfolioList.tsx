@@ -1,7 +1,16 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Plus, Trash2, Edit2, Check, X, TrendingUp, RefreshCw, Sparkles } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Plus, Trash2, Edit2, Check, X, TrendingUp, RefreshCw, Sparkles, ArrowUpDown, SlidersHorizontal, ArrowDown, ArrowUp } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -105,6 +114,18 @@ export function PortfolioList() {
     // Real-time prices
     const [prices, setPrices] = useState<PriceData>({});
     const [pricesLoading, setPricesLoading] = useState(false);
+
+    // Sorting state
+    const [sortBy, setSortBy] = useState<string>("recent");
+
+    const sortOptions = [
+        { value: 'recent', label: '최근 추가순' },
+        { value: 'value_desc', label: '총자산 많은순' },
+        { value: 'value_asc', label: '총자산 적은순' },
+        { value: 'pnl_desc', label: '수익률 높은순' },
+        { value: 'pnl_asc', label: '수익률 낮은순' },
+        { value: 'ticker_asc', label: '이름순 (A-Z)' },
+    ];
 
     // Add new item form state
     const [showAddForm, setShowAddForm] = useState(false);
@@ -229,6 +250,35 @@ export function PortfolioList() {
     const totalPnLPercent = totalStats.totalCost > 0 ? (totalStats.totalPnL / totalStats.totalCost) * 100 : 0;
     const isTotalProfit = totalStats.totalPnL >= 0;
 
+    // Apply sorting
+    const sortedItems = useMemo(() => {
+        const itemsWithDetails = items.map(item => ({
+            ...item,
+            details: calcPnL(item)
+        }));
+
+        return [...itemsWithDetails].sort((a, b) => {
+            switch (sortBy) {
+                case 'value_desc':
+                    return b.details.currentValue - a.details.currentValue;
+                case 'value_asc':
+                    return a.details.currentValue - b.details.currentValue;
+                case 'pnl_desc':
+                    return b.details.pnlPercent - a.details.pnlPercent;
+                case 'pnl_asc':
+                    return a.details.pnlPercent - b.details.pnlPercent;
+                case 'ticker_asc':
+                    return a.ticker.localeCompare(b.ticker);
+                case 'recent':
+                default:
+                    // Store fetches with created_at desc by default, but let's be explicit if needed
+                    // For now 'recent' just returns the original order from store
+                    return 0;
+            }
+        });
+    }, [items, prices, sortBy, calcPnL]);
+
+
     if (!user) {
         return (
             <Card className="border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md">
@@ -262,6 +312,35 @@ export function PortfolioList() {
                         )}
                     </div>
                     <div className="flex gap-1">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="text-muted-foreground h-8 px-2 flex gap-1 items-center hover:bg-white/10"
+                                >
+                                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                                    <span className="text-xs font-medium">
+                                        {sortOptions.find(o => o.value === sortBy)?.label || "정렬"}
+                                    </span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-white/20">
+                                <DropdownMenuLabel>정렬 기준</DropdownMenuLabel>
+                                <DropdownMenuSeparator className="bg-white/10" />
+                                <DropdownMenuRadioGroup value={sortBy} onValueChange={setSortBy}>
+                                    {sortOptions.map((option) => (
+                                        <DropdownMenuRadioItem
+                                            key={option.value}
+                                            value={option.value}
+                                            className="text-xs cursor-pointer focus:bg-primary/20"
+                                        >
+                                            {option.label}
+                                        </DropdownMenuRadioItem>
+                                    ))}
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <Button
                             size="sm"
                             variant="ghost"
@@ -275,7 +354,7 @@ export function PortfolioList() {
                             size="sm"
                             variant="ghost"
                             onClick={() => setShowAddForm(!showAddForm)}
-                            className="text-primary"
+                            className="text-primary h-8"
                         >
                             <Plus className="h-4 w-4 mr-1" />
                             추가
@@ -358,8 +437,8 @@ export function PortfolioList() {
 
                     {/* Portfolio Items - Glassmorphism Cards */}
                     <AnimatePresence>
-                        {items.map((item, index) => {
-                            const { pnl, pnlPercent, currentValue, currentPrice, hasData } = calcPnL(item);
+                        {sortedItems.map((item, index) => {
+                            const { pnl, pnlPercent, currentValue, currentPrice, hasData } = item.details;
                             // Korean stock market convention: red = profit, blue = loss
                             const isProfit = pnl >= 0;
                             const profitColor = isProfit ? 'text-red-500' : 'text-blue-500';

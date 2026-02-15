@@ -177,6 +177,7 @@ export interface SpeculatorData {
     stochasticK: number | null; // Slow Stochastic %K
     stochasticD: number | null; // Slow Stochastic %D
     obvTrend: "Up" | "Down" | "Neutral"; // On Balance Volume Trend
+    moneyFlow: number | null; // Deprecated but used in literal
 }
 
 export interface FatherData {
@@ -203,6 +204,17 @@ export interface DividendEvent {
     amount: number;
     exDate?: string;
     paymentDate?: string;
+    isEstimated?: boolean;
 }
 
 export type DividendCalendarData = DividendEvent[];
+
+export interface BenchmarkHistoryData {
+    chartData: { date: string; portfolio: number; benchmark: number }[];
+    holdingsPerformance: {
+        ticker: string;
+        firstPrice: number;
+        lastPrice: number;
+        return: number;
+    }[];
+}

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -7,7 +8,7 @@ import { EnrichedPortfolioItem } from "@/lib/market-types";
 import { formatCurrency, formatPercent, cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, LineChart, Line } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, ArrowUpRight, ArrowDownRight, RefreshCw, TrendingUp, Wallet, PieChart as PieChartIcon, Activity, MoreHorizontal, Copy } from "lucide-react";
+import { Plus, ArrowUpRight, ArrowDownRight, RefreshCw, TrendingUp, Wallet, PieChart as PieChartIcon, Activity, MoreHorizontal, Copy, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,10 +20,20 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { AlertTriangle, X } from "lucide-react";
 
-import { DividendCalendarDialog } from "./DividendCalendarDialog";
+
 import { BenchmarkCard } from "./BenchmarkCard";
+import { EditStockDialog } from "./EditStockDialog";
+import { PortfolioItem } from "@/store/usePortfolioStore";
 
 interface PortfolioDashboardProps {
     onAdd: () => void;
@@ -35,11 +46,28 @@ import { useAuth } from "@/contexts/AuthContext";
 export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     const { user } = useAuth();
     const { items, loading: storeLoading, deleteItem, fetchPortfolio } = usePortfolioStore();
+
     const [enrichedData, setEnrichedData] = useState<Record<string, EnrichedPortfolioItem>>({});
     const [loading, setLoading] = useState(true);
-    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
     const [showReturnPercent, setShowReturnPercent] = useState(true);
     const [marketReturn, setMarketReturn] = useState(0);
+    const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [showConcentrationWarning, setShowConcentrationWarning] = useState(true);
+
+    // Sorting state
+    const [sortBy, setSortBy] = useState<string>("recent");
+
+    const sortOptions = [
+        { value: 'recent', label: '최근 추가순' },
+        { value: 'value_desc', label: '총자산 많은순' },
+        { value: 'value_asc', label: '총자산 적은순' },
+        { value: 'pnl_desc', label: '수익률 높은순' },
+        { value: 'pnl_asc', label: '수익률 낮은순' },
+        { value: 'ticker_asc', label: '이름순 (A-Z)' },
+    ];
+
 
     // Toggle return display every 4 seconds
     useEffect(() => {
@@ -151,6 +179,43 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
     const isLoading = storeLoading || loading;
 
+    // Apply sorting to items
+    const sortedItems = useMemo(() => {
+        const enrichedItems = items.map(item => {
+            const data = enrichedData[item.ticker];
+            const currentValue = item.quantity * (data?.price || item.avg_price);
+            const gain = currentValue - (item.quantity * item.avg_price);
+            const gainPercent = (item.quantity * item.avg_price) > 0
+                ? (gain / (item.quantity * item.avg_price)) * 100
+                : 0;
+
+            return {
+                ...item,
+                currentValue,
+                gainPercent
+            };
+        });
+
+        return [...enrichedItems].sort((a, b) => {
+            switch (sortBy) {
+                case 'value_desc':
+                    return b.currentValue - a.currentValue;
+                case 'value_asc':
+                    return a.currentValue - b.currentValue;
+                case 'pnl_desc':
+                    return b.gainPercent - a.gainPercent;
+                case 'pnl_asc':
+                    return a.gainPercent - b.gainPercent;
+                case 'ticker_asc':
+                    return a.ticker.localeCompare(b.ticker);
+                case 'recent':
+                default:
+                    return 0; // use original order
+            }
+        });
+    }, [items, enrichedData, sortBy]);
+
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-20">
             {/* 1. Total Balance Card (Gradient) */}
@@ -180,6 +245,111 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             </div>
                         </div>
                     </div>
+
+                    {/* Style Tags Embedded */}
+                    {items.length > 0 && (
+                        <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                            {/* Beta Tag */}
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <button className={cn(
+                                        "flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors"
+                                    )}>
+                                        {portfolioBeta > 1.2 ? "🚀 공격적 성장형" : portfolioBeta < 0.8 ? "🛡️ 안정 추구형" : "⚖️ 균형 투자형"}
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-64 p-3 text-xs bg-white/95 dark:bg-black/95 backdrop-blur-xl border-white/20">
+                                    <div className="font-bold mb-1">포트폴리오 베타 (Beta): {portfolioBeta.toFixed(2)}</div>
+                                    <div className="text-muted-foreground">
+                                        {portfolioBeta > 1.2
+                                            ? "시장 평균보다 변동성이 큽니다. 상승장에서 더 큰 수익을 기대할 수 있지만, 하락장 위험도 큽니다."
+                                            : portfolioBeta < 0.8
+                                                ? "시장 변동에 덜 민감합니다. 안정적인 자산 방어가 특징입니다."
+                                                : "시장 지수와 유사한 움직임을 보이며 균형 잡힌 위험/수익 구조를 가집니다."}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+
+                            {/* Dividend Tag */}
+                            {(portfolioYield * 100) >= 3.0 && (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                            💰 고배당 포트
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-3 text-xs bg-white/95 dark:bg-black/95 backdrop-blur-xl border-white/20">
+                                        <div className="font-bold mb-1">예상 배당 수익률: {(portfolioYield * 100).toFixed(2)}%</div>
+                                        <div className="text-muted-foreground">
+                                            연 3.0% 이상의 배당 수익이 기대되는 포트폴리오입니다. 시세 차익과 더불어 안정적인 현금 흐름을 창출하고 있습니다.
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            )}
+
+                            {/* Concentration Tag */}
+                            {sectorData.length > 0 && (sectorData[0].value / totalValue) > 0.45 ? (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                            🎯 {sectorData[0].name} 집중
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-3 text-xs bg-white/95 dark:bg-black/95 backdrop-blur-xl border-white/20">
+                                        <div className="font-bold mb-1">집중 투자 경고</div>
+                                        <div className="text-muted-foreground">
+                                            자산의 45% 이상이 <strong>{sectorData[0].name}</strong> 섹터에 쏠려 있습니다. 해당 산업의 호재에 크게 반응하지만, 악재 발생 시 리스크가 커질 수 있습니다.
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            ) : items.length >= 5 && (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                            🌐 분산 투자
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-3 text-xs bg-white/95 dark:bg-black/95 backdrop-blur-xl border-white/20">
+                                        <div className="font-bold mb-1">잘 분산된 포트폴리오</div>
+                                        <div className="text-muted-foreground">
+                                            다양한 자산에 고루 투자되어 있어, 개별 종목의 위험을 효과적으로 관리하고 있습니다.
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            )}
+
+                            {/* Performance Tag */}
+                            {totalReturnPercent > 15 ? (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                            🏆 성투 중
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-3 text-xs bg-white/95 dark:bg-black/95 backdrop-blur-xl border-white/20">
+                                        <div className="font-bold mb-1">탁월한 성과!</div>
+                                        <div className="text-muted-foreground">
+                                            총 수익률이 +15%를 돌파했습니다. 시장을 이기는 훌륭한 투자를 하고 계시네요!
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            ) : totalReturnPercent < -10 && (
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                            💧 존버 정신
+                                        </button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-64 p-3 text-xs bg-white/95 dark:bg-black/95 backdrop-blur-xl border-white/20">
+                                        <div className="font-bold mb-1">인내가 필요한 시기</div>
+                                        <div className="text-muted-foreground">
+                                            시장이 어렵거나 조정기일 수 있습니다. 펀더멘털에 문제가 없다면 긴 호흡으로 지켜보는 것도 전략입니다.
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+                            )}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -189,6 +359,155 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 marketReturn={marketReturn}
                 holdings={useMemo(() => items.map(i => ({ ticker: i.ticker, quantity: i.quantity })), [items])}
             />
+
+            {/* 3. Risk Profile & Dividend Grid */}
+            <div className="grid grid-cols-2 gap-3">
+                {/* Risk Profile Card */}
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Card className="bg-card dark:bg-white/5 border-border dark:border-white/10 backdrop-blur-sm p-4 relative overflow-hidden shadow-sm flex flex-col justify-between cursor-pointer hover:bg-accent/50 transition-colors group">
+                            <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Activity className="w-12 h-12" />
+                            </div>
+
+                            <div className="space-y-1 relative z-10">
+                                <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                                    시장 민감도 (Beta) <span className="text-[10px] bg-primary/10 text-primary px-1 rounded">Click</span>
+                                </div>
+                                <div className="text-xl font-bold flex items-end gap-1">
+                                    {portfolioBeta.toFixed(1)}
+                                    <span className="text-[10px] font-normal text-muted-foreground pb-1">/ 1.0 (S&P 500)</span>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 space-y-2 relative z-10">
+                                {/* Visual Gauge */}
+                                <div className="h-1.5 w-full bg-secondary/50 rounded-full overflow-hidden flex">
+                                    <div
+                                        className={cn("h-full transition-all duration-500",
+                                            portfolioBeta > 1.2 ? "bg-rose-500" :
+                                                portfolioBeta < 0.8 ? "bg-emerald-500" : "bg-blue-500"
+                                        )}
+                                        style={{ width: `${Math.min(portfolioBeta * 50, 100)}% ` }}
+                                    />
+                                </div>
+                                <div className={cn("text-[10px] font-bold text-right",
+                                    portfolioBeta > 1.2 ? "text-rose-400" :
+                                        portfolioBeta < 0.8 ? "text-emerald-400" : "text-blue-400"
+                                )}>
+                                    {portfolioBeta > 1.2 ? "높은 변동성 ⚡" :
+                                        portfolioBeta < 0.8 ? "낮은 변동성 🛡️" : "시장 평균 수준 ⚖️"}
+                                </div>
+                            </div>
+                        </Card>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-4 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-white/20" align="start">
+                        <div className="space-y-3">
+                            <h4 className="font-bold flex items-center gap-2 text-sm">
+                                <Activity className="w-4 h-4 text-primary" /> 시장 민감도(Beta)란?
+                            </h4>
+                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                미국 주식시장(S&P 500)이 1% 움직일 때, 내 포트폴리오가 평균적으로 몇 % 움직이는지를 나타내는 지표입니다.
+                            </p>
+
+                            <div className="rounded-lg bg-secondary/50 p-3 text-xs space-y-2">
+                                <div className="flex justify-between font-semibold">
+                                    <span>내 포트폴리오:</span>
+                                    <span className={cn(
+                                        portfolioBeta > 1.2 ? "text-rose-500" :
+                                            portfolioBeta < 0.8 ? "text-emerald-500" : "text-blue-500"
+                                    )}>{portfolioBeta.toFixed(2)} Beta</span>
+                                </div>
+                                <div className="h-px bg-border/50" />
+                                <p className="text-foreground/80 leading-relaxed">
+                                    {portfolioBeta > 1.05
+                                        ? `시장이 1 % 오를 때 약 ${portfolioBeta.toFixed(2)}% 오를 것으로 기대되지만, 하락장에서는 그만큼 더 많이 떨어질 위험이 있습니다. (고변동성)`
+                                        : portfolioBeta < 0.95
+                                            ? `시장이 1 % 오를 때 약 ${portfolioBeta.toFixed(2)}% 오르며, 하락장에서도 비교적 방어력이 좋아 덜 떨어집니다. (저변동성)`
+                                            : `시장 지수와 거의 비슷하게 움직입니다.시장 수익률을 그대로 따라가는 안정적인 구조입니다.`
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+
+                {/* Dividend Forecast Card */}
+                <Card
+                    className="bg-card dark:bg-white/5 border-border dark:border-white/10 backdrop-blur-sm p-4 relative overflow-hidden shadow-sm flex flex-col justify-between group"
+                >
+                    <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Wallet className="w-12 h-12" />
+                    </div>
+
+                    <div className="space-y-1 relative z-10">
+                        <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+                            예상 배당금 <ArrowUpRight className="w-3 h-3 text-emerald-500" />
+                        </div>
+                        <div className="text-xl font-bold text-emerald-400">
+                            {formatCurrency(estimatedAnnualIncome)}
+                        </div>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-white/5 relative z-10">
+                        <div className="flex justify-between items-center">
+                            <span className="text-[10px] text-muted-foreground">월 평균 수령액</span>
+                            <span className="text-xs font-semibold text-foreground">
+                                {formatCurrency(estimatedAnnualIncome / 12)}
+                            </span>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+
+            {/* 1.9 Concentration Warning (New) */}
+            {items.length > 0 && showConcentrationWarning && (() => {
+                // Logic: Single stock > 30% or Top Sector > 45%
+                const topStock = enrichedData && items.length > 0
+                    ? [...items].sort((a, b) => (b.quantity * (enrichedData[b.ticker]?.price || b.avg_price)) - (a.quantity * (enrichedData[a.ticker]?.price || a.avg_price)))[0]
+                    : null;
+
+                if (!topStock) return null;
+
+                const topStockValue = topStock.quantity * (enrichedData[topStock.ticker]?.price || topStock.avg_price);
+                const isStockConcentrated = (topStockValue / totalValue) > 0.3;
+
+                const topSector = sectorData?.[0];
+                const isSectorConcentrated = topSector && (topSector.value / totalValue) > 0.45;
+
+                if (!isStockConcentrated && !isSectorConcentrated) return null;
+
+                const message = isStockConcentrated
+                    ? `"${topStock.ticker}" 종목에 자산의 ${formatPercent((topStockValue / totalValue) * 100)}가 집중되어 있습니다.혹시 계란을 한 바구니에 너무 많이 담은건 아닌지 확인해보시는 것은 어떨까요 ? 🥚`
+                    : `"${topSector.name}" 섹터에 자산의 ${formatPercent((topSector.value / totalValue) * 100)}가 쏠려 있습니다.해당 산업 리스크에 주의하세요! 🏗️`;
+
+                return (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative overflow-hidden rounded-xl border border-orange-500/30 bg-orange-500/5 p-4"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-transparent opacity-50" />
+                        <div className="relative flex items-start gap-3">
+                            <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+                                <AlertTriangle className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 pt-0.5">
+                                <h4 className="text-sm font-bold text-orange-700 dark:text-orange-400 mb-1">집중 투자 감지 🚨</h4>
+                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                    {message}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setShowConcentrationWarning(false)}
+                                className="text-muted-foreground hover:text-foreground transition-colors absolute right-0 top-0 p-2"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </motion.div>
+                );
+            })()}
 
             {/* 2. Asset Allocation & Stats Grid */}
             <div className="grid grid-cols-1 gap-4">
@@ -214,7 +533,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                         stroke="none"
                                     >
                                         {sectorData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            <Cell key={`cell - ${index} `} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>
                                     <RechartsTooltip
@@ -239,114 +558,132 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                     </CardContent>
                 </Card>
 
-                {/* Quick Stats or Actions */}
-                <Card className="bg-card dark:bg-white/5 border-border dark:border-white/10 backdrop-blur-sm flex flex-col justify-center gap-4 p-5 shadow-sm">
-                    <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <div className="text-sm text-muted-foreground">포트폴리오 베타 (Beta)</div>
-                            <div className="text-2xl font-bold">{portfolioBeta.toFixed(2)}</div>
-                            <div className={cn("text-xs", portfolioBeta > 1.2 ? "text-rose-400" : portfolioBeta < 0.8 ? "text-emerald-400" : "text-blue-400")}>
-                                {portfolioBeta > 1.2 ? "공격적 투자 성향 (고변동성)" : portfolioBeta < 0.8 ? "방어적 투자 성향 (저변동성)" : "시장 추종형 (중위험)"}
-                            </div>
-                        </div>
-                        <Activity className={cn("w-8 h-8 opacity-50", portfolioBeta > 1 ? "text-rose-500" : "text-blue-500")} />
-                    </div>
-                    <div className="h-px bg-white/10 w-full" />
-                    <button
-                        onClick={() => setIsCalendarOpen(true)}
-                        className="flex items-center justify-between w-full text-left hover:bg-white/5 p-1 -m-1 rounded transition-colors group cursor-pointer"
-                    >
-                        <div className="space-y-1">
-                            <div className="text-sm text-muted-foreground flex items-center gap-1">
-                                배당 수익률 (Dividend) <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1 rounded">Calendar</span>
-                            </div>
-                            <div className="text-2xl font-bold group-hover:text-emerald-300 transition-colors">{formatPercent(portfolioYield * 100)}</div>
-                            <div className="text-xs text-emerald-400">예상 연 배당금: {formatCurrency(estimatedAnnualIncome)}</div>
-                        </div>
-                        <Wallet className="w-8 h-8 text-emerald-500/50 group-hover:scale-110 transition-transform duration-300" />
-                    </button>
-                </Card>
+
             </div>
 
-            <DividendCalendarDialog
-                open={isCalendarOpen}
-                onOpenChange={setIsCalendarOpen}
-                items={items.map(i => ({ ticker: i.ticker, quantity: i.quantity }))}
+            <EditStockDialog
+                open={isEditOpen}
+                onOpenChange={setIsEditOpen}
+                item={editingItem}
             />
-
             {/* 3. Holdings List */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between px-1">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                         보유 종목 <span className="text-muted-foreground text-sm font-normal">({items.length})</span>
                     </h3>
-                    <Button onClick={onAdd} size="sm" className="rounded-full bg-white/10 hover:bg-white/20 text-foreground border border-white/10">
-                        <Plus className="w-4 h-4 mr-1" /> 자산 추가
-                    </Button>
+                    <div className="flex gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-8 px-2 flex gap-1 items-center bg-white/5 hover:bg-white/10 text-muted-foreground border border-white/10 rounded-full"
+                                >
+                                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                                    <span className="text-xs font-medium">
+                                        {sortOptions.find(o => o.value === sortBy)?.label || "정렬"}
+                                    </span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 bg-white/80 dark:bg-black/90 backdrop-blur-xl border-white/10">
+                                <DropdownMenuLabel className="text-xs">정렬 기준</DropdownMenuLabel>
+                                <DropdownMenuSeparator className="bg-white/10" />
+                                <DropdownMenuRadioGroup value={sortBy} onValueChange={setSortBy}>
+                                    {sortOptions.map((option) => (
+                                        <DropdownMenuRadioItem
+                                            key={option.value}
+                                            value={option.value}
+                                            className="text-xs cursor-pointer focus:bg-primary/20"
+                                        >
+                                            {option.label}
+                                        </DropdownMenuRadioItem>
+                                    ))}
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <Button onClick={onAdd} size="sm" className="rounded-full bg-white/10 hover:bg-white/20 text-foreground border border-white/10 shadow-sm">
+                            <Plus className="w-4 h-4 mr-1" /> 자산 추가
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid gap-3">
-                    {items.map((item, index) => {
-                        const data = enrichedData[item.ticker];
-                        const currentValue = item.quantity * (data?.price || item.avg_price);
-                        const gain = currentValue - (item.quantity * item.avg_price);
-                        const gainPercent = (gain / (item.quantity * item.avg_price)) * 100;
-                        const isProfit = gain >= 0;
+                    <AnimatePresence mode="popLayout">
+                        {sortedItems.map((item, index) => {
+                            const data = enrichedData[item.ticker];
+                            const { currentValue, gainPercent } = item;
+                            const gain = currentValue - (item.quantity * item.avg_price);
+                            const isProfit = gain >= 0;
 
-                        return (
-                            <motion.div
-                                key={item.id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                                className="group relative overflow-hidden rounded-xl bg-card dark:bg-white/5 border border-border dark:border-white/10 hover:bg-accent/50 dark:hover:bg-white/10 transition-all p-4 flex items-center justify-between shadow-sm"
-                            >
-                                {/* Left: Info */}
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs font-bold ring-1 ring-white/10">
-                                        {item.ticker.slice(0, 1)}
-                                    </div>
-                                    <div>
-                                        <div className="font-bold">{item.ticker}</div>
-                                        <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                            {item.quantity}주
-                                            <span className="w-0.5 h-0.5 rounded-full bg-gray-500" />
-                                            {data?.sector || "주식"}
+                            return (
+                                <motion.div
+                                    key={item.id}
+                                    layout
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ duration: 0.2 }}
+                                    onClick={() => {
+                                        setEditingItem(item);
+                                        setIsEditOpen(true);
+                                    }}
+                                    className="group relative overflow-hidden rounded-xl bg-card dark:bg-white/5 border border-border dark:border-white/10 hover:bg-accent/50 dark:hover:bg-white/10 transition-all p-4 flex items-center justify-between shadow-sm cursor-pointer"
+                                >
+
+                                    {/* Left: Info */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs font-bold ring-1 ring-white/10">
+                                            {item.ticker.slice(0, 1)}
+                                        </div>
+                                        <div>
+                                            <div className="font-bold">{item.ticker}</div>
+                                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                                {item.quantity}주
+                                                <span className="w-0.5 h-0.5 rounded-full bg-gray-500" />
+                                                {data?.sector || "주식"}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Right: Price */}
-                                <div className="text-right">
-                                    <div className="font-medium">{formatCurrency(currentValue)}</div>
-                                    <div className={cn("text-xs font-medium", isProfit ? "text-emerald-400" : "text-rose-400")}>
-                                        {isProfit ? "+" : ""}{formatCurrency(gain)} ({formatPercent(gainPercent)})
+                                    {/* Right: Price */}
+                                    <div className="text-right">
+                                        <div className="font-medium">{formatCurrency(currentValue)}</div>
+                                        <div className={cn("text-xs font-medium", isProfit ? "text-emerald-400" : "text-rose-400")}>
+                                            {isProfit ? "+" : ""}{formatCurrency(gain)} ({formatPercent(gainPercent)})
+                                        </div>
                                     </div>
-                                </div>
 
-                                {/* Actions Menu */}
-                                <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                                                <MoreHorizontal className="w-4 h-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuLabel>편집</DropdownMenuLabel>
-                                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.ticker)}>
-                                                <Copy className="w-3 h-3 mr-2" /> 티커 복사
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => deleteItem(item.id)}>
-                                                삭제
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
+                                    {/* Actions Menu */}
+                                    <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10" onClick={(e) => e.stopPropagation()}>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6">
+                                                    <MoreHorizontal className="w-4 h-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>편집</DropdownMenuLabel>
+                                                <DropdownMenuItem onClick={() => {
+                                                    setEditingItem(item);
+                                                    setIsEditOpen(true);
+                                                }}>
+                                                    <Plus className="w-3 h-3 mr-2" /> 수정하기
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(item.ticker)}>
+                                                    <Copy className="w-3 h-3 mr-2" /> 티커 복사
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem className="text-red-500 focus:text-red-500" onClick={() => deleteItem(item.id)}>
+                                                    삭제
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
                 </div>
             </div>
         </div>

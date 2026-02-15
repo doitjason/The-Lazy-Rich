@@ -6,7 +6,7 @@
 
 import YahooFinance from "yahoo-finance2";
 import { marketCache, MarketDataCache } from "./market-data-cache";
-import { StockQuote, EnrichedPortfolioItem, CommonMarketData, MarketIndicator, SageData, HeroData, ArchitectData, SpeculatorData, FatherData, DividendCalendarData } from "./market-types";
+import { StockQuote, EnrichedPortfolioItem, CommonMarketData, MarketIndicator, SageData, HeroData, ArchitectData, SpeculatorData, FatherData, DividendCalendarData, BenchmarkHistoryData } from "./market-types";
 
 const yahooFinance = new YahooFinance();
 
@@ -844,7 +844,6 @@ async function calculateOBV(symbol: string): Promise<"Up" | "Down" | "Neutral"> 
         }
 
         const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
-
         if (slope > 0) return "Up";
         if (slope < 0) return "Down";
         return "Neutral";
@@ -853,6 +852,37 @@ async function calculateOBV(symbol: string): Promise<"Up" | "Down" | "Neutral"> 
         return "Neutral";
     }
 }
+
+const YAHOO_BASE_URL = "https://query1.finance.yahoo.com/v8/finance/chart";
+
+// Major ETF Sector Mapping for better concentration analysis
+const ETF_SECTOR_MAP: Record<string, string> = {
+    // Tech & Growth
+    "QQQ": "Technology", "TQQQ": "Technology", "SQQQ": "Technology", "QLD": "Technology",
+    "XLK": "Technology", "VGT": "Technology", "TECL": "Technology", "TECS": "Technology",
+
+    // Semiconductor
+    "SOXX": "Semiconductor", "SOXL": "Semiconductor", "SOXS": "Semiconductor",
+    "SMH": "Semiconductor", "USD": "Semiconductor", "NVDL": "Semiconductor", "NVD": "Semiconductor",
+
+    // Market Indices
+    "SPY": "S&P 500", "VOO": "S&P 500", "IVV": "S&P 500", "SPLG": "S&P 500",
+    "DIA": "Industrial", "IWM": "Small Cap", "TNA": "Small Cap",
+
+    // Dividend & Income
+    "SCHD": "High Dividend", "JEPI": "High Dividend", "JEPQ": "Tech Dividend",
+    "VIG": "Dividend Growth", "DGRO": "Dividend Growth", "VNQ": "Real Estate", "O": "Real Estate",
+
+    // Bond & Fixed Income
+    "TLT": "Long-Term Bond", "TMF": "Long-Term Bond", "TMV": "Long-Term Bond",
+    "AGG": "Total Bond", "BND": "Total Bond", "SHy": "Short-Term Bond",
+
+    // Crypto
+    "BITX": "Crypto", "BITO": "Crypto", "IBIT": "Crypto", "COIN": "Crypto", "MSTR": "Crypto",
+
+    // Commodities
+    "GLD": "Gold", "IAU": "Gold", "SLV": "Silver", "USO": "Oil"
+};
 
 export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorData | null> {
     const symbol = resolveKoreanTicker(ticker);
@@ -1653,7 +1683,10 @@ export async function fetchEnrichedPortfolio(tickers: string[]): Promise<Record<
                         const stats = summary.defaultKeyStatistics as any;
                         const fund = summary.fundProfile as any;
 
-                        sector = profile?.sector ?? fund?.categoryName; // ETF category fallback
+
+                        // Priority: Manual Map -> Profile Sector -> Fund Category -> Unknown
+                        const etfSector = ETF_SECTOR_MAP[ticker.toUpperCase()] || ETF_SECTOR_MAP[queryTicker.toUpperCase().replace(".KS", "")];
+                        sector = etfSector ?? profile?.sector ?? fund?.categoryName ?? "Unknown";
 
                         // Priority: dividendYield (Stock) -> yield (Bond/ETF) -> trailingAnnualDividendYield -> fundProfile.yield
                         dividendYield = detail?.dividendYield
@@ -1774,6 +1807,62 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
                     // Calendar fetch fail
                 }
 
+                // 3. Project Future Dividends (Estimate based on history)
+                try {
+                    const tickerEvents = events.filter(e => e.ticker === ticker);
+                    // Use a simple string comparison for date check
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const hasFuture = tickerEvents.some(e => e.date > todayStr);
+
+                    if (!hasFuture && tickerEvents.length >= 2) {
+                        // Sort descending by date
+                        const sorted = [...tickerEvents].sort((a, b) => b.date.localeCompare(a.date));
+                        const lastEvent = sorted[0];
+                        const prevEvent = sorted[1];
+
+                        const lastDate = new Date(lastEvent.date);
+                        const prevDate = new Date(prevEvent.date);
+                        const diffTime = Math.abs(lastDate.getTime() - prevDate.getTime());
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        // Detect Frequency with tolerance
+                        let freqDays = 0;
+                        if (diffDays >= 25 && diffDays <= 35) freqDays = 30; // Monthly
+                        else if (diffDays >= 85 && diffDays <= 95) freqDays = 90; // Quarterly
+                        else if (diffDays >= 175 && diffDays <= 185) freqDays = 180; // Semi-Annual
+                        else if (diffDays >= 350 && diffDays <= 370) freqDays = 365; // Annual
+
+                        if (freqDays > 0) {
+                            let nextDate = new Date(lastDate);
+                            // Project forward for 12 months
+                            for (let i = 0; i < 12; i++) {
+                                nextDate.setDate(nextDate.getDate() + freqDays);
+                                const nextDateStr = nextDate.toISOString().split('T')[0];
+
+                                // Only add if it's in the future and doesn't exist
+                                if (nextDateStr > todayStr) {
+                                    const exists = events.some(e => e.ticker === ticker && e.date === nextDateStr);
+                                    if (!exists) {
+                                        events.push({
+                                            ticker: ticker,
+                                            date: nextDateStr,
+                                            amount: lastEvent.amount, // Assume same amount
+                                            exDate: nextDateStr, // Use same date for exDate estimation
+                                            isEstimated: true
+                                        });
+                                    }
+                                }
+                                // Stop if projected too far (e.g. > 1 year from now)
+                                const oneYearFromNow = new Date();
+                                oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+                                if (nextDate > oneYearFromNow) break;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`Failed to project dividends for ${ticker}`, e);
+                }
+
             } catch (error) {
                 console.warn(`Failed dividend fetch for ${ticker}`, error);
             }
@@ -1790,7 +1879,7 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
 export async function fetchBenchmarkHistory(
     holdings: { ticker: string; quantity: number }[],
     range: "1W" | "1M" | "3M" | "6M" | "1Y" | "YTD"
-): Promise<{ date: string; portfolio: number; benchmark: number }[]> {
+): Promise<BenchmarkHistoryData | any[]> {
     const endDate = new Date();
     const startDate = new Date();
     switch (range) {
@@ -1894,6 +1983,9 @@ export async function fetchBenchmarkHistory(
 
     if (basePortfolioValue === 0 || baseBenchmarkValue === 0) return []; // Fail safe
 
+    const chartData: { date: string; portfolio: number; benchmark: number }[] = [];
+    const lastPricesForHoldings = new Map<string, number>();
+
     for (const date of chartDates) {
         // SPY (Apply fixed rate)
         const spyPriceUsd = historyMap.get("SPY")?.get(date);
@@ -1911,9 +2003,9 @@ export async function fetchBenchmarkHistory(
 
             // Fill Forward
             if (price) {
-                lastPrices.set(h.ticker, price);
+                lastPricesForHoldings.set(h.ticker, price);
             } else {
-                price = lastPrices.get(h.ticker);
+                price = lastPricesForHoldings.get(h.ticker);
             }
 
             if (!price) {
@@ -1936,12 +2028,31 @@ export async function fetchBenchmarkHistory(
         const portfolioReturn = ((currentPortfolioValue - basePortfolioValue) / basePortfolioValue) * 100;
         const benchmarkReturn = ((spyPriceKrw - baseBenchmarkValue) / baseBenchmarkValue) * 100;
 
-        result.push({
+        chartData.push({
             date,
             portfolio: portfolioReturn,
             benchmark: benchmarkReturn
         });
     }
 
-    return result;
+    // New: Calculate individual performance for the period
+    const holdingsPerformance = holdings
+        .filter(h => validTickersForBase.has(h.ticker))
+        .map(h => {
+            const firstPrice = historyMap.get(h.ticker)?.get(baseDate || chartDates[0]) || 0;
+            const lastPrice = lastPricesForHoldings.get(h.ticker) || 0;
+            const tickerReturn = firstPrice > 0 ? ((lastPrice - firstPrice) / firstPrice) * 100 : 0;
+            return {
+                ticker: h.ticker,
+                firstPrice,
+                lastPrice,
+                return: tickerReturn
+            };
+        })
+        .sort((a, b) => b.return - a.return); // Sort by return desc
+
+    return {
+        chartData,
+        holdingsPerformance
+    };
 }

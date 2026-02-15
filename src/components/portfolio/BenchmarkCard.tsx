@@ -89,11 +89,11 @@ export function BenchmarkCard({ userReturn, marketReturn, className, holdings = 
                 </div>
 
                 {/* Context Message (Bottom) */}
-                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/5">
-                    <p className="text-sm font-bold text-center text-slate-700 dark:text-white/80 leading-relaxed">
+                <div className="mt-2 pt-2 border-t border-slate-100 dark:border-white/5">
+                    <p className="text-xs font-bold text-center text-slate-700 dark:text-white/80 whitespace-nowrap overflow-hidden text-ellipsis">
                         {isWin
                             ? "오늘 시장을 이기고 있습니다! 정말 훌륭한 성과네요. 👏"
-                            : "시장보다 다소 부진하지만, 원칙을 지키는 투자가 중요합니다. 💪"}
+                            : "오늘은 시장보다 부진할지라도, 원칙을 지키는 투자가 중요합니다. 💪"}
                     </p>
                 </div>
             </div>

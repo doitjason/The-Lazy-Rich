@@ -18,8 +18,15 @@ interface BenchmarkHistoryDialogProps {
 export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: BenchmarkHistoryDialogProps) {
     const [range, setRange] = useState<TimeRange>("1M");
     const [data, setData] = useState<{ date: string; portfolio: number; benchmark: number }[]>([]);
+    const [holdingsPerformance, setHoldingsPerformance] = useState<{
+        ticker: string;
+        firstPrice: number;
+        lastPrice: number;
+        return: number;
+    }[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
 
     useEffect(() => {
         if (open && holdings.length > 0) {
@@ -27,14 +34,21 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
             setError(null);
 
             getBenchmarkHistory(holdings, range)
-                .then(d => {
-                    setData(d);
+                .then(res => {
+                    if (Array.isArray(res)) {
+                        setData(res);
+                        setHoldingsPerformance([]);
+                    } else {
+                        setData(res.chartData);
+                        setHoldingsPerformance(res.holdingsPerformance);
+                    }
                 })
                 .catch(err => {
                     console.error("Failed to fetch history:", err);
                     setError("데이터를 불러오는데 실패했습니다.");
                 })
                 .finally(() => setLoading(false));
+
         }
     }, [open, range, holdings]); // holdings is memoized in parent, so this won't trigger loop
 
@@ -200,6 +214,47 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                             <span className="text-xs text-slate-300">종목을 추가하거나 기간을 변경해 보세요.</span>
                         </div>
                     )}
+                </div>
+
+                {/* Holdings Performance (New) */}
+                <div className="bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800">
+                    <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                        <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">종목별 성과 (기여도 순)</h4>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500">{range} 기준</span>
+                    </div>
+                    <div className="max-h-[180px] overflow-y-auto px-6 py-2">
+                        {holdingsPerformance.length > 0 ? (
+                            <div className="space-y-2 pb-4">
+                                {holdingsPerformance.map((h) => (
+                                    <div key={h.ticker} className="flex items-center justify-between py-1 group">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-200 shadow-sm group-hover:border-sky-500/30 transition-colors">
+                                                {h.ticker.slice(0, 2)}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white uppercase">{h.ticker}</span>
+                                                <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                                                    {h.firstPrice.toLocaleString(undefined, { maximumFractionDigits: 1 })} → {h.lastPrice.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className={cn(
+                                            "text-sm font-bold px-2 py-1 rounded-md",
+                                            h.return >= 0
+                                                ? "text-sky-600 dark:text-sky-400 bg-sky-500/5"
+                                                : "text-rose-600 dark:text-rose-400 bg-rose-500/5"
+                                        )}>
+                                            {h.return >= 0 ? "+" : ""}{h.return.toFixed(2)}%
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : !loading && (
+                            <div className="py-8 text-center text-slate-400 text-xs">
+                                개별 종목 데이터가 없습니다.
+                            </div>
+                        )}
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>
