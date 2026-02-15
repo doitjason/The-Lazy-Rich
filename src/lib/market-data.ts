@@ -858,30 +858,32 @@ const YAHOO_BASE_URL = "https://query1.finance.yahoo.com/v8/finance/chart";
 // Major ETF Sector Mapping for better concentration analysis
 const ETF_SECTOR_MAP: Record<string, string> = {
     // Tech & Growth
-    "QQQ": "Technology", "TQQQ": "Technology", "SQQQ": "Technology", "QLD": "Technology",
-    "XLK": "Technology", "VGT": "Technology", "TECL": "Technology", "TECS": "Technology",
+    "QQQ": "IT / 기술", "TQQQ": "IT / 기술", "SQQQ": "IT / 기술", "QLD": "IT / 기술",
+    "XLK": "IT / 기술", "VGT": "IT / 기술", "TECL": "IT / 기술", "TECS": "IT / 기술",
 
     // Semiconductor
-    "SOXX": "Semiconductor", "SOXL": "Semiconductor", "SOXS": "Semiconductor",
-    "SMH": "Semiconductor", "USD": "Semiconductor", "NVDL": "Semiconductor", "NVD": "Semiconductor",
+    "SOXX": "반도체", "SOXL": "반도체", "SOXS": "반도체",
+    "SMH": "반도체", "USD": "반도체", "NVDL": "반도체", "NVD": "반도체",
 
-    // Market Indices
+    // Market Indices & Global Equity
     "SPY": "S&P 500", "VOO": "S&P 500", "IVV": "S&P 500", "SPLG": "S&P 500",
-    "DIA": "Industrial", "IWM": "Small Cap", "TNA": "Small Cap",
+    "VTI": "미국 전체 주식", "VEA": "선진국 주식", "VWO": "신흥국 주식",
+    "DIA": "산업재", "IWM": "중소형주", "TNA": "중소형주",
 
     // Dividend & Income
-    "SCHD": "High Dividend", "JEPI": "High Dividend", "JEPQ": "Tech Dividend",
-    "VIG": "Dividend Growth", "DGRO": "Dividend Growth", "VNQ": "Real Estate", "O": "Real Estate",
+    "SCHD": "고배당", "JEPI": "고배당", "JEPQ": "기술주 배당",
+    "VIG": "배당성장", "DGRO": "배당성장", "VNQ": "부동산", "O": "부동산",
 
     // Bond & Fixed Income
-    "TLT": "Long-Term Bond", "TMF": "Long-Term Bond", "TMV": "Long-Term Bond",
-    "AGG": "Total Bond", "BND": "Total Bond", "SHy": "Short-Term Bond",
+    "TLT": "장기 국채", "TMF": "장기 국채", "TMV": "장기 국채",
+    "EDV": "초장기 국채", "LTPZ": "물가연동채",
+    "AGG": "종합 채권", "BND": "종합 채권", "SHy": "단기 채권",
 
     // Crypto
-    "BITX": "Crypto", "BITO": "Crypto", "IBIT": "Crypto", "COIN": "Crypto", "MSTR": "Crypto",
+    "BITX": "암호화폐", "BITO": "암호화폐", "IBIT": "암호화폐", "COIN": "암호화폐", "MSTR": "암호화폐",
 
     // Commodities
-    "GLD": "Gold", "IAU": "Gold", "SLV": "Silver", "USO": "Oil"
+    "GLD": "금", "IAU": "금", "SLV": "은", "USO": "원유", "PDBC": "원자재"
 };
 
 export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorData | null> {

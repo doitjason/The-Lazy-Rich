@@ -59,6 +59,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     // Sorting state
     const [sortBy, setSortBy] = useState<string>("recent");
     const [isDivCalendarOpen, setIsDivCalendarOpen] = useState(false);
+    const [allocationView, setAllocationView] = useState<'asset' | 'sector'>('asset');
 
     const sortOptions = [
         { value: 'recent', label: '최근 추가순' },
@@ -163,20 +164,67 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     const totalReturn = totalValue - totalCost;
     const totalReturnPercent = totalCost > 0 ? (totalReturn / totalCost) * 100 : 0;
 
-    // Sector Allocation Data
+    // Asset Allocation Data (Dual View Support)
     const sectorData = useMemo(() => {
-        const sectors: Record<string, number> = {};
+        const groups: Record<string, number> = {};
+
+        // Sector naming translation map
+        const SECTOR_MAP: Record<string, string> = {
+            "Technology": "IT / 기술",
+            "Healthcare": "헬스케어",
+            "Financial Services": "금융",
+            "Consumer Cyclical": "경기소비재",
+            "Consumer Defensive": "필수소비재",
+            "Energy": "에너지",
+            "Industrials": "산업재",
+            "Communication Services": "통신",
+            "Utilities": "유틸리티",
+            "Basic Materials": "기초소재",
+            "Real Estate": "부동산",
+            "Unknown": "기타"
+        };
+
+        // Helper for Asset Class Mapping
+        const getAssetClass = (raw: string): string => {
+            const r = (raw || "Unknown").toLowerCase();
+
+            // 1. Gold
+            if (r.includes('gold') || r.includes('금')) return "금";
+
+            // 2. Commodities
+            if (r.includes('metal') || r.includes('commodity') || r.includes('oil') || r.includes('material') || r.includes('원자재') || r.includes('원유') || r.includes('은')) return "원자재";
+
+            // 3. Crypto
+            if (r.includes('crypto') || r.includes('bitcoin') || r.includes('암호화폐')) return "암호화폐";
+
+            // 4. Real Estate
+            if (r.includes('real estate') || r.includes('부동산') || r.includes('리츠')) return "부동산";
+
+            // 5. Bonds
+            if (r.includes('bond') || r.includes('fixed income') || r.includes('treasury') || r.includes('debt') || r.includes('notes') || r.includes('채권') || r.includes('국채') || r.includes('물가연동')) return "채권";
+
+            // 6. Cash
+            if (r.includes('cash') || r.includes('money market') || r.includes('현금') || r.includes('파킹')) return "현금";
+
+            return "주식";
+        };
+
         items.forEach(item => {
             const data = enrichedData[item.ticker];
             const value = item.quantity * (data?.price || item.avg_price);
-            const sector = data?.sector || "Unknown";
-            sectors[sector] = (sectors[sector] || 0) + value;
+            const rawSector = data?.sector || "Unknown";
+
+            const key = allocationView === 'asset'
+                ? getAssetClass(rawSector)
+                : (SECTOR_MAP[rawSector] || rawSector);
+
+            groups[key] = (groups[key] || 0) + value;
         });
 
-        return Object.entries(sectors)
+        return Object.entries(groups)
             .map(([name, value]) => ({ name, value }))
             .sort((a, b) => b.value - a.value);
-    }, [items, enrichedData]);
+    }, [items, enrichedData, allocationView]);
 
     const isLoading = storeLoading || loading;
 
@@ -525,54 +573,152 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
             {/* 2. Asset Allocation & Stats Grid */}
             <div className="grid grid-cols-1 gap-4">
-                {/* Donut Chart */}
+                {/* Donut Chart with Legend */}
                 <Card className="bg-card dark:bg-white/5 border-border dark:border-white/10 backdrop-blur-sm overflow-hidden shadow-sm">
-                    <CardHeader className="pb-0 px-4 pt-4">
+                    <CardHeader className="pb-0 px-5 pt-5 flex flex-row items-center justify-between">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                            <PieChartIcon className="w-4 h-4" /> 자산 배분 (Asset Allocation)
+                            <PieChartIcon className="w-4 h-4 text-primary" /> 자산 배분 현황
                         </CardTitle>
+                        <div className="flex bg-muted/50 p-1 rounded-lg border border-border/50">
+                            <button
+                                onClick={() => setAllocationView('asset')}
+                                className={cn(
+                                    "px-2.5 py-1 text-[11px] font-bold rounded-md transition-all",
+                                    allocationView === 'asset' ? "bg-white dark:bg-white/10 shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                자산군별
+                            </button>
+                            <button
+                                onClick={() => setAllocationView('sector')}
+                                className={cn(
+                                    "px-2.5 py-1 text-[11px] font-bold rounded-md transition-all",
+                                    allocationView === 'sector' ? "bg-white dark:bg-white/10 shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                섹터별
+                            </button>
+                        </div>
                     </CardHeader>
-                    <CardContent className="h-[200px] flex items-center justify-center relative p-0">
+                    <CardContent className="px-5 py-8">
                         {items.length > 0 ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={sectorData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={75}
-                                        paddingAngle={4}
-                                        dataKey="value"
-                                        stroke="none"
-                                    >
-                                        {sectorData.map((entry, index) => (
-                                            <Cell key={`cell - ${index} `} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <RechartsTooltip
-                                        formatter={(value: number | undefined) => [formatCurrency(value || 0), "평가금액"]}
-                                        contentStyle={{ backgroundColor: 'rgba(23, 23, 23, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
-                                        itemStyle={{ color: '#fff' }}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="text-muted-foreground text-sm">자산 데이터 없음</div>
-                        )}
-                        {/* Center Text */}
-                        {items.length > 0 && (
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="text-center">
-                                    <div className="text-xs text-muted-foreground">비중 1위</div>
-                                    <div className="text-sm font-bold text-foreground">{sectorData[0]?.name || "None"}</div>
+                            <div className="flex flex-col items-center gap-8">
+                                {/* 1. Chart Area - Significantly Larger */}
+                                <div className="relative w-full max-w-[260px] aspect-square flex-shrink-0">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={sectorData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={85}
+                                                outerRadius={115}
+                                                paddingAngle={3}
+                                                dataKey="value"
+                                                stroke="none"
+                                                animationDuration={1000}
+                                            >
+                                                {sectorData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <RechartsTooltip
+                                                formatter={(value: number | undefined) => [formatCurrency(value || 0), "평가금액"]}
+                                                contentStyle={{
+                                                    backgroundColor: 'rgba(23, 23, 23, 0.95)',
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    borderRadius: '12px',
+                                                    backdropFilter: 'blur(12px)',
+                                                    color: '#fff',
+                                                    fontSize: '12px'
+                                                }}
+                                                itemStyle={{ color: '#fff', padding: '2px 0' }}
+                                            />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    {/* Center Text Area - Scaled up for clarity */}
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-6">
+                                        <div className="text-center overflow-hidden w-full">
+                                            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground opacity-70 mb-1">
+                                                {allocationView === 'asset' ? '주요 자산' : '주요 섹터'}
+                                            </div>
+                                            <div className="text-base font-black text-foreground leading-tight line-clamp-2 break-words">
+                                                {sectorData[0]?.name || "없음"}
+                                            </div>
+                                            <div className="text-sm font-bold text-primary mt-1">
+                                                {formatPercent((sectorData[0]?.value / totalValue) * 100)}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                {/* 2. Custom Legend Area - Full Width Grid */}
+                                <div className="w-full space-y-5">
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {sectorData.slice(0, 5).map((sector, index) => (
+                                            <div key={sector.name} className="flex items-center justify-between group min-w-0 gap-4 hover:bg-white/5 p-2 -mx-2 rounded-lg transition-colors">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="w-3 h-3 rounded-full flex-shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.1)] transition-transform group-hover:scale-125" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                                                    <span className="text-[14px] font-bold text-foreground/90 group-hover:text-foreground transition-colors truncate">
+                                                        {sector.name}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-4 flex-shrink-0">
+                                                    <span className="text-[12px] text-muted-foreground font-medium tabular-nums">{formatCurrency(sector.value)}</span>
+                                                    <div className="w-[50px] text-right">
+                                                        <span className="text-[14px] font-black tabular-nums">
+                                                            {formatPercent((sector.value / totalValue) * 100)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {sectorData.length > 5 && (
+                                            <div className="pt-3 mt-1 border-t border-border/40">
+                                                <div className="flex items-center justify-between px-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-3 h-3 rounded-full bg-muted/40 flex-shrink-0" />
+                                                        <span className="text-[12px] font-bold text-muted-foreground italic">기타 자산군</span>
+                                                    </div>
+                                                    <span className="text-[12px] font-black text-muted-foreground tabular-nums">
+                                                        {formatPercent((sectorData.slice(5).reduce((sum, s) => sum + s.value, 0) / totalValue) * 100)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* 3. Strategy Insight Bar - At the bottom */}
+                                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 shadow-sm">
+                                        <div className="text-[10px] font-black text-primary uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                            CORE 엔진 분석 결과
+                                        </div>
+                                        <p className="text-[12px] text-muted-foreground leading-relaxed font-medium">
+                                            {allocationView === 'asset' ? (
+                                                sectorData.length >= 3
+                                                    ? "현재 포트폴리오는 주식, 채권, 금, 원자재 등 다양한 자산군에 분산되어 있습니다. 이는 시장 급변동 시에도 자산을 방어하는 데 효과적입니다."
+                                                    : "특정 자산군(주로 주식)에 비중이 쏠려 있습니다. 장기적 안정성을 위해 상관관계가 낮은 채권이나 금, 원자재 비중을 늘리는 '올웨더(All-weather)' 전략을 검토해보세요."
+                                            ) : (
+                                                sectorData[0]?.value / totalValue > 0.4
+                                                    ? `상위 섹터(${sectorData[0]?.name})의 비중이 ${formatPercent((sectorData[0]?.value / totalValue) * 100)}로 높습니다. 해당 산업군의 경기에 포트폴리오가 민감하게 반응할 수 있으니 주의가 필요합니다.`
+                                                    : "산업 섹터별로 안정적인 분산 투자가 이루어지고 있습니다. 특정 섹터의 침체시에도 전체 손실을 제한할 수 있는 건전한 배분입니다."
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="h-[200px] flex flex-col items-center justify-center text-muted-foreground text-sm gap-2">
+                                <div className="p-3 rounded-full bg-secondary/30">
+                                    <PieChartIcon className="w-6 h-6 opacity-20" />
+                                </div>
+                                자산 데이터가 없습니다. 종목을 추가해보세요.
                             </div>
                         )}
                     </CardContent>
                 </Card>
-
-
             </div>
 
             <EditStockDialog

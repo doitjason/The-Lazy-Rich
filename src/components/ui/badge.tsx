@@ -18,10 +18,7 @@ const badgeVariants = cva(
             },
         },
         defaultVariants: {
-            variant: {
-                default:
-                    "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-            },
+            variant: "default",
         },
     }
 )
