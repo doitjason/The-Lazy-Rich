@@ -1730,10 +1730,10 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
     const events: DividendCalendarData = [];
     const uniqueTickers = Array.from(new Set(tickers)).filter(t => t);
 
-    // Get dates for 1 year range (Past 1 year + potential future via calendarEvents)
+    // Get dates for range - Extend to 2 years to catch seasonality for YoY projection
     const now = new Date();
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(now.getFullYear() - 1);
+    const twoYearsAgo = new Date();
+    twoYearsAgo.setFullYear(now.getFullYear() - 2);
 
     // Cache key
     const cacheKey = `dividends:${uniqueTickers.sort().join(",")}`;
@@ -1748,10 +1748,14 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
             try {
                 const queryTicker = resolveKoreanTicker(ticker);
 
-                // 1. Past Dividends (Historical) - Fetch last 12 months
+                // Fetch quote to get currency
+                const quote = await fetchQuote(queryTicker);
+                const currency = quote?.currency || "USD";
+
+                // 1. Past Dividends (Historical) - Fetch last 2 years
                 try {
                     const history = await yahooFinance.historical(queryTicker, {
-                        period1: oneYearAgo,
+                        period1: twoYearsAgo,
                         period2: new Date(),
                         interval: "1d",
                         events: 'dividends'
@@ -1763,6 +1767,7 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
                                 ticker: ticker,
                                 date: formatDate(new Date(e.date)),
                                 amount: e.dividends,
+                                currency: currency, // Add currency
                                 exDate: formatDate(new Date(e.date))
                             });
                         }
@@ -1787,17 +1792,36 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
 
                             if (!exists && exDate > new Date()) {
                                 let amount = 0;
-                                // Estimate amount from last known dividend
-                                const lastDiv = events.filter(e => e.ticker === ticker).sort((a, b) => b.date.localeCompare(a.date))[0];
-                                if (lastDiv) amount = lastDiv.amount;
+                                // Estimate amount from last known dividend with Seasonality check
+                                // Try to find dividend from 1 year ago (+/- 45 days)
+                                const oneYearPrior = new Date(exDate);
+                                oneYearPrior.setFullYear(oneYearPrior.getFullYear() - 1);
+
+                                const comparableEvent = events.find(e => {
+                                    if (e.ticker !== ticker) return false;
+                                    const d = new Date(e.date);
+                                    const diffTime = Math.abs(d.getTime() - oneYearPrior.getTime());
+                                    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                                    return diffDays < 45;
+                                });
+
+                                if (comparableEvent) {
+                                    amount = comparableEvent.amount;
+                                } else {
+                                    // Fallback to most recent
+                                    const lastDiv = events.filter(e => e.ticker === ticker).sort((a, b) => b.date.localeCompare(a.date))[0];
+                                    if (lastDiv) amount = lastDiv.amount;
+                                }
 
                                 if (amount > 0) {
                                     events.push({
                                         ticker: ticker,
                                         date: dateStr,
                                         amount: amount,
+                                        currency: currency, // Add currency
                                         exDate: dateStr,
-                                        paymentDate: payDateStr
+                                        paymentDate: payDateStr,
+                                        isEstimated: true // Calendar event is still technically an estimate until confirmed declared? No, usually confirmed. But let's keep consistency.
                                     });
                                 }
                             }
@@ -1843,10 +1867,29 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
                                 if (nextDateStr > todayStr) {
                                     const exists = events.some(e => e.ticker === ticker && e.date === nextDateStr);
                                     if (!exists) {
+                                        // YoY Seasonality Logic
+                                        let projectedAmount = lastEvent.amount; // Default
+
+                                        const oneYearPrior = new Date(nextDate);
+                                        oneYearPrior.setFullYear(oneYearPrior.getFullYear() - 1);
+
+                                        const comparableEvent = events.find(e => {
+                                            if (e.ticker !== ticker) return false;
+                                            const d = new Date(e.date);
+                                            const diffTime = Math.abs(d.getTime() - oneYearPrior.getTime());
+                                            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                                            return diffDays < 45; // Broad window to catch the quarter/month
+                                        });
+
+                                        if (comparableEvent) {
+                                            projectedAmount = comparableEvent.amount;
+                                        }
+
                                         events.push({
                                             ticker: ticker,
                                             date: nextDateStr,
-                                            amount: lastEvent.amount, // Assume same amount
+                                            amount: projectedAmount,
+                                            currency: lastEvent.currency || currency,
                                             exDate: nextDateStr, // Use same date for exDate estimation
                                             isEstimated: true
                                         });

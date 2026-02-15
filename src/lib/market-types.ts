@@ -202,6 +202,7 @@ export interface DividendEvent {
     ticker: string;
     date: string; // ISO Date String (YYYY-MM-DD) - Payment Date or Ex-Date
     amount: number;
+    currency?: string;
     exDate?: string;
     paymentDate?: string;
     isEstimated?: boolean;

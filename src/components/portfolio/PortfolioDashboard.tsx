@@ -33,8 +33,8 @@ import { AlertTriangle, X } from "lucide-react";
 
 import { BenchmarkCard } from "./BenchmarkCard";
 import { EditStockDialog } from "./EditStockDialog";
+import { DividendCalendarDialog } from "./DividendCalendarDialog";
 import { PortfolioItem } from "@/store/usePortfolioStore";
-
 interface PortfolioDashboardProps {
     onAdd: () => void;
 }
@@ -58,6 +58,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
     // Sorting state
     const [sortBy, setSortBy] = useState<string>("recent");
+    const [isDivCalendarOpen, setIsDivCalendarOpen] = useState(false);
 
     const sortOptions = [
         { value: 'recent', label: '최근 추가순' },
@@ -365,7 +366,14 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 {/* Risk Profile Card */}
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Card className="bg-card dark:bg-white/5 border-border dark:border-white/10 backdrop-blur-sm p-4 relative overflow-hidden shadow-sm flex flex-col justify-between cursor-pointer hover:bg-accent/50 transition-colors group">
+                        <div
+                            className={cn(
+                                "relative overflow-hidden rounded-2xl border backdrop-blur-md p-4 transition-all duration-300 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between group",
+                                "bg-white/40 dark:bg-black/20",
+                                // Using Sky theme border only
+                                "border-sky-500/20 dark:border-sky-500/20"
+                            )}
+                        >
                             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Activity className="w-12 h-12" />
                             </div>
@@ -374,7 +382,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                 <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                                     시장 민감도 (Beta) <span className="text-[10px] bg-primary/10 text-primary px-1 rounded">Click</span>
                                 </div>
-                                <div className="text-xl font-bold flex items-end gap-1">
+                                <div className="text-xl font-bold flex items-end gap-1 text-foreground">
                                     {portfolioBeta.toFixed(1)}
                                     <span className="text-[10px] font-normal text-muted-foreground pb-1">/ 1.0 (S&P 500)</span>
                                 </div>
@@ -386,20 +394,20 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                     <div
                                         className={cn("h-full transition-all duration-500",
                                             portfolioBeta > 1.2 ? "bg-rose-500" :
-                                                portfolioBeta < 0.8 ? "bg-emerald-500" : "bg-blue-500"
+                                                portfolioBeta < 0.8 ? "bg-emerald-500" : "bg-sky-500"
                                         )}
                                         style={{ width: `${Math.min(portfolioBeta * 50, 100)}% ` }}
                                     />
                                 </div>
                                 <div className={cn("text-[10px] font-bold text-right",
-                                    portfolioBeta > 1.2 ? "text-rose-400" :
-                                        portfolioBeta < 0.8 ? "text-emerald-400" : "text-blue-400"
+                                    portfolioBeta > 1.2 ? "text-rose-500 dark:text-rose-400" :
+                                        portfolioBeta < 0.8 ? "text-emerald-500 dark:text-emerald-400" : "text-sky-500 dark:text-sky-400"
                                 )}>
                                     {portfolioBeta > 1.2 ? "높은 변동성 ⚡" :
                                         portfolioBeta < 0.8 ? "낮은 변동성 🛡️" : "시장 평균 수준 ⚖️"}
                                 </div>
                             </div>
-                        </Card>
+                        </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-80 p-4 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-white/20" align="start">
                         <div className="space-y-3">
@@ -415,7 +423,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                     <span>내 포트폴리오:</span>
                                     <span className={cn(
                                         portfolioBeta > 1.2 ? "text-rose-500" :
-                                            portfolioBeta < 0.8 ? "text-emerald-500" : "text-blue-500"
+                                            portfolioBeta < 0.8 ? "text-emerald-500" : "text-sky-500"
                                     )}>{portfolioBeta.toFixed(2)} Beta</span>
                                 </div>
                                 <div className="h-px bg-border/50" />
@@ -433,8 +441,14 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 </Popover>
 
                 {/* Dividend Forecast Card */}
-                <Card
-                    className="bg-card dark:bg-white/5 border-border dark:border-white/10 backdrop-blur-sm p-4 relative overflow-hidden shadow-sm flex flex-col justify-between group"
+                <div
+                    onClick={() => setIsDivCalendarOpen(true)}
+                    className={cn(
+                        "relative overflow-hidden rounded-2xl border backdrop-blur-md p-4 transition-all duration-300 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between group",
+                        "bg-white/40 dark:bg-black/20",
+                        // Using Sky theme border only
+                        "border-sky-500/20 dark:border-sky-500/20"
+                    )}
                 >
                     <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Wallet className="w-12 h-12" />
@@ -442,14 +456,14 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
                     <div className="space-y-1 relative z-10">
                         <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                            예상 배당금 <ArrowUpRight className="w-3 h-3 text-emerald-500" />
+                            예상 배당금 <span className="text-[10px] bg-primary/10 text-primary px-1 rounded">Click</span>
                         </div>
-                        <div className="text-xl font-bold text-emerald-400">
+                        <div className="text-xl font-bold text-foreground">
                             {formatCurrency(estimatedAnnualIncome)}
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-white/5 relative z-10">
+                    <div className="mt-4 pt-3 border-t border-sky-500/10 relative z-10">
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] text-muted-foreground">월 평균 수령액</span>
                             <span className="text-xs font-semibold text-foreground">
@@ -457,7 +471,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             </span>
                         </div>
                     </div>
-                </Card>
+                </div>
             </div>
 
             {/* 1.9 Concentration Warning (New) */}
@@ -565,6 +579,12 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 open={isEditOpen}
                 onOpenChange={setIsEditOpen}
                 item={editingItem}
+            />
+
+            <DividendCalendarDialog
+                open={isDivCalendarOpen}
+                onOpenChange={setIsDivCalendarOpen}
+                items={items}
             />
             {/* 3. Holdings List */}
             <div className="space-y-4">
