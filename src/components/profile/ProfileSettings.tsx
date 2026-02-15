@@ -76,13 +76,13 @@ export function ProfileSettings() {
                 </div>
                 <div>
                     <h2 className="text-2xl font-bold">
-                        {user ? (user.user_metadata?.full_name || user.email?.split("@")[0] || "User") : "Guest User"}
+                        {user ? (user.user_metadata?.full_name || user.email?.split("@")[0] || "사용자") : "게스트"}
                     </h2>
                     {user && (
                         <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
                     )}
                     <span className="inline-block px-3 py-1 mt-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                        {user ? "Pro Member" : "Free Tier"}
+                        {user ? "프로 멤버" : "무료 플랜"}
                     </span>
                 </div>
             </motion.div>
@@ -91,7 +91,7 @@ export function ProfileSettings() {
             {!user && (
                 <motion.div variants={item} className="space-y-3">
                     <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">
-                        {isSignUp ? "Sign Up" : "Sign In"}
+                        {isSignUp ? "회원가입" : "로그인"}
                     </h3>
                     <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md p-4">
                         {signUpSuccess ? (
@@ -99,16 +99,16 @@ export function ProfileSettings() {
                                 <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
                                     <Mail className="h-6 w-6 text-green-500" />
                                 </div>
-                                <p className="font-medium text-green-600 dark:text-green-400">Check your email!</p>
+                                <p className="font-medium text-green-600 dark:text-green-400">이메일을 확인해주세요!</p>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                    We sent a confirmation link to {email}
+                                    확인 링크를 {email}(으)로 보냈습니다.
                                 </p>
                                 <Button
                                     variant="ghost"
                                     className="mt-4"
                                     onClick={() => { setSignUpSuccess(false); setIsSignUp(false); }}
                                 >
-                                    Back to Sign In
+                                    로그인으로 돌아가기
                                 </Button>
                             </div>
                         ) : (
@@ -118,7 +118,7 @@ export function ProfileSettings() {
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             type="email"
-                                            placeholder="Email"
+                                            placeholder="이메일 주소"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             className="pl-10 h-12 bg-white/50 dark:bg-black/30"
@@ -129,7 +129,7 @@ export function ProfileSettings() {
                                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             type="password"
-                                            placeholder="Password (min 6 characters)"
+                                            placeholder="비밀번호 (6자 이상)"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             className="pl-10 h-12 bg-white/50 dark:bg-black/30"
@@ -149,11 +149,11 @@ export function ProfileSettings() {
                                     className="w-full h-12 bg-sky-500 hover:bg-sky-600 text-white shadow-lg shadow-sky-500/20"
                                 >
                                     {authLoading ? (
-                                        <span className="animate-pulse">Processing...</span>
+                                        <span className="animate-pulse">처리 중...</span>
                                     ) : isSignUp ? (
-                                        <><UserPlus className="mr-2 h-4 w-4" /> Create Account</>
+                                        <><UserPlus className="mr-2 h-4 w-4" /> 계정 만들기</>
                                     ) : (
-                                        <><Mail className="mr-2 h-4 w-4" /> Sign In</>
+                                        <><Mail className="mr-2 h-4 w-4" /> 로그인</>
                                     )}
                                 </Button>
 
@@ -163,7 +163,7 @@ export function ProfileSettings() {
                                         onClick={() => { setIsSignUp(!isSignUp); setAuthError(""); }}
                                         className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                                     >
-                                        {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+                                        {isSignUp ? "이미 계정이 있으신가요? 로그인" : "계정이 없으신가요? 회원가입"}
                                     </button>
                                 </div>
                             </form>
@@ -174,7 +174,7 @@ export function ProfileSettings() {
 
             {/* Preferences Group */}
             <motion.div variants={item} className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">Preferences</h3>
+                <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">환경설정</h3>
                 <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md">
                     <div className="divide-y divide-white/10 dark:divide-white/5">
                         <div className="p-4 flex items-center justify-between">
@@ -182,7 +182,7 @@ export function ProfileSettings() {
                                 <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
                                     <Bell className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">Notifications</span>
+                                <span className="font-medium">알림 설정</span>
                             </div>
                             <Switch defaultChecked />
                         </div>
@@ -192,7 +192,7 @@ export function ProfileSettings() {
                                 <div className="h-8 w-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
                                     <Moon className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">Dark Mode</span>
+                                <span className="font-medium">다크 모드</span>
                             </div>
                             <Switch
                                 checked={theme === "dark"}
@@ -208,10 +208,10 @@ export function ProfileSettings() {
                                 <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
                                     <DollarSign className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">Currency</span>
+                                <span className="font-medium">기본 통화</span>
                             </div>
                             <div className="flex items-center gap-2 text-muted-foreground">
-                                <span className="text-sm font-medium text-foreground">{currency}</span>
+                                <span className="text-sm font-medium text-foreground">{currency === "KRW" ? "원화 (KRW)" : "달러 (USD)"}</span>
                                 <ChevronRight className="h-4 w-4" />
                             </div>
                         </div>
@@ -221,7 +221,7 @@ export function ProfileSettings() {
 
             {/* Support Group */}
             <motion.div variants={item} className="space-y-3">
-                <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">Support</h3>
+                <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">지원 및 정보</h3>
                 <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md">
                     <div className="divide-y divide-white/10 dark:divide-white/5">
                         <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
@@ -229,7 +229,7 @@ export function ProfileSettings() {
                                 <div className="h-8 w-8 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
                                     <HelpCircle className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">Help Center</span>
+                                <span className="font-medium">고객 센터</span>
                             </div>
                             <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </div>
@@ -239,7 +239,7 @@ export function ProfileSettings() {
                                 <div className="h-8 w-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-500">
                                     <Shield className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">Privacy Policy</span>
+                                <span className="font-medium">개인정보 처리방침</span>
                             </div>
                             <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </div>
@@ -253,11 +253,13 @@ export function ProfileSettings() {
                     <motion.div variants={item} className="pt-4">
                         <Button
                             variant="destructive"
-                            onClick={signOut}
+                            onClick={async () => {
+                                await signOut();
+                            }}
                             className="w-full bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 h-12 backdrop-blur-md shadow-none"
                         >
                             <LogOut className="mr-2 h-4 w-4" />
-                            Log Out
+                            로그아웃
                         </Button>
                     </motion.div>
                 )

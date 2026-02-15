@@ -59,7 +59,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     // Sorting state
     const [sortBy, setSortBy] = useState<string>("recent");
     const [isDivCalendarOpen, setIsDivCalendarOpen] = useState(false);
-    const [allocationView, setAllocationView] = useState<'asset' | 'sector'>('asset');
+    const [allocationView, setAllocationView] = useState<'asset' | 'sector' | 'stock'>('asset');
 
     const sortOptions = [
         { value: 'recent', label: '최근 추가순' },
@@ -216,7 +216,9 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
             const key = allocationView === 'asset'
                 ? getAssetClass(rawSector)
-                : (SECTOR_MAP[rawSector] || rawSector);
+                : allocationView === 'sector'
+                    ? (SECTOR_MAP[rawSector] || rawSector)
+                    : item.ticker;
 
             groups[key] = (groups[key] || 0) + value;
         });
@@ -347,7 +349,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                     <PopoverContent className="w-64 p-3 text-xs bg-white/95 dark:bg-black/95 backdrop-blur-xl border-white/20">
                                         <div className="font-bold mb-1">집중 투자 경고</div>
                                         <div className="text-muted-foreground">
-                                            자산의 45% 이상이 <strong>{sectorData[0].name}</strong> 섹터에 쏠려 있습니다. 해당 산업의 호재에 크게 반응하지만, 악재 발생 시 리스크가 커질 수 있습니다.
+                                            자산의 45% 이상이 <strong>{sectorData[0].name}</strong> {allocationView === 'asset' ? '자산군' : '섹터'}에 쏠려 있습니다. 해당 {allocationView === 'asset' ? '자산군' : '산업'}의 호재에 크게 반응하지만, 악재 발생 시 리스크가 커질 수 있습니다.
                                         </div>
                                     </PopoverContent>
                                 </Popover>
@@ -540,8 +542,8 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 if (!isStockConcentrated && !isSectorConcentrated) return null;
 
                 const message = isStockConcentrated
-                    ? `"${topStock.ticker}" 종목에 자산의 ${formatPercent((topStockValue / totalValue) * 100)}가 집중되어 있습니다.혹시 계란을 한 바구니에 너무 많이 담은건 아닌지 확인해보시는 것은 어떨까요 ? 🥚`
-                    : `"${topSector.name}" 섹터에 자산의 ${formatPercent((topSector.value / totalValue) * 100)}가 쏠려 있습니다.해당 산업 리스크에 주의하세요! 🏗️`;
+                    ? `"${topStock.ticker}" 종목에 자산의 ${formatPercent((topStockValue / totalValue) * 100)}가 집중되어 있습니다. 혹시 계란을 한 바구니에 너무 많이 담은건 아닌지 확인해보시는 것은 어떨까요? 🥚`
+                    : `"${topSector.name}" ${allocationView === 'asset' ? '자산군' : '섹터'}에 자산의 ${formatPercent((topSector.value / totalValue) * 100)}가 쏠려 있습니다. 해당 ${allocationView === 'asset' ? '자산군' : '산업'} 리스크에 주의하세요! 🏗️`;
 
                 return (
                     <motion.div
@@ -575,7 +577,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
             <div className="grid grid-cols-1 gap-4">
                 {/* Donut Chart with Legend */}
                 <Card className="bg-card dark:bg-white/5 border-border dark:border-white/10 backdrop-blur-sm overflow-hidden shadow-sm">
-                    <CardHeader className="pb-0 px-5 pt-5 flex flex-row items-center justify-between">
+                    <CardHeader className="pb-2 px-5 pt-4 flex flex-row items-center justify-between">
                         <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                             <PieChartIcon className="w-4 h-4 text-primary" /> 자산 배분 현황
                         </CardTitle>
@@ -598,11 +600,20 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             >
                                 섹터별
                             </button>
+                            <button
+                                onClick={() => setAllocationView('stock')}
+                                className={cn(
+                                    "px-2.5 py-1 text-[11px] font-bold rounded-md transition-all",
+                                    allocationView === 'stock' ? "bg-white dark:bg-white/10 shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                종목별
+                            </button>
                         </div>
                     </CardHeader>
-                    <CardContent className="px-5 py-8">
+                    <CardContent className="px-5 pt-0 pb-4">
                         {items.length > 0 ? (
-                            <div className="flex flex-col items-center gap-8">
+                            <div className="flex flex-col items-center gap-6">
                                 {/* 1. Chart Area - Significantly Larger */}
                                 <div className="relative w-full max-w-[260px] aspect-square flex-shrink-0">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -640,7 +651,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none px-6">
                                         <div className="text-center overflow-hidden w-full">
                                             <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground opacity-70 mb-1">
-                                                {allocationView === 'asset' ? '주요 자산' : '주요 섹터'}
+                                                {allocationView === 'asset' ? '주요 자산' : allocationView === 'sector' ? '주요 섹터' : '주요 종목'}
                                             </div>
                                             <div className="text-base font-black text-foreground leading-tight line-clamp-2 break-words">
                                                 {sectorData[0]?.name || "없음"}
@@ -653,10 +664,10 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                 </div>
 
                                 {/* 2. Custom Legend Area - Full Width Grid */}
-                                <div className="w-full space-y-5">
-                                    <div className="grid grid-cols-1 gap-3">
-                                        {sectorData.slice(0, 5).map((sector, index) => (
-                                            <div key={sector.name} className="flex items-center justify-between group min-w-0 gap-4 hover:bg-white/5 p-2 -mx-2 rounded-lg transition-colors">
+                                <div className="w-full space-y-3">
+                                    <div className="grid grid-cols-1 gap-1">
+                                        {sectorData.map((sector, index) => (
+                                            <div key={sector.name} className="flex items-center justify-between group min-w-0 gap-4 hover:bg-white/5 py-1 px-2 -mx-2 rounded-lg transition-colors">
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     <div className="w-3 h-3 rounded-full flex-shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.1)] transition-transform group-hover:scale-125" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                                                     <span className="text-[14px] font-bold text-foreground/90 group-hover:text-foreground transition-colors truncate">
@@ -673,24 +684,10 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                                 </div>
                                             </div>
                                         ))}
-
-                                        {sectorData.length > 5 && (
-                                            <div className="pt-3 mt-1 border-t border-border/40">
-                                                <div className="flex items-center justify-between px-2">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-3 h-3 rounded-full bg-muted/40 flex-shrink-0" />
-                                                        <span className="text-[12px] font-bold text-muted-foreground italic">기타 자산군</span>
-                                                    </div>
-                                                    <span className="text-[12px] font-black text-muted-foreground tabular-nums">
-                                                        {formatPercent((sectorData.slice(5).reduce((sum, s) => sum + s.value, 0) / totalValue) * 100)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
 
                                     {/* 3. Strategy Insight Bar - At the bottom */}
-                                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 shadow-sm">
+                                    <div className="mt-2 p-4 rounded-2xl bg-primary/5 border border-primary/10 shadow-sm">
                                         <div className="text-[10px] font-black text-primary uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                                             CORE 엔진 분석 결과
@@ -700,10 +697,14 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                                 sectorData.length >= 3
                                                     ? "현재 포트폴리오는 주식, 채권, 금, 원자재 등 다양한 자산군에 분산되어 있습니다. 이는 시장 급변동 시에도 자산을 방어하는 데 효과적입니다."
                                                     : "특정 자산군(주로 주식)에 비중이 쏠려 있습니다. 장기적 안정성을 위해 상관관계가 낮은 채권이나 금, 원자재 비중을 늘리는 '올웨더(All-weather)' 전략을 검토해보세요."
-                                            ) : (
+                                            ) : allocationView === 'sector' ? (
                                                 sectorData[0]?.value / totalValue > 0.4
                                                     ? `상위 섹터(${sectorData[0]?.name})의 비중이 ${formatPercent((sectorData[0]?.value / totalValue) * 100)}로 높습니다. 해당 산업군의 경기에 포트폴리오가 민감하게 반응할 수 있으니 주의가 필요합니다.`
                                                     : "산업 섹터별로 안정적인 분산 투자가 이루어지고 있습니다. 특정 섹터의 침체시에도 전체 손실을 제한할 수 있는 건전한 배분입니다."
+                                            ) : (
+                                                sectorData[0]?.value / totalValue > 0.2
+                                                    ? `"${sectorData[0]?.name}" 종목의 비중이 전체의 ${formatPercent((sectorData[0]?.value / totalValue) * 100)}를 차지하고 있습니다. 개별 종목 리스크가 큰 편이니 비중 조절을 검토해보세요.`
+                                                    : "전체적으로 종목 간 비중이 균형 있게 배분되어 있습니다. 특정 기업의 악재가 포트폴리오 전체를 흔들 위험이 적은 상태입니다."
                                             )}
                                         </p>
                                     </div>

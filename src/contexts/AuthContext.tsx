@@ -55,17 +55,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, []);
 
     const signUpWithEmail = async (email: string, password: string): Promise<AuthResult> => {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) {
             return { success: false, error: error.message };
+        }
+        if (data.session) {
+            setSession(data.session);
+            setUser(data.session.user);
         }
         return { success: true };
     };
 
     const signInWithEmail = async (email: string, password: string): Promise<AuthResult> => {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
             return { success: false, error: error.message };
+        }
+        if (data.session) {
+            setSession(data.session);
+            setUser(data.session.user);
         }
         return { success: true };
     };
@@ -81,6 +89,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const signOut = async () => {
         await supabase.auth.signOut();
+        setUser(null);
+        setSession(null);
     };
 
     return (
