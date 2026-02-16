@@ -274,25 +274,25 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 <div className="absolute inset-0 bg-gradient-to-r from-sky-500 to-blue-600 opacity-90" />
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
 
-                <CardContent className="relative z-10 py-1.5 px-6 flex flex-col items-center justify-center gap-3 text-white">
-                    <div className="text-white/80 text-base font-medium tracking-wide">총 순자산</div>
-                    <div className="text-5xl leading-none font-bold tracking-tight">
+                <CardContent className="relative z-10 py-6 px-6 flex flex-col items-center justify-center gap-3 text-white">
+                    <div className="text-white/80 text-lg font-medium tracking-wide">총 순자산</div>
+                    <div className="text-2xl leading-none font-bold tracking-tight whitespace-nowrap">
                         {formatCurrency(totalValue)}
                     </div>
-                    <div className="flex flex-col gap-1 w-full max-w-[280px] bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
-                        <div className="flex justify-between items-center text-[13px] font-medium">
+                    <div className="flex flex-col gap-1 w-full max-w-[320px] bg-white/10 px-5 py-3 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
+                        <div className="flex justify-between items-center text-sm font-medium">
                             <span className="text-white/70">일간 수익</span>
                             <div className={cn("flex items-center font-bold", totalDayChange >= 0 ? "text-emerald-300" : "text-rose-300")}>
-                                {totalDayChange >= 0 ? <ArrowUpRight className="w-3.5 h-3.5 mr-1" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-1" />}
-                                {formatCurrency(Math.abs(totalDayChange))} ({formatPercent(dayChangePercent)})
+                                {totalDayChange >= 0 ? <Plus className="w-3.5 h-3.5 mr-0.5" /> : null}
+                                {formatCurrency(totalDayChange)} ({formatPercent(dayChangePercent)})
                             </div>
                         </div>
-                        <div className="h-px w-full bg-white/10" />
-                        <div className="flex justify-between items-center text-[13px] font-medium">
+                        <div className="h-px w-full bg-white/10 my-1" />
+                        <div className="flex justify-between items-center text-sm font-medium">
                             <span className="text-white/70">총 수익</span>
                             <div className={cn("flex items-center font-bold", totalReturn >= 0 ? "text-emerald-300" : "text-rose-300")}>
-                                {totalReturn >= 0 ? <ArrowUpRight className="w-3.5 h-3.5 mr-1" /> : <ArrowDownRight className="w-3.5 h-3.5 mr-1" />}
-                                {formatCurrency(Math.abs(totalReturn), "USD", 0)} ({formatPercent(totalReturnPercent)})
+                                {totalReturn >= 0 ? <Plus className="w-3.5 h-3.5 mr-0.5" /> : null}
+                                {formatCurrency(totalReturn, "USD", 0)} ({formatPercent(totalReturnPercent)})
                             </div>
                         </div>
                     </div>
@@ -304,7 +304,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <button className={cn(
-                                        "flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors"
+                                        "flex items-center px-4 py-1.5 rounded-full text-sm font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all"
                                     )}>
                                         {portfolioBeta > 1.2 ? "🚀 공격적 성장형" : portfolioBeta < 0.8 ? "🛡️ 안정 추구형" : "⚖️ 균형 투자형"}
                                     </button>
@@ -325,7 +325,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             {(portfolioYield * 100) >= 3.0 && (
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                        <button className="flex items-center px-4 py-1.5 rounded-full text-sm font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all whitespace-nowrap">
                                             💰 고배당 포트
                                         </button>
                                     </PopoverTrigger>
@@ -411,6 +411,8 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 holdings={useMemo(() => items.map(i => ({ ticker: i.ticker, quantity: i.quantity })), [items])}
             />
 
+
+
             {/* 3. Risk Profile & Dividend Grid */}
             <div className="grid grid-cols-2 gap-3">
                 {/* Risk Profile Card */}
@@ -429,12 +431,12 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             </div>
 
                             <div className="space-y-1 relative z-10">
-                                <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                                    시장 민감도 (Beta) <span className="text-[10px] bg-primary/10 text-primary px-1 rounded">Click</span>
+                                <div className="text-sm text-muted-foreground font-medium flex items-center gap-1">
+                                    시장 민감도 (Beta) <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-black">INFO</span>
                                 </div>
-                                <div className="text-xl font-bold flex items-end gap-1 text-foreground">
-                                    {portfolioBeta.toFixed(1)}
-                                    <span className="text-[10px] font-normal text-muted-foreground pb-1">/ 1.0 (S&P 500)</span>
+                                <div className="text-2xl font-black flex items-end gap-1 text-foreground">
+                                    {portfolioBeta.toFixed(2)}
+                                    <span className="text-xs font-normal text-muted-foreground pb-1 ml-1">/ 1.0 (S&P 500)</span>
                                 </div>
                             </div>
 
@@ -505,18 +507,18 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                     </div>
 
                     <div className="space-y-1 relative z-10">
-                        <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                            예상 배당금 <span className="text-[10px] bg-primary/10 text-primary px-1 rounded">Click</span>
+                        <div className="text-sm text-muted-foreground font-medium flex items-center gap-1">
+                            예상 배당금 <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-black">CALC</span>
                         </div>
-                        <div className="text-xl font-bold text-foreground">
+                        <div className="text-2xl font-black text-foreground">
                             {formatCurrency(estimatedAnnualIncome)}
                         </div>
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-sky-500/10 relative z-10">
                         <div className="flex justify-between items-center">
-                            <span className="text-[10px] text-muted-foreground">월 평균 수령액</span>
-                            <span className="text-xs font-semibold text-foreground">
+                            <span className="text-xs text-muted-foreground">월 평균 수령액</span>
+                            <span className="text-sm font-bold text-foreground">
                                 {formatCurrency(estimatedAnnualIncome / 12)}
                             </span>
                         </div>
@@ -557,8 +559,8 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                 <AlertTriangle className="w-5 h-5" />
                             </div>
                             <div className="flex-1 pt-0.5">
-                                <h4 className="text-sm font-bold text-orange-700 dark:text-orange-400 mb-1">집중 투자 감지 🚨</h4>
-                                <p className="text-xs text-muted-foreground leading-relaxed">
+                                <h4 className="text-base font-bold text-orange-700 dark:text-orange-400 mb-1">집중 투자 감지 🚨</h4>
+                                <p className="text-sm text-muted-foreground leading-relaxed font-medium">
                                     {message}
                                 </p>
                             </div>

@@ -17,6 +17,12 @@ export interface EnrichedPortfolioItem extends StockQuote {
     dividendYield?: number;
     beta?: number;
     sparkline: { date: string; price: number }[];
+    // New Fundamental Fields
+    per?: number | null;
+    forwardPer?: number | null;
+    roe?: number | null;
+    pbr?: number | null;
+    operatingMargins?: number | null;
 }
 
 export interface MarketIndicator {
@@ -52,6 +58,7 @@ export interface CommonMarketData {
     macro: {
         vix: number; // 공포 지수
         tenYearBondYield: number; // 10년물 국채 금리
+        threeMonthBondYield: number; // 3개월물 국채 금리
         dollarIndex: number; // 달러 인덱스
         gold: number; // 금 가격
         wti: number; // 원유 가격
@@ -70,14 +77,23 @@ export interface CommonMarketData {
         yieldSpread10Y2Y: number | null; // 장단기 금리차 (10Y-2Y Proxy)
         tipPrice: number | null; // TIPS (실질 금리/인플레 방어)
         embPrice: number | null; // Emerging Market Bond (신흥국/글로벌 리스크)
+        // Volume Data
+        snp500Volume: number;
+        snp500AvgVolume: number;
     };
     sectorRotation: {
         leaders: string[]; // 오늘 강세 섹터
         laggards: string[]; // 오늘 약세 섹터
     };
-    fearAndGreedIndex: {
-        score: number; // 0~100 (Proxy based on VIX & Momentum)
-        status: "Extreme Fear" | "Fear" | "Neutral" | "Greed" | "Extreme Greed";
+    marketCondition: { // New Field for Dashboard
+        snp500Trend: "Bull" | "Bear" | "Neutral"; // Price vs 200MA
+        yieldSpreadStatus: "Normal" | "Inverted" | "Flat"; // 10Y - 3M
+        realRateStatus: "Positive" | "Negative" | "Neutral"; // 10Y - Inflation(2.5% fixed)
+        vixStatus: "Stable" | "Volatile" | "Panic"; // VIX level
+        creditSpreadStatus: "Stable" | "Warning" | "Stress"; // High Yield Spread status
+        volumeTrend: "Accumulation" | "Distribution" | "Neutral"; // Volume trend
+        kostolanyPhase: "A1" | "A2" | "A3" | "B1" | "B2" | "B3" | "Neutral"; // Kostolany's Egg phase
+        summary: string; // AI Generated Advice
     };
 }
 

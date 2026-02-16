@@ -39,8 +39,8 @@ export function BenchmarkCard({ userReturn, marketReturn, className, holdings = 
                                 : <TrendingDown className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                             }
                         </div>
-                        <span className="text-xs font-semibold text-slate-900 dark:text-white/90 tracking-wide">
-                            데일리 벤치마크
+                        <span className="text-xs font-semibold text-slate-900 dark:text-white/90 tracking-wide flex items-center gap-1">
+                            데일리 벤치마크 <span className="text-[10px] bg-primary/10 text-primary px-1 rounded">Click</span>
                         </span>
                     </div>
 

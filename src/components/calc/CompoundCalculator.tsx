@@ -521,7 +521,8 @@ export function CompoundCalculator() {
                                         }}
                                     />
                                     <Tooltip
-                                        content={({ active, payload, label }) => {
+                                        content={(props: any) => {
+                                            const { active, payload, label } = props;
                                             if (active && payload && payload.length) {
                                                 const nominalAsset = payload.find((p: any) => p.dataKey === "totalAmount")?.value || 0;
                                                 const nominalInvested = payload.find((p: any) => p.dataKey === "totalInvested")?.value || 0;

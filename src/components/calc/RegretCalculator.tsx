@@ -539,18 +539,21 @@ export function RegretCalculator() {
                                                 }}
                                             />
                                             <Tooltip
-                                                content={({ active, payload, label }) => {
+                                                content={(props: any) => {
+                                                    const { active, payload, label } = props;
                                                     if (active && payload && payload.length) {
                                                         const data = payload[0].payload;
                                                         return (
-                                                            <div className="bg-white dark:bg-gray-900 p-3 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800">
-                                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">{label}</p>
-                                                                <p className="text-sm text-muted-foreground">
-                                                                    가치: <span className="font-semibold text-primary">{formatCurrency(data.value)}</span>
-                                                                </p>
-                                                                <p className="text-sm text-muted-foreground">
-                                                                    주가: <span className="font-semibold">{formatCurrency(data.stockPrice)}</span>
-                                                                </p>
+                                                            <div className="bg-white/90 dark:bg-black/90 p-3 rounded-xl shadow-xl border border-black/5 dark:border-white/10 text-xs sm:text-sm backdrop-blur-md">
+                                                                <p className="mb-1 font-bold">{label}</p>
+                                                                <div className="space-y-1">
+                                                                    <p className="text-muted-foreground">
+                                                                        가치: <span className="font-bold text-sky-500">{formatCurrency(data.value)}</span>
+                                                                    </p>
+                                                                    <p className="text-muted-foreground">
+                                                                        주가: <span className="font-medium text-current">{formatCompactNumber(data.stockPrice)}</span>
+                                                                    </p>
+                                                                </div>
                                                             </div>
                                                         );
                                                     }

@@ -29,3 +29,10 @@ export async function getBenchmarkHistory(holdings: { ticker: string; quantity: 
     const data = await fetchBenchmarkHistory(holdings, validRange);
     return data;
 }
+
+export async function getCommonMarketData() {
+    const { fetchCommonMarketData } = await import("@/lib/market-data");
+    const data = await fetchCommonMarketData();
+    if (!data) return null;
+    return JSON.parse(JSON.stringify(data));
+}

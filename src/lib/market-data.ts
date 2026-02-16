@@ -69,32 +69,91 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
 
         if (!snp500 || !vix || !tnx) return null; // 필수 데이터 누락 시
 
-        // Yield Spread Calculation (10Y - 3M)
+        // 2. Market Condition Dashboard Logic
+
+        // 2-1. S&P 500 Trend (Price vs 200MA)
+        const snpPrice = snp500.price;
+        const snp200MA = snp500.twoHundredDayAverage || snpPrice * 0.95; // Fallback
+        let snp500Trend: "Bull" | "Bear" | "Neutral" = "Neutral";
+        if (snpPrice > snp200MA * 1.05) snp500Trend = "Bull";
+        else if (snpPrice < snp200MA * 0.95) snp500Trend = "Bear";
+
+        // 2-2. Yield Spread (10Y - 3M)
         let yieldSpread = null;
         if (tnx && irx) {
             yieldSpread = tnx.price - irx.price;
         }
+        let yieldSpreadStatus: "Normal" | "Inverted" | "Flat" = "Normal";
+        if (yieldSpread !== null) {
+            if (yieldSpread < -0.1) yieldSpreadStatus = "Inverted";
+            else if (yieldSpread < 0.2) yieldSpreadStatus = "Flat";
+        }
 
-        // 2. 공포/탐욕 지수 (Proxy Calculation)
-        // VIX와 S&P500 모멘텀(RSI)을 기반으로 추정
-        const snpRsi = await calculateRSI("^GSPC", 14) || 50;
-        const vixValue = vix.price;
+        // 2-3. Real Rate (10Y - Inflation Proxy 2.5%)
+        const inflationProxy = 2.5;
+        const realRate = tnx.price - inflationProxy;
+        let realRateStatus: "Positive" | "Negative" | "Neutral" = "Neutral";
+        if (realRate > 2.0) realRateStatus = "Positive"; // 긴축적
+        else if (realRate < 0.5) realRateStatus = "Negative"; // 완화적
 
-        // 간단한 알고리즘:
-        // RSI가 높으면 Greed, 낮으면 Fear
-        // VIX가 낮으면 Greed, 높으면 Fear
-        // Score = (RSI Score + VIX Score) / 2
+        // 2-4. VIX Status
+        let vixStatus: "Stable" | "Volatile" | "Panic" = "Stable";
+        if (vix.price > 30) vixStatus = "Panic";
+        else if (vix.price > 20) vixStatus = "Volatile";
 
-        let rsiScore = snpRsi; // 0~100
-        let vixScore = 100 - (Math.min(vixValue, 50) * 2); // VIX 20 -> 60, VIX 30 -> 40, VIX 10 -> 80
+        // 2-5. Kostolany's Egg Phase Logic
+        let kostolanyPhase: "A1" | "A2" | "A3" | "B1" | "B2" | "B3" | "Neutral" = "Neutral";
+        if (snp500Trend === "Bull") {
+            if (realRateStatus === "Positive" || vix.price < 14) {
+                kostolanyPhase = "A3"; // 과장 국면 (매도 시기)
+            } else if (realRateStatus === "Negative" || vix.price < 20) {
+                kostolanyPhase = "A2"; // 동행 국면 (보유 시기)
+            } else {
+                kostolanyPhase = "A1"; // 수정 국면 (매수 시작)
+            }
+        } else if (snp500Trend === "Bear") {
+            if (vixStatus === "Panic") {
+                kostolanyPhase = "B3"; // 과장 국면 (매수 시기)
+            } else if (realRateStatus === "Positive" || vix.price > 20) {
+                kostolanyPhase = "B2"; // 동행 국면 (관망 시기)
+            } else {
+                kostolanyPhase = "B1"; // 수정 국면 (매도 시작)
+            }
+        }
 
-        let sentimentScore = Math.round((rsiScore * 0.6) + (vixScore * 0.4)); // RSI 비중을 조금 더 높게
+        // 2-5-1. Volume Analysis (S&P 500)
+        const snpRaw = snp500 as any;
+        const snpVolume = (snpRaw.volume as number) || 0;
+        const snpAvgVolume = (snpRaw.averageDailyVolume3Month as number) || snpVolume || 1;
 
-        let sentimentStatus: CommonMarketData["fearAndGreedIndex"]["status"] = "Neutral";
-        if (sentimentScore >= 75) sentimentStatus = "Extreme Greed";
-        else if (sentimentScore >= 60) sentimentStatus = "Greed";
-        else if (sentimentScore <= 25) sentimentStatus = "Extreme Fear";
-        else if (sentimentScore <= 40) sentimentStatus = "Fear";
+        let volumeTrend: "Accumulation" | "Distribution" | "Neutral" = "Neutral";
+        // Volume spike
+        if (snpVolume > snpAvgVolume * 1.1) {
+            volumeTrend = snp500.changePercent >= 0 ? "Accumulation" : "Distribution";
+        }
+
+        // 2-5-2. Credit Spread Analysis (HYG implied)
+        let creditSpreadStatus: "Stable" | "Warning" | "Stress" = "Stable";
+        if (hyg) {
+            if (hyg.changePercent < -1.5) creditSpreadStatus = "Stress";
+            else if (hyg.changePercent < -0.7) creditSpreadStatus = "Warning";
+        }
+
+        // 2-6. Generate Summary Advice (Soften language for liability)
+        let summary = "현재 시장 데이터는 상대적으로 안정적인 흐름을 시사하고 있으나, 개별 포트폴리오 상황에 따른 신중한 점검이 권고될 수 있는 구간입니다.";
+        if (yieldSpreadStatus === "Inverted") {
+            summary = "일부 지표에서 경기 변동 가능성이 조심스럽게 시사될 수 있는 국면입니다. 보수적 리스크 관리나 자산 비중 검토 등이 하나의 대안으로 고려될 수 있습니다.";
+        } else if (vixStatus === "Panic") {
+            summary = "시장 지표에서 불안 심리가 관측될 수 있는 상태입니다. 다만 장기적 관점에서는 특정 우량 자산에 대한 리서치 기회로 해석되는 견해가 있을 수 있습니다.";
+        } else if (kostolanyPhase === "A3") {
+            summary = "시장 전반에 낙관적 전망이 우세한 '과열 국면'으로 해석될 여지가 있습니다. 이에 따른 자산 배분 조정이나 수익 실현 검토가 유효할 수 있는 시기입니다.";
+        } else if (kostolanyPhase === "B3") {
+            summary = "일부 지표가 패닉 가능성을 시사하는 구간으로 판단될 수 있습니다. 역발상 관점에서는 특정 우량 자산에 대한 기회로 해석하는 시각이 존재할 수 있습니다.";
+        } else if (snp500Trend === "Bull") {
+            summary = "상승 추세가 관측되는 양상을 보이고 있으나, 개별 종목의 가치 점검과 신중한 투자 결정이 병행될 필요가 있는 구간으로 풀이됩니다.";
+        } else if (snp500Trend === "Bear") {
+            summary = "하락 추세가 나타날 수 있는 구간으로, 성급한 판단보다는 시장 상황을 면밀히 주시하며 다음 기회를 대기하는 전략이 하나의 대안으로 해석될 수 있습니다.";
+        }
 
         // 3. 섹터 로테이션 (주요 섹터 ETF 등락률 비교)
         // XLK(기술), XLV(헬스), XLF(금융), XLE(에너지), XLI(산업), XLP(필수소비), XLY(임의소비)
@@ -128,6 +187,7 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
             macro: {
                 vix: vix.price,
                 tenYearBondYield: tnx.price,
+                threeMonthBondYield: irx?.price ?? 0,
                 dollarIndex: dxy?.price ?? 0,
                 gold: gold?.price ?? 0,
                 wti: wti?.price ?? 0,
@@ -143,14 +203,23 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                 yieldSpread10Y2Y: yieldSpread,
                 tipPrice: tip?.price ?? null,
                 embPrice: emb?.price ?? null,
+                // Volume Data
+                snp500Volume: snpVolume,
+                snp500AvgVolume: snpAvgVolume,
             },
             sectorRotation: {
                 leaders,
                 laggards
             },
-            fearAndGreedIndex: {
-                score: sentimentScore,
-                status: sentimentStatus
+            marketCondition: {
+                snp500Trend,
+                yieldSpreadStatus,
+                realRateStatus,
+                vixStatus,
+                creditSpreadStatus,
+                volumeTrend,
+                kostolanyPhase,
+                summary,
             }
         };
 
@@ -310,7 +379,10 @@ async function fetchQuote(symbol: string): Promise<StockQuote | null> {
             fiftyTwoWeekLow: (quote.fiftyTwoWeekLow as number) || undefined,
             fiftyDayAverage: (quote.fiftyDayAverage as number) || undefined,
             twoHundredDayAverage: (quote.twoHundredDayAverage as number) || undefined,
-        };
+            // Volume for internal logic
+            volume: (quote.regularMarketVolume as number) || undefined,
+            averageDailyVolume3Month: (quote.averageDailyVolume3Month as number) || undefined,
+        } as StockQuote & { volume?: number; averageDailyVolume3Month?: number };
 
         marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
         return data;
@@ -1676,14 +1748,20 @@ export async function fetchEnrichedPortfolio(tickers: string[]): Promise<Record<
                 let sector = undefined;
                 let dividendYield = undefined;
                 let beta = undefined;
+                let per = undefined;
+                let forwardPer = undefined;
+                let roe = undefined;
+                let pbr = undefined;
+                let operatingMargins = undefined;
 
                 try {
-                    const summary = await fetchSummary(queryTicker, ["summaryProfile", "summaryDetail", "defaultKeyStatistics", "fundProfile"]);
+                    const summary = await fetchSummary(queryTicker, ["summaryProfile", "summaryDetail", "defaultKeyStatistics", "fundProfile", "financialData"]);
                     if (summary) {
                         const profile = summary.summaryProfile as any;
                         const detail = summary.summaryDetail as any;
                         const stats = summary.defaultKeyStatistics as any;
                         const fund = summary.fundProfile as any;
+                        const financial = summary.financialData as any;
 
 
                         // Priority: Manual Map -> Profile Sector -> Fund Category -> Unknown
@@ -1698,6 +1776,23 @@ export async function fetchEnrichedPortfolio(tickers: string[]): Promise<Record<
                             ?? stats?.yield;
 
                         beta = stats?.beta ?? detail?.beta ?? fund?.beta3Year; // ETF beta fallback
+
+                        // Fundamental Metrics
+                        per = detail?.trailingPE ?? stats?.trailingPE;
+                        forwardPer = detail?.forwardPE ?? stats?.forwardPE;
+                        pbr = stats?.priceToBook ?? detail?.priceToBook;
+
+                        // ROE & Margins are typically for individual companies, not ETFs
+                        // If it's an ETF (has fundProfile), these might be missing or 0.
+                        const isEtf = fund && Object.keys(fund).length > 0;
+                        if (!isEtf) {
+                            roe = financial?.returnOnEquity;
+                            operatingMargins = financial?.operatingMargins;
+                        } else {
+                            // ETF might have these in different fields or not at all
+                            // For now, leave as undefined to exclude from weighted average
+                        }
+
                         console.log(`[MarketData Debug] ${ticker}: Sector=${sector}, DividendYield=${dividendYield}, Beta=${beta}`);
                     }
                 } catch (e) {
@@ -1714,6 +1809,11 @@ export async function fetchEnrichedPortfolio(tickers: string[]): Promise<Record<
                     dividendYield,
                     beta,
                     sparkline,
+                    per,
+                    forwardPer,
+                    pbr,
+                    roe,
+                    operatingMargins
                 };
             } catch (e) {
                 console.error(`Failed to enrich data for ${ticker}`, e);
@@ -2101,3 +2201,6 @@ export async function fetchBenchmarkHistory(
         holdingsPerformance
     };
 }
+
+// ─── 시장 심리(Fear & Greed) 히스토리 계산 ───
+
