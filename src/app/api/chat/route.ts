@@ -5,18 +5,21 @@ import { createClient } from "@supabase/supabase-js";
 import { getPersonaMarketContext, extractTickersFromMessage } from "@/lib/market-data";
 import { CORE_CONSTITUTION } from "@/constants/constitution";
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
-
-// Create Supabase ADMIN client for server-side (bypasses RLS)
-// Falls back to anon key if service role key is not set
-const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Mark as dynamic to avoid build-time pre-rendering issues with environment variables
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+    // Initialize OpenAI inside the handler to prevent build-time crashes if API key is missing
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY || "",
+    });
+
+    // Create Supabase ADMIN client for server-side
+    const supabaseAdmin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+    );
+
     try {
         const { messages, personaId, sessionId, userId } = await req.json();
 
@@ -116,6 +119,10 @@ ${portfolioContext}${marketDataContext}`;
         }
 
         // Call OpenAI with streaming (gpt-4o-mini is efficient)
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error("OPENAI_API_KEY is not configured in environment variables.");
+        }
+
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [

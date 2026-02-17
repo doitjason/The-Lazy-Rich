@@ -81,9 +81,7 @@ export function ProfileSettings() {
                     {user && (
                         <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
                     )}
-                    <span className="inline-block px-3 py-1 mt-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
-                        {user ? "프로 멤버" : "무료 플랜"}
-                    </span>
+
                 </div>
             </motion.div>
 
