@@ -18,12 +18,15 @@ type PortfolioStore = {
     addItem: (userId: string, ticker: string, quantity: number, avgPrice: number) => Promise<boolean>;
     updateItem: (id: string, quantity: number, avgPrice: number) => Promise<boolean>;
     deleteItem: (id: string) => Promise<boolean>;
+    setLocalItems: (items: PortfolioItem[]) => void;
 };
 
 export const usePortfolioStore = create<PortfolioStore>((set, get) => ({
     items: [],
     loading: false,
     error: null,
+
+    setLocalItems: (items) => set({ items }),
 
     fetchPortfolio: async (userId: string) => {
         set({ loading: true, error: null });

@@ -46,10 +46,11 @@ interface PortfolioDashboardProps {
 const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
 
 import { useAuth } from "@/contexts/AuthContext";
+import { EmptyPortfolio } from "./EmptyPortfolio";
 
 export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     const { user } = useAuth();
-    const { items, loading: storeLoading, deleteItem, fetchPortfolio } = usePortfolioStore();
+    const { items, loading: storeLoading, deleteItem, fetchPortfolio, setLocalItems } = usePortfolioStore();
 
     const [enrichedData, setEnrichedData] = useState<Record<string, EnrichedPortfolioItem>>({});
     const [loading, setLoading] = useState(true);
@@ -116,6 +117,8 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
         loadData();
     }, [items]);
+
+
 
     // Calculate Totals & Stats
     const { totalValue, totalCost, totalDayChange, dayChangePercent, portfolioBeta, estimatedAnnualIncome, portfolioYield, portfolioPer, portfolioRoe, roeCoverage } = useMemo(() => {
@@ -373,6 +376,13 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
         });
     }, [items, enrichedData, sortBy]);
 
+    // Extract holdings for BenchmarkCard to avoid inline hook call
+    const holdingsForBenchmark = useMemo(() => items.map(i => ({ ticker: i.ticker, quantity: i.quantity })), [items]);
+
+
+    if (!storeLoading && items.length === 0) {
+        return <EmptyPortfolio onAdd={onAdd} onSelectPreset={setLocalItems} />;
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-20">
@@ -515,7 +525,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
             <BenchmarkCard
                 userReturn={dayChangePercent}
                 marketReturn={marketReturn}
-                holdings={useMemo(() => items.map(i => ({ ticker: i.ticker, quantity: i.quantity })), [items])}
+                holdings={holdingsForBenchmark}
             />
 
 
