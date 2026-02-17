@@ -21,10 +21,10 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
 
     // Status Logic
     const status = useMemo(() => {
-        if (score >= 80) return { label: "철벽 방어 (Excellent)", color: "text-emerald-400", Icon: ShieldCheck, bg: "bg-emerald-500" };
+        if (score >= 80) return { label: "철벽 방어 (Excellent)", color: "text-sky-400", Icon: ShieldCheck, bg: "bg-sky-500" };
         if (score >= 60) return { label: "양호 (Good)", color: "text-sky-400", Icon: Shield, bg: "bg-sky-500" };
-        if (score >= 40) return { label: "주의 (Warning)", color: "text-orange-400", Icon: ShieldAlert, bg: "bg-orange-500" };
-        return { label: "취약 (Danger)", color: "text-rose-400", Icon: ShieldAlert, bg: "bg-rose-500" };
+        if (score >= 40) return { label: "주의 (Warning)", color: "text-sky-400", Icon: ShieldAlert, bg: "bg-sky-500" };
+        return { label: "취약 (Danger)", color: "text-sky-400", Icon: ShieldAlert, bg: "bg-sky-500" };
     }, [score]);
 
     const Icon = status.Icon;
