@@ -2,14 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Mark as dynamic to avoid build-time issues with environment variables
+export const dynamic = "force-dynamic";
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+function getClients() {
+    const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+    );
+    const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY || "",
+    });
+    return { supabase, openai };
+}
 
 // Save insight (summarize conversation to 3 lines)
 export async function POST(req: NextRequest) {
@@ -23,10 +28,16 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        const { supabase, openai } = getClients();
+
         // Use GPT to summarize the conversation into 3 lines
         const conversationText = messages
             .map((m: { role: string; content: string }) => `${m.role}: ${m.content}`)
             .join("\n");
+
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error("OPENAI_API_KEY is not configured.");
+        }
 
         const summaryResponse = await openai.chat.completions.create({
             model: "gpt-4o-mini",
@@ -91,6 +102,8 @@ export async function GET(req: NextRequest) {
             { status: 400 }
         );
     }
+
+    const { supabase } = getClients();
 
     const { data, error } = await supabase
         .from("saved_insights")

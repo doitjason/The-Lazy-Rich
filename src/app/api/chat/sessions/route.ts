@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Mark as dynamic to avoid build-time issues with environment variables
+export const dynamic = "force-dynamic";
+
+function getSupabase() {
+    return createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+    );
+}
 
 // Create a new chat session
 export async function POST(req: NextRequest) {
@@ -18,6 +23,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        const supabase = getSupabase();
         const { data, error } = await supabase
             .from("chat_sessions")
             .insert({
@@ -56,6 +62,7 @@ export async function GET(req: NextRequest) {
         );
     }
 
+    const supabase = getSupabase();
     const { data, error } = await supabase
         .from("chat_sessions")
         .select("*")

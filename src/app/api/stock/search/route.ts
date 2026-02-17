@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
 
+export const dynamic = "force-dynamic";
+
 // Create YahooFinance instance (required for v3)
 const yahooFinance = new YahooFinance();
 
