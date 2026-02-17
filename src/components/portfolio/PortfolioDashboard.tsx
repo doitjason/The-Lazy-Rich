@@ -35,6 +35,10 @@ import { BenchmarkCard } from "./BenchmarkCard";
 import { EditStockDialog } from "./EditStockDialog";
 import { DividendCalendarDialog } from "./DividendCalendarDialog";
 import { PortfolioItem } from "@/store/usePortfolioStore";
+
+import { ValuationCard } from "./ValuationCard";
+import { DiversificationCard } from "./DiversificationCard";
+
 interface PortfolioDashboardProps {
     onAdd: () => void;
 }
@@ -114,11 +118,15 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     }, [items]);
 
     // Calculate Totals & Stats
-    const { totalValue, totalCost, totalDayChange, dayChangePercent, portfolioBeta, estimatedAnnualIncome, portfolioYield } = useMemo(() => {
+    const { totalValue, totalCost, totalDayChange, dayChangePercent, portfolioBeta, estimatedAnnualIncome, portfolioYield, portfolioPer, portfolioRoe, roeCoverage } = useMemo(() => {
         let totalVal = 0;
         let totalCst = 0;
         let dayChg = 0;
         let weightedBetaSum = 0;
+        let weightedPerSum = 0;
+        let weightedRoeSum = 0;
+        let totalRoeWeight = 0;
+        let totalPerWeight = 0;
         let totalDividendIncome = 0;
 
         items.forEach(item => {
@@ -141,6 +149,18 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 // Beta (Weighted average, default to 1 if missing)
                 const itemBeta = data.beta ?? 1.0;
                 weightedBetaSum += itemBeta * value;
+
+                // PER Logic
+                if (data.per && data.per > 0) {
+                    weightedPerSum += data.per * value;
+                    totalPerWeight += value;
+                }
+
+                // ROE Logic
+                if (data.roe) {
+                    weightedRoeSum += data.roe * value;
+                    totalRoeWeight += value;
+                }
             } else {
                 weightedBetaSum += 1.0 * value;
             }
@@ -150,6 +170,9 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
         const avgBeta = totalVal > 0 ? weightedBetaSum / totalVal : 1.0;
         const avgYield = totalVal > 0 ? (totalDividendIncome / totalVal) : 0;
 
+        const avgPer = totalPerWeight > 0 ? weightedPerSum / totalPerWeight : 0;
+        const avgRoe = totalRoeWeight > 0 ? weightedRoeSum / totalRoeWeight : 0;
+
         return {
             totalValue: totalVal,
             totalCost: totalCst,
@@ -157,7 +180,10 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
             dayChangePercent: dayChgPct,
             portfolioBeta: avgBeta,
             estimatedAnnualIncome: totalDividendIncome,
-            portfolioYield: avgYield
+            portfolioYield: avgYield,
+            portfolioPer: avgPer,
+            portfolioRoe: avgRoe,
+            roeCoverage: totalVal > 0 ? (totalRoeWeight / totalVal) * 100 : 0
         };
     }, [items, enrichedData]);
 
@@ -211,7 +237,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
         items.forEach(item => {
             const data = enrichedData[item.ticker];
-            const value = item.quantity * (data?.price || item.avg_price);
+            const value = item.quantity * (Number(data?.price) || item.avg_price);
             const rawSector = data?.sector || "Unknown";
 
             const key = allocationView === 'asset'
@@ -227,6 +253,87 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
             .map(([name, value]) => ({ name, value }))
             .sort((a, b) => b.value - a.value);
     }, [items, enrichedData, allocationView]);
+
+    // Diversification/Correlation Guard Logic
+    const { diversificationScore, assetCount, sectorCount, topSectorStat, hasDefensiveAssets } = useMemo(() => {
+        if (totalValue === 0) return { diversificationScore: 0, assetCount: 0, sectorCount: 0, topSectorStat: { name: "N/A", percent: 0 }, hasDefensiveAssets: false };
+
+        // 1. Asset Classes (Stocks, Bonds, Gold, Cash, Crypto)
+        const assetClasses = new Set<string>();
+        let defensiveSum = 0;
+        const bondKeywords = ['bond', 'treasury', 'fixed income', '채권', '국채'];
+        const goldKeywords = ['gold', '금', '은', 'commodity', '원자재'];
+        const cashKeywords = ['cash', 'money market', '현금', '파킹'];
+
+        // 2. Sectors (For concentration)
+        const sectors = new Set<string>();
+        const sectorWeights: Record<string, number> = {};
+
+        items.forEach(item => {
+            const data = enrichedData[item.ticker];
+            const val = item.quantity * (Number(data?.price) || item.avg_price);
+            const rawSector = (data?.sector || "Unknown");
+
+            // Asset Class Check
+            if (bondKeywords.some(k => rawSector.toLowerCase().includes(k))) {
+                assetClasses.add("Bond");
+                defensiveSum += val;
+            } else if (goldKeywords.some(k => rawSector.toLowerCase().includes(k))) {
+                assetClasses.add("Gold");
+                defensiveSum += val;
+            } else if (cashKeywords.some(k => rawSector.toLowerCase().includes(k))) {
+                assetClasses.add("Cash");
+                defensiveSum += val;
+            } else if (rawSector.toLowerCase().includes('crypto') || rawSector.toLowerCase().includes('bitcoin')) {
+                assetClasses.add("Crypto");
+            } else {
+                assetClasses.add("Stock");
+            }
+
+            // Sector Weight
+            const sectorName = rawSector === "Unknown" ? "기타" : rawSector;
+            sectorWeights[sectorName] = (sectorWeights[sectorName] || 0) + val;
+            sectors.add(sectorName);
+        });
+
+        const defensiveRatio = defensiveSum / totalValue;
+        const hasDefensive = defensiveRatio > 0.1; // 10% 이상 보유 시 인정
+
+        // 3. Concentration (Top Sector)
+        const sortedSectors = Object.entries(sectorWeights).sort((a, b) => b[1] - a[1]);
+        const top = sortedSectors.length > 0 ? sortedSectors[0] : ["N/A", 0] as [string, number];
+        const topRatio = top[1] / totalValue;
+
+        // --- Scoring Logic (Max 100) ---
+        let score = 100;
+
+        // Penalty 1: Sector Concentration (>30% is risky)
+        if (topRatio > 0.3) score -= (topRatio - 0.3) * 100; // e.g. 50% -> -20pts
+
+        // Penalty 2: Asset Class Diversity
+        if (assetClasses.size === 1) score -= 20; // Only Stocks?
+        else if (assetClasses.size === 2) score -= 5;
+        // else 3+ is good
+
+        // Penalty 3: Defensive Assets
+        if (!hasDefensive) score -= 15;
+
+        // Penalty 4: Item Count (Too few stocks)
+        if (items.length < 5) score -= 10;
+
+        // Cap Score
+        score = Math.max(0, Math.min(100, Math.round(score)));
+
+        return {
+            diversificationScore: score,
+            assetCount: items.length,
+            sectorCount: sectors.size,
+            topSectorStat: { name: top[0], percent: topRatio * 100 },
+            hasDefensiveAssets: hasDefensive
+        };
+    }, [items, enrichedData, totalValue]);
+
+
 
     const isLoading = storeLoading || loading;
 
@@ -432,7 +539,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
                             <div className="space-y-1 relative z-10">
                                 <div className="text-sm text-muted-foreground font-medium flex items-center gap-1">
-                                    시장 민감도 (Beta) <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-black">INFO</span>
+                                    시장 민감도 (Beta)
                                 </div>
                                 <div className="text-2xl font-black flex items-end gap-1 text-foreground">
                                     {portfolioBeta.toFixed(2)}
@@ -508,7 +615,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
                     <div className="space-y-1 relative z-10">
                         <div className="text-sm text-muted-foreground font-medium flex items-center gap-1">
-                            예상 배당금 <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-black">CALC</span>
+                            예상 배당금
                         </div>
                         <div className="text-2xl font-black text-foreground">
                             {formatCurrency(estimatedAnnualIncome)}
@@ -524,56 +631,79 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                         </div>
                     </div>
                 </div>
+
+
+                {/* Valuation Card (New Location) */}
+                {items.length > 0 && portfolioPer > 0 && (
+                    <ValuationCard portfolioPer={portfolioPer} portfolioRoe={portfolioRoe} roeCoverage={roeCoverage} />
+                )}
+
+                {/* Diversification Card (New) */}
+                {items.length > 0 && (
+                    <DiversificationCard
+                        score={diversificationScore}
+                        assetCount={assetCount}
+                        sectorCount={sectorCount}
+                        topSector={topSectorStat}
+                        hasDefensiveAssets={hasDefensiveAssets}
+                    />
+                )}
             </div>
 
+
+
+
+
             {/* 1.9 Concentration Warning (New) */}
-            {items.length > 0 && showConcentrationWarning && (() => {
-                // Logic: Single stock > 30% or Top Sector > 45%
-                const topStock = enrichedData && items.length > 0
-                    ? [...items].sort((a, b) => (b.quantity * (enrichedData[b.ticker]?.price || b.avg_price)) - (a.quantity * (enrichedData[a.ticker]?.price || a.avg_price)))[0]
-                    : null;
+            {
+                items.length > 0 && showConcentrationWarning && (() => {
+                    // Logic: Single stock > 30% or Top Sector > 45%
+                    const topStock = enrichedData && items.length > 0
+                        ? [...items].sort((a, b) => (b.quantity * (enrichedData[b.ticker]?.price || b.avg_price)) - (a.quantity * (enrichedData[a.ticker]?.price || a.avg_price)))[0]
+                        : null;
 
-                if (!topStock) return null;
+                    if (!topStock) return null;
 
-                const topStockValue = topStock.quantity * (enrichedData[topStock.ticker]?.price || topStock.avg_price);
-                const isStockConcentrated = (topStockValue / totalValue) > 0.3;
+                    const topStockValue = topStock.quantity * (enrichedData[topStock.ticker]?.price || topStock.avg_price);
+                    const isStockConcentrated = (topStockValue / totalValue) > 0.3;
 
-                const topSector = sectorData?.[0];
-                const isSectorConcentrated = topSector && (topSector.value / totalValue) > 0.45;
+                    const topSector = sectorData?.[0];
+                    const isSectorConcentrated = topSector && (topSector.value / totalValue) > 0.45;
 
-                if (!isStockConcentrated && !isSectorConcentrated) return null;
+                    if (!isStockConcentrated && !isSectorConcentrated) return null;
 
-                const message = isStockConcentrated
-                    ? `"${topStock.ticker}" 종목에 자산의 ${formatPercent((topStockValue / totalValue) * 100)}가 집중되어 있습니다. 혹시 계란을 한 바구니에 너무 많이 담은건 아닌지 확인해보시는 것은 어떨까요? 🥚`
-                    : `"${topSector.name}" ${allocationView === 'asset' ? '자산군' : '섹터'}에 자산의 ${formatPercent((topSector.value / totalValue) * 100)}가 쏠려 있습니다. 해당 ${allocationView === 'asset' ? '자산군' : '산업'} 리스크에 주의하세요! 🏗️`;
+                    const message = isStockConcentrated
+                        ? `"${topStock.ticker}" 종목에 자산의 ${formatPercent((topStockValue / totalValue) * 100)}가 집중되어 있습니다. 혹시 계란을 한 바구니에 너무 많이 담은건 아닌지 확인해보시는 것은 어떨까요? 🥚`
+                        : `"${topSector.name}" ${allocationView === 'asset' ? '자산군' : '섹터'}에 자산의 ${formatPercent((topSector.value / totalValue) * 100)}가 쏠려 있습니다. 해당 ${allocationView === 'asset' ? '자산군' : '산업'} 리스크에 주의하세요! 🏗️`;
 
-                return (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="relative overflow-hidden rounded-xl border border-orange-500/30 bg-orange-500/5 p-4"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-transparent opacity-50" />
-                        <div className="relative flex items-start gap-3">
-                            <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
-                                <AlertTriangle className="w-5 h-5" />
+                    return (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="relative overflow-hidden rounded-xl border border-orange-500/30 bg-orange-500/5 p-4"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-transparent opacity-50" />
+                            <div className="relative flex items-start gap-3">
+                                <div className="p-2 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+                                    <AlertTriangle className="w-5 h-5" />
+                                </div>
+                                <div className="flex-1 pt-0.5">
+                                    <h4 className="text-base font-bold text-orange-700 dark:text-orange-400 mb-1">집중 투자 감지 🚨</h4>
+                                    <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                                        {message}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setShowConcentrationWarning(false)}
+                                    className="text-muted-foreground hover:text-foreground transition-colors absolute right-0 top-0 p-2"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
                             </div>
-                            <div className="flex-1 pt-0.5">
-                                <h4 className="text-base font-bold text-orange-700 dark:text-orange-400 mb-1">집중 투자 감지 🚨</h4>
-                                <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                                    {message}
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setShowConcentrationWarning(false)}
-                                className="text-muted-foreground hover:text-foreground transition-colors absolute right-0 top-0 p-2"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-                    </motion.div>
-                );
-            })()}
+                        </motion.div>
+                    );
+                })()
+            }
 
             {/* 2. Asset Allocation & Stats Grid */}
             <div className="grid grid-cols-1 gap-4">
@@ -855,6 +985,6 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                     </AnimatePresence>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
