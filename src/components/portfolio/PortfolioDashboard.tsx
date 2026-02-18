@@ -393,22 +393,32 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
                 <CardContent className="relative z-10 py-6 px-6 flex flex-col items-center justify-center gap-3 text-white">
                     <div className="text-white/80 text-lg font-medium tracking-wide">총 순자산</div>
-                    <div className="text-2xl leading-none font-bold tracking-tight whitespace-nowrap">
-                        {formatCurrency(totalValue)}
-                    </div>
+                    {(() => {
+                        const formattedTotal = formatCurrency(totalValue);
+                        const len = formattedTotal.length;
+                        let sizeClass = "text-3xl";
+                        if (len > 18) sizeClass = "text-lg";
+                        else if (len > 14) sizeClass = "text-xl";
+                        else if (len > 10) sizeClass = "text-2xl";
+                        return (
+                            <div className={cn(sizeClass, "leading-none font-bold tracking-tight whitespace-nowrap")}>
+                                {formattedTotal}
+                            </div>
+                        );
+                    })()}
                     <div className="flex flex-col gap-1 w-full max-w-[320px] bg-white/10 px-5 py-3 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
-                        <div className="flex justify-between items-center text-sm font-medium">
-                            <span className="text-white/70">일간 수익</span>
-                            <div className={cn("flex items-center font-bold", totalDayChange >= 0 ? "text-emerald-300" : "text-rose-300")}>
-                                {totalDayChange >= 0 ? <Plus className="w-3.5 h-3.5 mr-0.5" /> : null}
+                        <div className="flex justify-between items-center gap-2">
+                            <span className="text-white/70 text-sm font-medium flex-shrink-0">일간 수익</span>
+                            <div className={cn("flex items-center font-bold text-xs whitespace-nowrap", totalDayChange >= 0 ? "text-emerald-300" : "text-rose-300")}>
+                                {totalDayChange >= 0 ? <Plus className="w-3 h-3 mr-0.5 flex-shrink-0" /> : null}
                                 {formatCurrency(totalDayChange)} ({formatPercent(dayChangePercent)})
                             </div>
                         </div>
                         <div className="h-px w-full bg-white/10 my-1" />
-                        <div className="flex justify-between items-center text-sm font-medium">
-                            <span className="text-white/70">총 수익</span>
-                            <div className={cn("flex items-center font-bold", totalReturn >= 0 ? "text-emerald-300" : "text-rose-300")}>
-                                {totalReturn >= 0 ? <Plus className="w-3.5 h-3.5 mr-0.5" /> : null}
+                        <div className="flex justify-between items-center gap-2">
+                            <span className="text-white/70 text-sm font-medium flex-shrink-0">총 수익</span>
+                            <div className={cn("flex items-center font-bold text-xs whitespace-nowrap", totalReturn >= 0 ? "text-emerald-300" : "text-rose-300")}>
+                                {totalReturn >= 0 ? <Plus className="w-3 h-3 mr-0.5 flex-shrink-0" /> : null}
                                 {formatCurrency(totalReturn, "USD", 0)} ({formatPercent(totalReturnPercent)})
                             </div>
                         </div>
@@ -937,28 +947,28 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                         setEditingItem(item);
                                         setIsEditOpen(true);
                                     }}
-                                    className="group relative overflow-hidden rounded-xl bg-card dark:bg-white/5 border border-border dark:border-white/10 hover:bg-accent/50 dark:hover:bg-white/10 transition-all p-4 flex items-center justify-between shadow-sm cursor-pointer"
+                                    className="group relative overflow-hidden rounded-xl bg-card dark:bg-white/5 border border-border dark:border-white/10 hover:bg-accent/50 dark:hover:bg-white/10 transition-all p-4 flex items-center justify-between gap-3 shadow-sm cursor-pointer"
                                 >
 
                                     {/* Left: Info */}
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs font-bold ring-1 ring-white/10">
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs font-bold ring-1 ring-white/10 flex-shrink-0">
                                             {item.ticker.slice(0, 1)}
                                         </div>
-                                        <div>
-                                            <div className="font-bold">{item.ticker}</div>
+                                        <div className="min-w-0">
+                                            <div className="font-bold text-sm truncate">{item.ticker}</div>
                                             <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                                {item.quantity}주
-                                                <span className="w-0.5 h-0.5 rounded-full bg-gray-500" />
-                                                {data?.sector || "주식"}
+                                                <span className="whitespace-nowrap">{item.quantity}주</span>
+                                                <span className="w-0.5 h-0.5 rounded-full bg-gray-500 flex-shrink-0" />
+                                                <span className="truncate">{data?.sector || "주식"}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Right: Price */}
-                                    <div className="text-right">
-                                        <div className="font-medium">{formatCurrency(currentValue)}</div>
-                                        <div className={cn("text-xs font-medium", isProfit ? "text-emerald-400" : "text-rose-400")}>
+                                    <div className="text-right flex-shrink-0">
+                                        <div className="font-medium text-sm whitespace-nowrap">{formatCurrency(currentValue)}</div>
+                                        <div className={cn("text-[11px] font-medium whitespace-nowrap", isProfit ? "text-emerald-400" : "text-rose-400")}>
                                             {isProfit ? "+" : ""}{formatCurrency(gain)} ({formatPercent(gainPercent)})
                                         </div>
                                     </div>

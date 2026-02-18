@@ -99,20 +99,20 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
 
                     {/* Summary Cards */}
                     <div className="grid grid-cols-3 gap-2 mb-2">
-                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm">
-                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 block mb-0.5">내 수익률 ({range})</span>
-                            <span className={cn("text-base font-bold tracking-tight", periodReturn.portfolio >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
+                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm min-w-0 overflow-hidden">
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 block mb-0.5 whitespace-nowrap">내 수익률 ({range})</span>
+                            <span className={cn("text-sm font-bold tracking-tight whitespace-nowrap block", periodReturn.portfolio >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
                                 {formatPercent(periodReturn.portfolio)}
                             </span>
                         </div>
-                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm">
-                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 block mb-0.5">시장 (SPY)</span>
-                            <span className={cn("text-base font-bold tracking-tight", periodReturn.benchmark >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
+                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm min-w-0 overflow-hidden">
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 block mb-0.5 whitespace-nowrap">시장 (SPY)</span>
+                            <span className={cn("text-sm font-bold tracking-tight whitespace-nowrap block", periodReturn.benchmark >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
                                 {formatPercent(periodReturn.benchmark)}
                             </span>
                         </div>
                         <div className={cn(
-                            "rounded-xl p-3 border shadow-sm flex flex-col justify-center relative overflow-hidden",
+                            "rounded-xl p-3 border shadow-sm flex flex-col justify-center relative overflow-hidden min-w-0",
                             isWin
                                 ? "bg-sky-50 dark:bg-sky-500/10 border-sky-100 dark:border-sky-500/20"
                                 : "bg-rose-50 dark:bg-rose-500/10 border-rose-100 dark:border-rose-500/20"
@@ -120,10 +120,10 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                             <div className={cn("absolute top-0 right-0 p-1.5 opacity-10 text-[10px] font-bold", isWin ? "text-sky-600" : "text-rose-600")}>
                                 {isWin ? "WIN" : "LOSS"}
                             </div>
-                            <span className={cn("text-[10px] font-semibold block mb-0.5", isWin ? "text-sky-700 dark:text-sky-300" : "text-rose-700 dark:text-rose-300")}>
+                            <span className={cn("text-[10px] font-semibold block mb-0.5 whitespace-nowrap", isWin ? "text-sky-700 dark:text-sky-300" : "text-rose-700 dark:text-rose-300")}>
                                 Alpha
                             </span>
-                            <span className={cn("text-base font-bold tracking-tight z-10", isWin ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
+                            <span className={cn("text-sm font-bold tracking-tight z-10 whitespace-nowrap block", isWin ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
                                 {alpha > 0 ? "+" : ""}{alpha.toFixed(2)}%p
                             </span>
                         </div>

@@ -363,7 +363,7 @@ export function CompoundCalculator() {
                             {/* 1. Total Invested */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                    <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">총 원금 합계</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
@@ -382,7 +382,7 @@ export function CompoundCalculator() {
                             {/* 2. Return Rate */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                    <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">총 수익률</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
@@ -405,7 +405,7 @@ export function CompoundCalculator() {
                             {/* 3. Real Value */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                    <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">실질 가치</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
@@ -424,7 +424,7 @@ export function CompoundCalculator() {
                             {/* 4. Net Profit */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                    <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">순수익 합계</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
@@ -443,7 +443,7 @@ export function CompoundCalculator() {
                             {/* 5. Lifetime Monthly Income */}
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                    <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                         <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">평생 실질 월급</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
@@ -463,7 +463,7 @@ export function CompoundCalculator() {
                             </Popover>
 
                             {/* 6. Investment Period */}
-                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2">
+                            <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                 <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">투자 기간</span>
                                 <span className="text-lg font-black text-slate-500">
                                     {years}년

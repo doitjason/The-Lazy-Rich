@@ -846,7 +846,7 @@ export function PortfolioRegretCalculator() {
                                 </div>
                                 <div className="grid grid-cols-3 gap-4 mt-8 w-full max-w-3xl mx-auto">
                                     {/* 1. Total Profit */}
-                                    <div className="flex flex-col items-center justify-center min-w-[100px] py-2">
+                                    <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
                                         <span className={`text-lg font-black flex items-center gap-1 ${result.profit >= 0 ? "text-red-500" : "text-blue-500"}`}>
                                             {result.profit >= 0 ? "+" : ""}{(Math.trunc(result.returnRate * 10) / 10).toFixed(1)}%
@@ -856,7 +856,7 @@ export function PortfolioRegretCalculator() {
                                     {/* 2. CAGR */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                            <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">연평균 수익률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -875,7 +875,7 @@ export function PortfolioRegretCalculator() {
                                     {/* 3. MDD */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                            <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -910,7 +910,7 @@ export function PortfolioRegretCalculator() {
                                     {/* 4. Best Year */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                            <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최고의 해</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -929,7 +929,7 @@ export function PortfolioRegretCalculator() {
                                     {/* 5. Worst Year */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                            <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최악의 해</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -948,7 +948,7 @@ export function PortfolioRegretCalculator() {
                                     {/* 6. Win Rate */}
                                     <Popover>
                                         <PopoverTrigger asChild>
-                                            <div className="flex flex-col items-center justify-center min-w-[100px] py-2 cursor-help transition-opacity hover:opacity-80">
+                                            <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">월별 승률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
@@ -1042,18 +1042,18 @@ export function PortfolioRegretCalculator() {
                                             className="relative overflow-hidden p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-500/30 transition-all duration-300 group shadow-sm hover:shadow-sky-500/5"
                                         >
                                             <div className="relative z-10 flex items-center justify-between gap-3">
-                                                <div className="flex items-center gap-3 min-w-0">
+                                                <div className="flex items-center gap-3 min-w-0 flex-1">
                                                     {/* Custom Ticker Icon */}
-                                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-white/10 to-transparent flex-shrink-0 flex items-center justify-center font-black text-foreground/90 text-[10px] border border-white/10 shadow-inner group-hover:scale-105 transition-transform duration-500">
-                                                        {asset.ticker}
+                                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-white/10 to-transparent flex-shrink-0 flex items-center justify-center font-black text-foreground/90 text-[9px] border border-white/10 shadow-inner group-hover:scale-105 transition-transform duration-500">
+                                                        {asset.ticker.slice(0, 2)}
                                                     </div>
-                                                    <div className="space-y-1 min-w-0">
-                                                        <div className="flex items-center gap-2">
+                                                    <div className="space-y-0.5 min-w-0">
+                                                        <div className="flex items-center gap-1.5 flex-wrap">
                                                             <p className="font-black text-sm text-foreground tracking-tight truncate">{asset.ticker}</p>
                                                             {asset.returnRate > result.returnRate && (
                                                                 <Popover>
                                                                     <PopoverTrigger asChild>
-                                                                        <span className="cursor-help flex-shrink-0 text-[8px] font-black px-1.2 py-0.3 rounded-md bg-green-500/10 text-green-500 border border-green-500/20 uppercase tracking-tighter shadow-sm hover:bg-green-500/20 transition-colors">
+                                                                        <span className="cursor-help flex-shrink-0 text-[7px] font-black px-1 py-0.5 rounded bg-green-500/10 text-green-500 border border-green-500/20 uppercase tracking-tighter shadow-sm hover:bg-green-500/20 transition-colors leading-none">
                                                                             Ace
                                                                         </span>
                                                                     </PopoverTrigger>
@@ -1071,7 +1071,7 @@ export function PortfolioRegretCalculator() {
                                                 </div>
 
                                                 <div className="text-right flex-shrink-0">
-                                                    <p className="font-black text-sm text-foreground tabular-nums tracking-tight whitespace-nowrap">
+                                                    <p className="font-black text-[13px] text-foreground tabular-nums tracking-tight whitespace-nowrap">
                                                         {formatCurrency(asset.finalValue)}
                                                     </p>
                                                     <div className="flex flex-col items-end gap-1 mt-1">
