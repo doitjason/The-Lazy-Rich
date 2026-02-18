@@ -12,21 +12,8 @@ export async function GET(request: Request) {
     if (code) {
         const supabase = await createClient()
 
-        // Debug logging
-        const cookieStore = await cookies()
-        const allCookies = cookieStore.getAll()
-        console.log('--- Auth Debug Start ---')
-        console.log('All Cookies:', allCookies.map(c => c.name))
-
-        const verifierCookie = allCookies.find(c => c.name.includes('code-verifier'))
-        console.log('Verifier cookie found:', verifierCookie ? 'YES' : 'NO')
-        if (verifierCookie) {
-            console.log('Verifier cookie name:', verifierCookie.name)
-        }
-
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (!error) {
-            console.log('Auth Success! Redirecting to:', next)
             return NextResponse.redirect(`${origin}${next}`)
         }
 
