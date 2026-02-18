@@ -64,7 +64,7 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[96vw] max-w-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl p-0 overflow-hidden shadow-2xl">
+            <DialogContent className="w-[96vw] max-w-md max-h-[85vh] overflow-y-auto bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl p-0 shadow-2xl">
                 <div className="p-6 pb-4 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-900/50">
                     <DialogHeader className="mb-4">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

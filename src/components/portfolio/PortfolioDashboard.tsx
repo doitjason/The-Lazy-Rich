@@ -421,7 +421,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <button className={cn(
-                                        "flex items-center px-4 py-1.5 rounded-full text-sm font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all"
+                                        "flex items-center px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all whitespace-nowrap"
                                     )}>
                                         {portfolioBeta > 1.2 ? "🚀 공격적 성장형" : portfolioBeta < 0.8 ? "🛡️ 안정 추구형" : "⚖️ 균형 투자형"}
                                     </button>
@@ -442,7 +442,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             {(portfolioYield * 100) >= 3.0 && (
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <button className="flex items-center px-4 py-1.5 rounded-full text-sm font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all whitespace-nowrap">
+                                        <button className="flex items-center px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all whitespace-nowrap">
                                             💰 고배당 포트
                                         </button>
                                     </PopoverTrigger>
@@ -459,7 +459,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             {sectorData.length > 0 && (sectorData[0].value / totalValue) > 0.45 ? (
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                        <button className="flex items-center px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all whitespace-nowrap">
                                             🎯 {sectorData[0].name} 집중
                                         </button>
                                     </PopoverTrigger>
@@ -473,7 +473,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             ) : items.length >= 5 && (
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                        <button className="flex items-center px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all whitespace-nowrap">
                                             🌐 분산 투자
                                         </button>
                                     </PopoverTrigger>
@@ -490,7 +490,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             {totalReturnPercent > 15 ? (
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                        <button className="flex items-center px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all whitespace-nowrap">
                                             🏆 성투 중
                                         </button>
                                     </PopoverTrigger>
@@ -504,7 +504,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             ) : totalReturnPercent < -10 && (
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <button className="flex items-center px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-colors">
+                                        <button className="flex items-center px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-sm bg-white/10 border-white/20 text-white/90 hover:bg-white/20 transition-all whitespace-nowrap">
                                             💧 존버 정신
                                         </button>
                                     </PopoverTrigger>
@@ -551,9 +551,9 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                 <div className="text-sm text-muted-foreground font-medium flex items-center gap-1">
                                     시장 민감도 (Beta)
                                 </div>
-                                <div className="text-2xl font-black flex items-end gap-1 text-foreground">
+                                <div className="text-xl font-black flex items-end gap-1 text-foreground">
                                     {portfolioBeta.toFixed(2)}
-                                    <span className="text-xs font-normal text-muted-foreground pb-1 ml-1">/ 1.0 (S&P 500)</span>
+                                    <span className="text-[10px] font-normal text-muted-foreground pb-0.5 ml-0.5">/ 1.0 (S&P 500)</span>
                                 </div>
                             </div>
 

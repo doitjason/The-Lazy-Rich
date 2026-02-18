@@ -198,9 +198,9 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
             <div className="px-10">
                 <Button
                     onClick={() => onSelect(currentGuru)}
-                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all active:scale-[0.98]"
+                    className="w-full h-14 text-sm font-semibold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all active:scale-[0.98] gap-1.5"
                 >
-                    <MessageCircle className="h-5 w-5 mr-2" />
+                    <MessageCircle className="h-4 w-4 flex-shrink-0" />
                     {currentGuru.name}와 대화 시작하기
                 </Button>
             </div>

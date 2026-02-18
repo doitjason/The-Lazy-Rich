@@ -9,6 +9,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { getCommonMarketData } from "@/app/actions/portfolio-actions";
 import { CommonMarketData } from "@/lib/market-types";
@@ -140,14 +145,40 @@ export function MarketContext() {
 
             {/* Kostolany's Egg Section */}
             <div className="flex flex-col items-center gap-6 py-4">
-                <div className="text-center space-y-2 mb-2">
-                    <h3 className="text-lg font-black tracking-tight text-foreground/90 flex items-center justify-center gap-2">
-                        🥚 코스톨라니의 달걀
-                    </h3>
-                    <p className="text-[13px] text-muted-foreground/70 font-medium whitespace-nowrap">
-                        금리와 심리 지표를 기반으로 추정한 시장의 순환 단계일 수 있습니다
-                    </p>
-                </div>
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <div className="text-center space-y-2 mb-2 cursor-pointer group/egg touch-none">
+                            <h3 className="text-lg font-black tracking-tight text-foreground/90 flex items-center justify-center gap-2 group-hover/egg:text-primary transition-colors">
+                                🥚 코스톨라니의 달걀
+                                <Info className="w-4 h-4 text-muted-foreground/40 group-hover/egg:text-primary/70" />
+                            </h3>
+                            <p className="text-[13px] text-muted-foreground/70 font-medium whitespace-nowrap">
+                                금리와 심리 지표를 기반으로 추정한 시장의 순환 단계일 수 있습니다
+                            </p>
+                        </div>
+                    </PopoverTrigger>
+                    <PopoverContent
+                        side="top"
+                        align="center"
+                        sideOffset={10}
+                        className="w-[300px] p-6 rounded-[2rem] bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-black/5 dark:border-white/10 shadow-2xl z-[100]"
+                    >
+                        <div className="space-y-3">
+                            <h4 className="font-black text-primary flex items-center gap-2">
+                                <Activity className="w-4 h-4" />
+                                코스톨라니의 달걀이란?
+                            </h4>
+                            <p className="text-sm leading-relaxed font-medium text-foreground/80 break-keep">
+                                전설적인 투자자 <span className="font-bold">앙드레 코스톨라니</span>가 제안한 투자 심리 사이클입니다.
+                            </p>
+                            <div className="p-3.5 rounded-2xl bg-primary/5 border border-primary/10">
+                                <p className="text-[13px] leading-relaxed font-semibold text-muted-foreground break-keep">
+                                    금리와 투자자 심리에 따른 <span className="text-foreground">순환 단계</span>를 나타내며, 대중이 비관적일 때(B3) 매수하고 광기에 휩싸였을 때(A3) 매도하는 <span className="text-primary font-bold">역발상 투자의 정수</span>를 보여줍니다.
+                                </p>
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
                 <KostolanyEgg currentPhase={marketCondition.kostolanyPhase} />
                 <div className="max-w-[400px] text-center">
                     <p className="text-sm text-muted-foreground/60 leading-relaxed font-medium break-keep">

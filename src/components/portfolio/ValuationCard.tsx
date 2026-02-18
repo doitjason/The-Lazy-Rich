@@ -58,7 +58,7 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
                     <div className="space-y-3 relative z-10 h-full flex flex-col justify-between">
                         {/* Section 1: Valuation (Price) */}
                         <div>
-                            <div className="text-xs text-muted-foreground font-medium flex items-center gap-1 mb-0.5">
+                            <div className="text-sm text-muted-foreground font-medium flex items-center gap-1 mb-0.5">
                                 가치평가 (PER)
                             </div>
                             <div className="flex justify-between items-end">
@@ -82,7 +82,7 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
                         {/* Section 2: Fundamentals (Quality) */}
                         <div className="pt-2 border-t border-sky-500/10">
                             <div className="flex justify-between items-center mb-0.5">
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <span className="text-sm text-muted-foreground font-medium flex items-center gap-1">
                                     기초체력 (ROE)
                                 </span>
                                 <span className={cn("text-xs font-bold", roeStatus.color)}>

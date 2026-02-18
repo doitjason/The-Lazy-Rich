@@ -22,28 +22,80 @@ export function KostolanyEgg({ currentPhase }: KostolanyEggProps) {
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/10 opacity-50 dark:opacity-30" />
 
             {/* The Egg SVG */}
-            <svg viewBox="0 0 200 250" className="w-full h-full relative z-10 drop-shadow-[0_0_30px_rgba(99,102,241,0.1)]">
-                {/* Defs for gradients */}
+            <svg viewBox="0 0 200 250" className="w-full h-full relative z-10 drop-shadow-[0_0_50px_rgba(99,102,241,0.15)]">
                 <defs>
-                    <radialGradient id="eggGradient" cx="50%" cy="40%" r="60%">
-                        <stop offset="0%" stopColor="currentColor" stopOpacity="0.05" />
-                        <stop offset="100%" stopColor="currentColor" stopOpacity="0.02" />
+                    <radialGradient id="eggOverlayGradient" cx="50%" cy="30%" r="70%">
+                        <stop offset="0%" stopColor="currentColor" stopOpacity="0.1" />
+                        <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
                     </radialGradient>
+
+                    {/* Comet trail glow - soft outer */}
+                    <filter id="softGlow">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
+                        <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+
+                    {/* Comet trail glow - tight inner */}
+                    <filter id="tightGlow">
+                        <feGaussianBlur stdDeviation="1.5" result="blur" />
+                        <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
+
+                    {/* Arrow head glow - intense */}
+                    <filter id="arrowGlow">
+                        <feGaussianBlur stdDeviation="2" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                        <feMerge>
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="blur" />
+                            <feMergeNode in="SourceGraphic" />
+                        </feMerge>
+                    </filter>
                 </defs>
 
-                {/* Egg Shape */}
+                {/* Main Egg Body with Glass Reflection */}
                 <path
                     d="M100,20 C140,20 180,80 180,150 C180,210 145,240 100,240 C55,240 20,210 20,150 C20,80 60,20 100,20 Z"
-                    fill="url(#eggGradient)"
+                    fill="url(#eggOverlayGradient)"
                     stroke="currentColor"
-                    strokeWidth="1"
-                    className="text-foreground/10 transition-all duration-700"
+                    strokeWidth="0.5"
+                    className="text-foreground/5 dark:text-white/10"
                 />
 
-                {/* Phase Segments & Highlights */}
-                <g className="opacity-40">
-                    <line x1="25" y1="180" x2="175" y2="180" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4 4" className="text-foreground/20" />
-                    <line x1="40" y1="90" x2="160" y2="90" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4 4" className="text-foreground/20" />
+                {/* ===== Cycle Arrows ===== */}
+
+                {/* GREEN arrow: B3 (bottom) → A3 (top), left side */}
+                <path d="M-5,-4 L5,0 L-5,4 Z" fill="#34d399" filter="url(#arrowGlow)">
+                    <animateMotion
+                        path="M100,225 C30,225 30,50 100,35"
+                        dur="3s"
+                        repeatCount="indefinite"
+                        rotate="auto"
+                        calcMode="linear"
+                    />
+                </path>
+
+                {/* RED arrow: A3 (top) → B3 (bottom), right side */}
+                <path d="M-5,-4 L5,0 L-5,4 Z" fill="#fb7185" filter="url(#arrowGlow)">
+                    <animateMotion
+                        path="M100,35 C170,50 170,225 100,225"
+                        dur="3s"
+                        repeatCount="indefinite"
+                        rotate="auto"
+                        calcMode="linear"
+                    />
+                </path>
+
+                {/* Phase Segments - Subtler */}
+                <g className="opacity-20">
+                    <line x1="25" y1="180" x2="175" y2="180" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 4" />
+                    <line x1="40" y1="90" x2="160" y2="90" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2 4" />
                 </g>
 
                 {/* Current Phase Indicator Glow */}
@@ -53,7 +105,7 @@ export function KostolanyEgg({ currentPhase }: KostolanyEggProps) {
                         d={getPhasePath(currentPhase)}
                         fill="currentColor"
                         className={cn(
-                            "transition-colors duration-500 filter blur-[15px] opacity-20 dark:opacity-30",
+                            "transition-colors duration-500 filter blur-[20px] opacity-30 dark:opacity-40",
                             currentPhase.startsWith("A") ? "text-emerald-500" : "text-rose-500"
                         )}
                     />
@@ -66,14 +118,19 @@ export function KostolanyEgg({ currentPhase }: KostolanyEggProps) {
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <circle cx={getPhaseCenter(currentPhase).x} cy={getPhaseCenter(currentPhase).y} r="14" className={cn(
-                            "filter drop-shadow-lg",
-                            currentPhase.startsWith("A") ? "fill-emerald-500" : "fill-rose-500"
-                        )} />
+                        <circle
+                            cx={getPhaseCenter(currentPhase).x}
+                            cy={getPhaseCenter(currentPhase).y}
+                            r="12"
+                            className={cn(
+                                "filter drop-shadow-[0_0_8px_rgba(0,0,0,0.2)]",
+                                currentPhase.startsWith("A") ? "fill-emerald-500" : "fill-rose-500"
+                            )}
+                        />
                         <text
                             x={getPhaseCenter(currentPhase).x}
-                            y={getPhaseCenter(currentPhase).y + 5}
-                            className="text-[12px] font-black fill-white text-center"
+                            y={getPhaseCenter(currentPhase).y + 4}
+                            className="text-[10px] font-black fill-white"
                             textAnchor="middle"
                         >
                             {currentPhase}
@@ -140,21 +197,21 @@ function getPhasePath(phase: string) {
 function getPhaseCenter(phase: string) {
     const centers: Record<string, { x: number, y: number }> = {
         A3: { x: 100, y: 50 },
-        B1: { x: 140, y: 70 },
-        B2: { x: 160, y: 150 },
+        B1: { x: 145, y: 70 },
+        B2: { x: 155, y: 150 },
         B3: { x: 130, y: 210 },
         A1: { x: 70, y: 210 },
-        A2: { x: 40, y: 150 },
+        A2: { x: 50, y: 130 },
     };
     return centers[phase] || { x: 100, y: 125 };
 }
 
 function getPositionClasses(pos: string) {
     if (pos === "top") return "top-8 left-1/2 -translate-x-1/2 text-center items-center";
-    if (pos === "top-right") return "top-[20%] right-6 items-end text-right";
-    if (pos === "mid-right") return "top-1/2 right-4 -translate-y-1/2 items-end text-right";
+    if (pos === "top-right") return "top-[20%] right-4 items-end text-right";
+    if (pos === "mid-right") return "top-[45%] right-2 -translate-y-1/2 items-end text-right";
     if (pos === "bottom") return "bottom-8 left-1/2 -translate-x-1/2 text-center items-center";
-    if (pos === "bottom-left") return "bottom-[20%] left-6 items-start text-left";
-    if (pos === "mid-left") return "top-1/2 left-4 -translate-y-1/2 items-start text-left";
+    if (pos === "bottom-left") return "bottom-[20%] left-4 items-start text-left";
+    if (pos === "mid-left") return "top-[38%] left-2 -translate-y-1/2 items-start text-left";
     return "";
 }
