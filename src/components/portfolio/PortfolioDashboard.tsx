@@ -396,29 +396,29 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                     {(() => {
                         const formattedTotal = formatCurrency(totalValue);
                         const len = formattedTotal.length;
-                        let sizeClass = "text-3xl";
-                        if (len > 18) sizeClass = "text-lg";
-                        else if (len > 14) sizeClass = "text-xl";
-                        else if (len > 10) sizeClass = "text-2xl";
+                        let sizeClass = "text-4xl"; // 기본값을 3xl에서 4xl로 상향
+                        if (len > 22) sizeClass = "text-xl";
+                        else if (len > 18) sizeClass = "text-2xl";
+                        else if (len > 14) sizeClass = "text-3xl";
                         return (
-                            <div className={cn(sizeClass, "leading-none font-bold tracking-tight whitespace-nowrap")}>
+                            <div className={cn(sizeClass, "leading-tight font-black tracking-tight whitespace-nowrap")} style={{ whiteSpace: 'nowrap' }}>
                                 {formattedTotal}
                             </div>
                         );
                     })()}
-                    <div className="flex flex-col gap-1 w-full max-w-[320px] bg-white/10 px-5 py-3 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner">
-                        <div className="flex justify-between items-center gap-2">
-                            <span className="text-white/70 text-sm font-medium flex-shrink-0">일간 수익</span>
-                            <div className={cn("flex items-center font-bold text-xs whitespace-nowrap", totalDayChange >= 0 ? "text-emerald-300" : "text-rose-300")}>
-                                {totalDayChange >= 0 ? <Plus className="w-3 h-3 mr-0.5 flex-shrink-0" /> : null}
+                    <div className="flex flex-col gap-1.5 w-full max-w-[340px] bg-white/10 px-5 py-3.5 rounded-2xl backdrop-blur-md border border-white/20 shadow-inner mt-1">
+                        <div className="flex justify-between items-center gap-3">
+                            <span className="text-white/80 text-sm font-semibold flex-shrink-0">일간 수익</span>
+                            <div className={cn("flex items-center font-bold text-sm whitespace-nowrap", totalDayChange >= 0 ? "text-emerald-300" : "text-rose-300")} style={{ whiteSpace: 'nowrap' }}>
+                                {totalDayChange >= 0 ? <Plus className="w-3.5 h-3.5 mr-0.5 flex-shrink-0" /> : null}
                                 {formatCurrency(totalDayChange)} ({formatPercent(dayChangePercent)})
                             </div>
                         </div>
-                        <div className="h-px w-full bg-white/10 my-1" />
-                        <div className="flex justify-between items-center gap-2">
-                            <span className="text-white/70 text-sm font-medium flex-shrink-0">총 수익</span>
-                            <div className={cn("flex items-center font-bold text-xs whitespace-nowrap", totalReturn >= 0 ? "text-emerald-300" : "text-rose-300")}>
-                                {totalReturn >= 0 ? <Plus className="w-3 h-3 mr-0.5 flex-shrink-0" /> : null}
+                        <div className="h-px w-full bg-white/10 my-0.5" />
+                        <div className="flex justify-between items-center gap-3">
+                            <span className="text-white/80 text-sm font-semibold flex-shrink-0">총 수익</span>
+                            <div className={cn("flex items-center font-bold text-sm whitespace-nowrap", totalReturn >= 0 ? "text-emerald-300" : "text-rose-300")} style={{ whiteSpace: 'nowrap' }}>
+                                {totalReturn >= 0 ? <Plus className="w-3.5 h-3.5 mr-0.5 flex-shrink-0" /> : null}
                                 {formatCurrency(totalReturn, "USD", 0)} ({formatPercent(totalReturnPercent)})
                             </div>
                         </div>

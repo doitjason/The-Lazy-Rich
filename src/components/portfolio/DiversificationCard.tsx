@@ -62,13 +62,7 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
                         </div>
                     </div>
 
-                    {/* Visual Bar */}
-                    <div className="absolute bottom-0 left-0 h-1 bg-secondary/30 w-full">
-                        <div
-                            className={cn("h-full transition-all duration-1000", status.bg)}
-                            style={{ width: `${score}%` }}
-                        />
-                    </div>
+
                 </div>
             </PopoverTrigger>
             <PopoverContent className="w-72 text-xs bg-black/95 border-white/10 backdrop-blur-xl text-white p-4">
