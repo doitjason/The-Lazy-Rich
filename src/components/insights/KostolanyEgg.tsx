@@ -71,29 +71,30 @@ export function KostolanyEgg({ currentPhase, interestRateTrend }: KostolanyEggPr
                         className="text-foreground/5 dark:text-white/10"
                     />
 
-                    {/* ===== Cycle Arrows ===== */}
-
-                    {/* GREEN arrow: B3 (bottom) → A3 (top), left side */}
-                    <path d="M-5,-4 L5,0 L-5,4 Z" fill="#34d399" filter="url(#arrowGlow)">
-                        <animateMotion
-                            path="M100,225 C30,225 30,50 100,35"
-                            dur="3s"
-                            repeatCount="indefinite"
-                            rotate="auto"
-                            calcMode="linear"
+                    {/* Static Cycle Arrows */}
+                    <g className="opacity-40">
+                        {/* GREEN arrow path: B3 (bottom) → A3 (top), left side */}
+                        <path
+                            d="M100,225 C35,225 35,50 95,37"
+                            fill="none"
+                            stroke="#10b981"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeDasharray="4 6"
                         />
-                    </path>
+                        <path d="M92,32 L105,37 L92,42 Z" fill="#10b981" transform="rotate(-15, 95, 37)" />
 
-                    {/* RED arrow: A3 (top) → B3 (bottom), right side */}
-                    <path d="M-5,-4 L5,0 L-5,4 Z" fill="#fb7185" filter="url(#arrowGlow)">
-                        <animateMotion
-                            path="M100,35 C170,50 170,225 100,225"
-                            dur="3s"
-                            repeatCount="indefinite"
-                            rotate="auto"
-                            calcMode="linear"
+                        {/* RED arrow path: A3 (top) → B3 (bottom), right side */}
+                        <path
+                            d="M105,37 C165,50 165,225 100,225"
+                            fill="none"
+                            stroke="#f43f5e"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeDasharray="4 6"
                         />
-                    </path>
+                        <path d="M95,220 L108,225 L95,230 Z" fill="#f43f5e" transform="rotate(170, 100, 225)" />
+                    </g>
 
                     {/* Phase Segments - Subtler */}
                     <g className="opacity-20">
