@@ -179,7 +179,10 @@ export function MarketContext() {
                         </div>
                     </PopoverContent>
                 </Popover>
-                <KostolanyEgg currentPhase={marketCondition.kostolanyPhase} />
+                <KostolanyEgg
+                    currentPhase={marketCondition.kostolanyPhase}
+                    interestRateTrend={marketCondition.interestRateTrend}
+                />
                 <div className="max-w-[400px] text-center">
                     <p className="text-sm text-muted-foreground/60 leading-relaxed font-medium break-keep">
                         상승 사이클(A)은 대세 상승과 과열을 시사할 수 있으며,
@@ -201,35 +204,36 @@ export function MarketContext() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* 1. S&P 500 Trend */}
                     <Card
                         onClick={() => setSelectedDetail("snp500")}
                         className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-white/20 dark:border-white/5 shadow-xl rounded-[2rem] overflow-hidden group hover:scale-[1.02] active:scale-95 cursor-pointer transition-all duration-500"
                     >
-                        <CardHeader className="pb-1 px-4 pt-3 flex flex-row items-center justify-between space-y-0">
-                            <CardTitle className="text-base font-black text-muted-foreground uppercase tracking-tight flex items-center gap-2 whitespace-nowrap">
-                                <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                        <CardHeader className="px-4 pt-3 pb-0 flex flex-row items-center justify-between space-y-0">
+                            <CardTitle className="text-[13px] font-black text-muted-foreground uppercase tracking-tight flex items-center gap-1.5 whitespace-nowrap">
+                                <TrendingUp className="w-3 h-3 text-emerald-500" />
                                 장기 추세
                             </CardTitle>
                             <StatusBadge status={marketCondition.snp500Trend} />
                         </CardHeader>
-                        <CardContent className="px-6 pb-4">
-                            <div className="flex flex-col gap-0.5 mb-2">
-                                <span className="text-[9px] font-black text-indigo-500/60 uppercase tracking-widest">S&P 500 Index</span>
+                        <CardContent className="px-4 pt-1 pb-3">
+                            <div className="flex flex-col gap-0.5 mb-1">
+                                <span className="text-[9px] font-black text-indigo-500/60 uppercase tracking-widest">S&P 500 vs 200MA</span>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-2xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
-                                        {indices.snp500.price.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
+                                    <span className="text-xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
+                                        {(macro.snp500DistanceMA200 ?? 0) >= 0 ? "+" : ""}{macro.snp500DistanceMA200?.toFixed(2) ?? "N/A"}%
                                     </span>
-                                    <span className={cn("text-sm font-bold tracking-tight", indices.snp500.change >= 0 ? "text-emerald-500" : "text-rose-500")}>
-                                        {indices.snp500.change >= 0 ? "▲" : "▼"}{Math.abs(indices.snp500.changePercent).toFixed(2)}%
+                                    <span className="text-[10px] font-bold text-muted-foreground/50">
+                                        ({indices.snp500.price.toLocaleString()})
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-3 rounded-2xl bg-secondary/20 border border-white/5">
-                                <p className="text-[13px] leading-relaxed text-muted-foreground font-medium break-keep">
-                                    주가가 200일선 {marketCondition.snp500Trend === "Bull" ? "상단에 위치하여 상승 압력이 관측될 수 있는" : "부근에서 하방 압력을 받는 것으로 판단될 수 있는"} 구간입니다.
-                                </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="w-1 h-1 rounded-full bg-indigo-500" />
+                                <span className="text-[11px] font-bold text-muted-foreground/80 break-keep">
+                                    {marketCondition.snp500Trend === "Bull" ? "기조적 상승 장세 지속" : "하방 압력 및 추세 이탈 경계"}
+                                </span>
                             </div>
                         </CardContent>
                     </Card>
@@ -239,29 +243,28 @@ export function MarketContext() {
                         onClick={() => setSelectedDetail("yieldSpread")}
                         className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-white/20 dark:border-white/5 shadow-xl rounded-[2rem] overflow-hidden group hover:scale-[1.02] active:scale-95 cursor-pointer transition-all duration-500"
                     >
-                        <CardHeader className="pb-1 px-4 pt-3 flex flex-row items-center justify-between space-y-0">
-                            <CardTitle className="text-base font-black text-muted-foreground uppercase tracking-tight flex items-center gap-2 whitespace-nowrap">
-                                <ArrowUpDown className="w-3.5 h-3.5 text-blue-500" />
+                        <CardHeader className="px-4 pt-3 pb-0 flex flex-row items-center justify-between space-y-0">
+                            <CardTitle className="text-[13px] font-black text-muted-foreground uppercase tracking-tight flex items-center gap-1.5 whitespace-nowrap">
+                                <ArrowUpDown className="w-3 h-3 text-blue-500" />
                                 경기 사이클
                             </CardTitle>
                             <StatusBadge status={marketCondition.yieldSpreadStatus} />
                         </CardHeader>
-                        <CardContent className="px-6 pb-4">
-                            <div className="flex flex-col gap-0.5 mb-2">
+                        <CardContent className="px-4 pt-1 pb-3">
+                            <div className="flex flex-col gap-0.5 mb-1">
                                 <span className="text-[9px] font-black text-indigo-500/60 uppercase tracking-widest">Yield Spread (10Y-3M)</span>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-2xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
-                                        {macro.yieldSpread10Y2Y?.toFixed(2) ?? "N/A"}
-                                        <span className="text-lg font-bold ml-0.5">%p</span>
+                                    <span className="text-xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
+                                        {macro.yieldSpread10Y3M?.toFixed(2) ?? "N/A"}
+                                        <span className="text-base font-bold ml-0.5">%p</span>
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-3 rounded-2xl bg-secondary/20 border border-white/5">
-                                <p className="text-[13px] leading-relaxed text-muted-foreground font-medium break-keep">
-                                    {marketCondition.yieldSpreadStatus === "Inverted"
-                                        ? "금리 역전으로 경기 변동 가능성이 시사될 수 있는 상태입니다. 리스크 관리가 하나의 대안이 될 수 있습니다."
-                                        : "장단기 금리차가 정상 수준으로 자본의 선순환 가능성이 관측되는 국면으로 풀이됩니다."}
-                                </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="w-1 h-1 rounded-full bg-blue-500" />
+                                <span className="text-[11px] font-bold text-muted-foreground/80 break-keep">
+                                    {marketCondition.yieldSpreadStatus === "Inverted" ? "장단기 금리 역전: 침체 경보" : "장단기 금리차 정상 범위"}
+                                </span>
                             </div>
                         </CardContent>
                     </Card>
@@ -271,29 +274,28 @@ export function MarketContext() {
                         onClick={() => setSelectedDetail("realRate")}
                         className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-white/20 dark:border-white/5 shadow-xl rounded-[2rem] overflow-hidden group hover:scale-[1.02] active:scale-95 cursor-pointer transition-all duration-500"
                     >
-                        <CardHeader className="pb-1 px-4 pt-3 flex flex-row items-center justify-between space-y-0">
-                            <CardTitle className="text-base font-black text-muted-foreground uppercase tracking-tight flex items-center gap-2 whitespace-nowrap">
-                                <Info className="w-3.5 h-3.5 text-amber-500" />
+                        <CardHeader className="px-4 pt-3 pb-0 flex flex-row items-center justify-between space-y-0">
+                            <CardTitle className="text-[13px] font-black text-muted-foreground uppercase tracking-tight flex items-center gap-1.5 whitespace-nowrap">
+                                <Info className="w-3 h-3 text-amber-500" />
                                 통화 환경
                             </CardTitle>
                             <StatusBadge status={marketCondition.realRateStatus} />
                         </CardHeader>
-                        <CardContent className="px-6 pb-4">
-                            <div className="flex flex-col gap-0.5 mb-2">
-                                <span className="text-[9px] font-black text-indigo-500/60 uppercase tracking-widest">10Yr Treasury Yield</span>
+                        <CardContent className="px-4 pt-1 pb-3">
+                            <div className="flex flex-col gap-0.5 mb-1">
+                                <span className="text-[9px] font-black text-indigo-500/60 uppercase tracking-widest">Real Rate (Nominal - {macro.expectedInflation}%)</span>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-2xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
-                                        {macro.tenYearBondYield.toFixed(2)}
-                                        <span className="text-lg font-bold ml-0.5">%</span>
+                                    <span className="text-xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
+                                        {macro.realRate.toFixed(2)}
+                                        <span className="text-base font-bold ml-0.5">%</span>
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-3 rounded-2xl bg-secondary/20 border border-white/5">
-                                <p className="text-[13px] leading-relaxed text-muted-foreground font-medium break-keep">
-                                    {marketCondition.realRateStatus === "Positive"
-                                        ? "실질 금리가 플러스인 환경으로, 가치주 대비 성장주의 상대적 매력도 등이 검토될 수 있는 시기입니다."
-                                        : "비교적 낮은 금리 환경으로 인해 자산 시장으로의 유동성 유입 등에 유리할 여지가 있는 환경입니다."}
-                                </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="w-1 h-1 rounded-full bg-amber-500" />
+                                <span className="text-[11px] font-bold text-muted-foreground/80 break-keep">
+                                    {marketCondition.realRateStatus === "Positive" ? "중립 이상의 긴축적 통화 환경" : "비교적 낮은 실질 금리 환경"}
+                                </span>
                             </div>
                         </CardContent>
                     </Card>
@@ -303,31 +305,30 @@ export function MarketContext() {
                         onClick={() => setSelectedDetail("vix")}
                         className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-white/20 dark:border-white/5 shadow-xl rounded-[2rem] overflow-hidden group hover:scale-[1.02] active:scale-95 cursor-pointer transition-all duration-500"
                     >
-                        <CardHeader className="pb-1 px-4 pt-3 flex flex-row items-center justify-between space-y-0">
-                            <CardTitle className="text-base font-black text-muted-foreground uppercase tracking-tight flex items-center gap-2 whitespace-nowrap">
-                                <Gauge className="w-3.5 h-3.5 text-purple-500" />
+                        <CardHeader className="px-4 pt-3 pb-0 flex flex-row items-center justify-between space-y-0">
+                            <CardTitle className="text-[13px] font-black text-muted-foreground uppercase tracking-tight flex items-center gap-1.5 whitespace-nowrap">
+                                <Gauge className="w-3 h-3 text-purple-500" />
                                 시장 공포
                             </CardTitle>
                             <StatusBadge status={marketCondition.vixStatus} />
                         </CardHeader>
-                        <CardContent className="px-6 pb-4">
-                            <div className="flex flex-col gap-0.5 mb-2">
+                        <CardContent className="px-4 pt-1 pb-3">
+                            <div className="flex flex-col gap-0.5 mb-1">
                                 <span className="text-[9px] font-black text-indigo-500/60 uppercase tracking-widest">Volatility Index (VIX)</span>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-2xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
+                                    <span className="text-xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
                                         {macro.vix.toFixed(2)}
                                     </span>
-                                    <span className={cn("text-[11px] font-black px-2 py-0.5 rounded-full border tracking-tighter", macro.vix > 25 ? "text-rose-500 border-rose-500/20 bg-rose-500/10" : "text-emerald-500 border-emerald-500/20 bg-emerald-500/10")}>
-                                        {macro.vix > 25 ? "🚨 PANIC" : "✅ STABLE"}
+                                    <span className={cn("text-[9px] font-black px-1.5 py-0.5 rounded-full border tracking-tighter", macro.vix > 25 ? "text-rose-500 border-rose-500/20 bg-rose-500/10" : "text-emerald-500 border-emerald-500/20 bg-emerald-500/10")}>
+                                        {macro.vix > 25 ? "PANIC" : "STABLE"}
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-3 rounded-2xl bg-secondary/20 border border-white/5">
-                                <p className="text-[13px] leading-relaxed text-muted-foreground font-medium break-keep">
-                                    {marketCondition.vixStatus === "Panic"
-                                        ? "시장에 불안 심리가 관측될 수 있는 구간입니다. 투자 성향에 따라 특정 시점의 대응 여부를 검토해 볼 수 있습니다."
-                                        : "시장이 비교적 차분한 양상을 띠고 있으며, 이성적인 가치 판단이 가미될 수 있는 국면으로 이해될 수 있습니다."}
-                                </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="w-1 h-1 rounded-full bg-purple-500" />
+                                <span className="text-[11px] font-bold text-muted-foreground/80 break-keep">
+                                    {marketCondition.vixStatus === "Panic" ? "투심 위축 및 변동성 확대" : "시장 안정 심리 우세 가능성"}
+                                </span>
                             </div>
                         </CardContent>
                     </Card>
@@ -337,28 +338,30 @@ export function MarketContext() {
                         onClick={() => setSelectedDetail("credit")}
                         className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-white/20 dark:border-white/5 shadow-xl rounded-[2rem] overflow-hidden group hover:scale-[1.02] active:scale-95 cursor-pointer transition-all duration-500"
                     >
-                        <CardHeader className="pb-1 px-4 pt-3 flex flex-row items-center justify-between space-y-0">
-                            <CardTitle className="text-base font-black text-muted-foreground uppercase tracking-tight flex items-center gap-2 whitespace-nowrap">
-                                <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
+                        <CardHeader className="px-4 pt-3 pb-0 flex flex-row items-center justify-between space-y-0">
+                            <CardTitle className="text-[13px] font-black text-muted-foreground uppercase tracking-tight flex items-center gap-1.5 whitespace-nowrap">
+                                <ShieldAlert className="w-3 h-3 text-rose-500" />
                                 신용 위험
                             </CardTitle>
                             <StatusBadge status={marketCondition.creditSpreadStatus} />
                         </CardHeader>
-                        <CardContent className="px-6 pb-4">
-                            <div className="flex flex-col gap-0.5 mb-2">
-                                <span className="text-[9px] font-black text-indigo-500/60 uppercase tracking-widest">High Yield Bond (HYG)</span>
+                        <CardContent className="px-4 pt-1 pb-3">
+                            <div className="flex flex-col gap-0.5 mb-1">
+                                <span className="text-[9px] font-black text-indigo-500/60 uppercase tracking-widest">HYG vs 200MA (Credit Spread Proxy)</span>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-2xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
-                                        ${macro.hygPrice?.toFixed(2) ?? "N/A"}
+                                    <span className="text-xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
+                                        {(macro.hygDistanceMA200 ?? 0) >= 0 ? "+" : ""}{macro.hygDistanceMA200?.toFixed(2) ?? "N/A"}%
+                                    </span>
+                                    <span className="text-[10px] font-bold text-muted-foreground/50">
+                                        (${macro.hygPrice?.toFixed(1) ?? "N/A"})
                                     </span>
                                 </div>
                             </div>
-                            <div className="p-3 rounded-2xl bg-secondary/20 border border-white/5">
-                                <p className="text-[13px] leading-relaxed text-muted-foreground font-medium break-keep">
-                                    {marketCondition.creditSpreadStatus === "Stress"
-                                        ? "하이일드 채권 가격 하락으로 자금 조달 리스크가 확대될 가능성이 있는 구간입니다."
-                                        : "신용 시장이 비교적 안정적인 흐름을 보이고 있어, 기업 자금 조달 환경이 양호한 것으로 해석될 수 있습니다."}
-                                </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="w-1 h-1 rounded-full bg-rose-500" />
+                                <span className="text-[11px] font-bold text-muted-foreground/80 break-keep">
+                                    {marketCondition.creditSpreadStatus === "Stress" ? "신용 시장 자금 경색 가능성" : "안정적인 기업 자금 조달 환경"}
+                                </span>
                             </div>
                         </CardContent>
                     </Card>
@@ -368,35 +371,32 @@ export function MarketContext() {
                         onClick={() => setSelectedDetail("volume")}
                         className="bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-white/20 dark:border-white/5 shadow-xl rounded-[2rem] overflow-hidden group hover:scale-[1.02] active:scale-95 cursor-pointer transition-all duration-500"
                     >
-                        <CardHeader className="pb-1 px-4 pt-3 flex flex-row items-center justify-between space-y-0">
-                            <CardTitle className="text-base font-black text-muted-foreground uppercase tracking-tight flex items-center gap-2 whitespace-nowrap">
-                                <BarChart3 className="w-3.5 h-3.5 text-blue-500" />
+                        <CardHeader className="px-4 pt-3 pb-0 flex flex-row items-center justify-between space-y-0">
+                            <CardTitle className="text-[13px] font-black text-muted-foreground uppercase tracking-tight flex items-center gap-1.5 whitespace-nowrap">
+                                <BarChart3 className="w-3 h-3 text-blue-500" />
                                 거래 활성도
                             </CardTitle>
                             <StatusBadge status={marketCondition.volumeTrend} />
                         </CardHeader>
-                        <CardContent className="px-6 pb-4">
-                            <div className="flex flex-col gap-0.5 mb-2">
+                        <CardContent className="px-4 pt-1 pb-3">
+                            <div className="flex flex-col gap-0.5 mb-1">
                                 <span className="text-[9px] font-black text-indigo-500/60 uppercase tracking-widest">Volume vs Avg (3M)</span>
                                 <div className="flex items-baseline gap-2">
-                                    <span className="text-2xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
+                                    <span className="text-xl font-black tracking-tighter tabular-nums text-foreground whitespace-nowrap">
                                         {macro.snp500Volume ? `${(macro.snp500Volume / 1000000).toFixed(0)}M` : "N/A"}
                                     </span>
                                     {macro.snp500Volume && macro.snp500AvgVolume ? (
-                                        <span className={cn("text-[11px] font-black tracking-tight", macro.snp500Volume > macro.snp500AvgVolume ? "text-emerald-500" : "text-muted-foreground")}>
+                                        <span className="text-[10px] font-black tracking-tight text-muted-foreground/70">
                                             ({((macro.snp500Volume / macro.snp500AvgVolume) * 100).toFixed(0)}%)
                                         </span>
                                     ) : null}
                                 </div>
                             </div>
-                            <div className="p-3 rounded-2xl bg-secondary/20 border border-white/5">
-                                <p className="text-[13px] leading-relaxed text-muted-foreground font-medium break-keep">
-                                    {marketCondition.volumeTrend === "Accumulation"
-                                        ? "평균 대비 높은 거래량이 상승을 동반하여 매수세 유입이 강한 것으로 추정될 수 있습니다."
-                                        : marketCondition.volumeTrend === "Distribution"
-                                            ? "거래량이 실린 하락세가 관측되어 매도 압력이 존재할 가능성이 있습니다."
-                                            : "거래량이 평균 수준을 유지하며 시장 참여자들의 관망세가 이어지는 것으로 풀이될 수 있습니다."}
-                                </p>
+                            <div className="flex items-center gap-1.5 mt-1">
+                                <span className="w-1 h-1 rounded-full bg-blue-500" />
+                                <span className="text-[11px] font-bold text-muted-foreground/80 break-keep">
+                                    {marketCondition.volumeTrend === "Accumulation" ? "매수세 유입 및 매집 가능성" : marketCondition.volumeTrend === "Distribution" ? "매도 압력 및 차익 실현 주의" : "관망세 및 수급 균형 구간"}
+                                </span>
                             </div>
                         </CardContent>
                     </Card>
@@ -423,21 +423,25 @@ export function MarketContext() {
                                 </DialogHeader>
 
                                 <div className="space-y-4">
-                                    <div className="p-5 rounded-3xl bg-secondary/30 border border-white/5 space-y-3">
-                                        <h4 className="text-[11px] font-black text-indigo-500/70 uppercase tracking-widest">판독 기준 (Criteria)</h4>
-                                        <ul className="space-y-2">
+                                    <div className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 space-y-4">
+                                        <h4 className="text-[11px] font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
+                                            <Search className="w-3 h-3" />
+                                            데이터 판독 기준
+                                        </h4>
+                                        <ul className="space-y-3">
                                             {indicatorDetails[selectedDetail].criteria.map((c, i) => (
-                                                <li key={i} className="text-sm font-bold flex items-start gap-2">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/30 mt-1.5 shrink-0" />
-                                                    <span className="text-foreground/80 opacity-90">{c}</span>
+                                                <li key={i} className="text-sm font-bold flex items-start gap-3 group/item">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/40 mt-1.5 shrink-0 group-hover/item:bg-indigo-500 transition-colors" />
+                                                    <span className="text-foreground/80 leading-snug">{c}</span>
                                                 </li>
                                             ))}
                                         </ul>
                                     </div>
 
-                                    <div className="p-5 rounded-3xl bg-primary/5 border border-primary/10">
-                                        <p className="text-sm font-bold text-primary leading-relaxed break-keep">
-                                            💡 CORE는 위 기준에 따라 현재 시장 지표를 실시간으로 대조하여 위험도와 기회 구간을 판독하고 있습니다.
+                                    <div className="p-5 rounded-3xl bg-emerald-500/5 border border-emerald-500/10">
+                                        <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 leading-relaxed break-keep flex items-start gap-2">
+                                            <span>💡</span>
+                                            <span>CORE는 위 기준에 따라 현재 지표를 실시간 대조하여 위험도와 기회 구간을 판독하고 있습니다.</span>
                                         </p>
                                     </div>
                                 </div>

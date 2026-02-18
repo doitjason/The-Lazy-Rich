@@ -89,9 +89,11 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
             else if (yieldSpread < 0.2) yieldSpreadStatus = "Flat";
         }
 
-        // 2-3. Real Rate (10Y - Inflation Proxy 2.5%)
-        const inflationProxy = 2.5;
-        const realRate = tnx.price - inflationProxy;
+        // 2-3. Real Rate (10Y - Inflation Proxy)
+        // Note: 2.26% is the current 10-Year Breakeven Inflation Rate (T10YIE)
+        // In production, fetch this dynamically from FRED API.
+        const EXPECTED_INFLATION_PROXY = 2.26;
+        const realRate = tnx.price - EXPECTED_INFLATION_PROXY;
         let realRateStatus: "Positive" | "Negative" | "Neutral" = "Neutral";
         if (realRate > 2.0) realRateStatus = "Positive"; // 긴축적
         else if (realRate < 0.5) realRateStatus = "Negative"; // 완화적
@@ -101,24 +103,50 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
         if (vix.price > 30) vixStatus = "Panic";
         else if (vix.price > 20) vixStatus = "Volatile";
 
-        // 2-5. Kostolany's Egg Phase Logic
+        // 2-5. Kostolany's Egg Phase Logic (Advanced)
+        // Logic: Interest Rate Trend + Stock Market Trend
+        // Need historical data for TNX to determine trend properly. 
+        // For now, we simulate trend using 50DayAverage if available, else fallback.
+
+        const tnxPrice = tnx.price;
+        const tnx50MA = tnx.fiftyDayAverage || tnxPrice; // Should enable historical fetch if needed
+
+        let interestRateTrend: "Rising" | "Falling" | "Flat" = "Flat";
+        if (tnxPrice > tnx50MA * 1.02) interestRateTrend = "Rising";
+        else if (tnxPrice < tnx50MA * 0.98) interestRateTrend = "Falling";
+
         let kostolanyPhase: "A1" | "A2" | "A3" | "B1" | "B2" | "B3" | "Neutral" = "Neutral";
-        if (snp500Trend === "Bull") {
-            if (realRateStatus === "Positive" || vix.price < 14) {
-                kostolanyPhase = "A3"; // 과장 국면 (매도 시기)
-            } else if (realRateStatus === "Negative" || vix.price < 20) {
-                kostolanyPhase = "A2"; // 동행 국면 (보유 시기)
+
+        // Matrix Logic
+        if (interestRateTrend === "Falling") {
+            // 금리 하락기
+            if (snp500Trend === "Bear") {
+                // 금리 떨어지는데 주가도 떨어짐 -> 경기 침체 공포 (B2: 동행 하락 / B3: 과장 하락)
+                kostolanyPhase = vixStatus === "Panic" ? "B3" : "B2";
+            } else if (snp500Trend === "Bull") {
+                // 금리 떨어지고 주가 오름 -> 유동성 장세 (A1: 수정 국면 / A2: 동행 상승)
+                // 초기엔 A1, 성숙하면 A2. 주가가 아직 200일선 갓 넘었으면 A1, 많이 올랐으면 A2?
+                // 여기선 심플하게: VIX 안정시 A2, 불안시 A1
+                kostolanyPhase = "A2";
             } else {
-                kostolanyPhase = "A1"; // 수정 국면 (매수 시작)
+                // 주가 횡보
+                kostolanyPhase = "A1"; // 바닥 다지기
             }
-        } else if (snp500Trend === "Bear") {
-            if (vixStatus === "Panic") {
-                kostolanyPhase = "B3"; // 과장 국면 (매수 시기)
-            } else if (realRateStatus === "Positive" || vix.price > 20) {
-                kostolanyPhase = "B2"; // 동행 국면 (관망 시기)
+        } else if (interestRateTrend === "Rising") {
+            // 금리 상승기
+            if (snp500Trend === "Bull") {
+                // 금리 오르는데 주가도 오름 -> 실적 장세 (A2 후반 / A3 과열)
+                kostolanyPhase = (realRateStatus === "Positive") ? "A3" : "A2";
+            } else if (snp500Trend === "Bear") {
+                // 금리 오르고 주가 빠짐 -> 역금융 장세 (B1: 수정 하락)
+                kostolanyPhase = "B1";
             } else {
-                kostolanyPhase = "B1"; // 수정 국면 (매도 시작)
+                kostolanyPhase = "B1"; // 고점 징후
             }
+        } else {
+            // 금리 횡보
+            if (snp500Trend === "Bull") kostolanyPhase = "A2";
+            else if (snp500Trend === "Bear") kostolanyPhase = "B2";
         }
 
         // 2-5-1. Volume Analysis (S&P 500)
@@ -187,6 +215,8 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
             macro: {
                 vix: vix.price,
                 tenYearBondYield: tnx.price,
+                realRate, // Calculated above
+                expectedInflation: EXPECTED_INFLATION_PROXY,
                 threeMonthBondYield: irx?.price ?? 0,
                 dollarIndex: dxy?.price ?? 0,
                 gold: gold?.price ?? 0,
@@ -200,7 +230,9 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                 btcPrice: btc?.price ?? null,
                 btcChangePercent: btc?.changePercent ?? null,
                 copperPrice: copper?.price ?? null,
-                yieldSpread10Y2Y: yieldSpread,
+                yieldSpread10Y3M: yieldSpread,
+                snp500DistanceMA200: snp200MA ? ((snpPrice - snp200MA) / snp200MA) * 100 : null,
+                hygDistanceMA200: (hyg?.price && hyg?.twoHundredDayAverage) ? ((hyg.price - hyg.twoHundredDayAverage) / hyg.twoHundredDayAverage) * 100 : null,
                 tipPrice: tip?.price ?? null,
                 embPrice: emb?.price ?? null,
                 // Volume Data
@@ -220,6 +252,7 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                 volumeTrend,
                 kostolanyPhase,
                 summary,
+                interestRateTrend, // Added to output
             }
         };
 
@@ -243,8 +276,8 @@ export function commonDataToPrompt(data: CommonMarketData): string {
 2. 🌏 [거시 경제] 밸류에이션 환경
    - 10년물 국채금리: ${data.macro.tenYearBondYield.toFixed(2)}% (상승 시 주식 할인율 증가)
    - 달러 인덱스 (DXY): ${data.macro.dollarIndex.toFixed(2)} (기준 100)
-   - 원유 (WTI): $${data.macro.wti.toFixed(2)} | 금: $${data.macro.gold.toFixed(2)}
-   - [경기 침체 경고] 장단기 금리차(10Y-3M): ${data.macro.yieldSpread10Y2Y !== null ? data.macro.yieldSpread10Y2Y.toFixed(2) + "%p" : "N/A"} (${data.macro.yieldSpread10Y2Y !== null && data.macro.yieldSpread10Y2Y < 0 ? "🚨 역전됨 (1년 내 침체 확률 80% 이상)" : "정상 구간"})
+    - 원유 (WTI): $${data.macro.wti.toFixed(2)} | 금: $${data.macro.gold.toFixed(2)}
+    - [경기 침체 경고] 장단기 금리차(10Y-3M): ${data.macro.yieldSpread10Y3M !== null ? data.macro.yieldSpread10Y3M.toFixed(2) + "%p" : "N/A"} (${data.macro.yieldSpread10Y3M !== null && data.macro.yieldSpread10Y3M < 0 ? "🚨 역전됨 (1년 내 침체 확률 80% 이상)" : "정상 구간"})
 
 3. ⚠️ [위험 신호 & 유동성] 스트레스 테스트
    - VIX (공포지수): ${data.macro.vix.toFixed(2)} (20 이하면 안정, 30 이상이면 공포)
@@ -698,7 +731,7 @@ export async function fetchArchitectData(): Promise<ArchitectData> {
 
     const data: ArchitectData = {
         indicators,
-        yieldSpread10Y2Y: yieldSpread,
+        yieldSpread10Y3M: yieldSpread,
         moveIndex: move,
         xlyPrice: xly,
         xlpPrice: xlp,
@@ -1235,8 +1268,8 @@ export function architectDataToPrompt(data: ArchitectData): string {
         (i) => `${i.name}: ${i.price.toLocaleString()} (${i.changePercent >= 0 ? "+" : ""}${i.changePercent.toFixed(2)}%)`
     );
 
-    const yieldSpreadInfo = data.yieldSpread10Y2Y !== null
-        ? `장단기 금리차(10Y-3M Proxy): ${data.yieldSpread10Y2Y.toFixed(2)}%p (${data.yieldSpread10Y2Y < 0 ? "⚠️ 역전됨 (경기침체 경고)" : "정상"})`
+    const yieldSpreadInfo = data.yieldSpread10Y3M !== null
+        ? `장단기 금리차(10Y-3M): ${data.yieldSpread10Y3M.toFixed(2)}%p (${data.yieldSpread10Y3M < 0 ? "⚠️ 역전됨 (경기침체 경고)" : "정상"})`
         : "장단기 금리차: 데이터 확인 필요";
 
     // New Architect Indicators Formatting

@@ -58,6 +58,8 @@ export interface CommonMarketData {
     macro: {
         vix: number; // 공포 지수
         tenYearBondYield: number; // 10년물 국채 금리
+        realRate: number; // 실질 금리 (10Y - Inflation)
+        expectedInflation: number; // 기대 인플레이션 (Proxy or Breakeven)
         threeMonthBondYield: number; // 3개월물 국채 금리
         dollarIndex: number; // 달러 인덱스
         gold: number; // 금 가격
@@ -74,7 +76,9 @@ export interface CommonMarketData {
         btcPrice: number | null; // Bitcoin (위험자산 심리)
         btcChangePercent: number | null;
         copperPrice: number | null; // Copper (실물 경기)
-        yieldSpread10Y2Y: number | null; // 장단기 금리차 (10Y-2Y Proxy)
+        yieldSpread10Y3M: number | null; // 장단기 금리차 (10Y-3M)
+        snp500DistanceMA200: number | null; // S&P 500 200일선 이격도 (%)
+        hygDistanceMA200: number | null; // HYG 200일선 이격도 (%)
         tipPrice: number | null; // TIPS (실질 금리/인플레 방어)
         embPrice: number | null; // Emerging Market Bond (신흥국/글로벌 리스크)
         // Volume Data
@@ -93,6 +97,7 @@ export interface CommonMarketData {
         creditSpreadStatus: "Stable" | "Warning" | "Stress"; // High Yield Spread status
         volumeTrend: "Accumulation" | "Distribution" | "Neutral"; // Volume trend
         kostolanyPhase: "A1" | "A2" | "A3" | "B1" | "B2" | "B3" | "Neutral"; // Kostolany's Egg phase
+        interestRateTrend: "Rising" | "Falling" | "Flat"; // Interest Rate Trend (vs 50MA)
         summary: string; // AI Generated Advice
     };
 }
@@ -151,7 +156,7 @@ export interface HeroData {
 
 export interface ArchitectData {
     indicators: MarketIndicator[];
-    yieldSpread10Y2Y: number | null;
+    yieldSpread10Y3M: number | null;
 
     // Architect (Added)
     moveIndex: number | null; // Bond Volatility
