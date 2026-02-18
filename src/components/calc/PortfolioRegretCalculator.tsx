@@ -6,7 +6,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { Loader2, Plus, Trash2, PieChart, TrendingUp, TrendingDown, Sparkles, HelpCircle, ChevronDown } from "lucide-react";
+import { Loader2, Plus, Trash2, PieChart, TrendingUp, TrendingDown, Sparkles, HelpCircle, ChevronDown, DollarSign, CalendarDays, RefreshCw } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -568,30 +568,35 @@ export function PortfolioRegretCalculator() {
 
     return (
         <div className="space-y-8">
-            {/* Input Card: Premium Glassmorphism */}
-            <Card className="overflow-hidden border border-white/20 bg-white/10 dark:bg-black/20 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
-                <CardHeader className="pb-4 border-b border-white/10">
-                    <div className="flex items-center gap-2 mb-1">
-                        <PieChart className="w-5 h-5 text-sky-500" />
+            {/* Input Card: Premium Glassmorphism - Enhanced by Stitch */}
+            <Card className="relative overflow-hidden border border-white/15 bg-white/5 dark:bg-black/30 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
+                {/* Top Gradient Accent Line */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-60" />
+
+                <CardHeader className="pb-5 border-b border-white/[0.06]">
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20">
+                            <PieChart className="w-4 h-4 text-sky-500" />
+                        </div>
                         <h3 className="text-lg font-bold text-foreground tracking-tight">포트폴리오 백테스팅</h3>
                     </div>
-                    <p className="text-sm font-medium text-muted-foreground/80 tracking-wide">
-                        그때 그 포트폴리오로 투자했었더라면 지금은 어떻게 되었을지 확인해보세요.
+                    <p className="text-sm font-medium text-muted-foreground/70 tracking-wide leading-relaxed">
+                        그때 그 포트폴리오로 투자했었더라면 지금은<br className="sm:hidden" /> 어떻게 되었을지 확인해보세요.
                     </p>
                 </CardHeader>
-                <CardContent className="space-y-9">
+                <CardContent className="space-y-7 pt-6">
 
                     {/* Presets Section */}
                     <div className="space-y-3">
-                        <label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider ml-1 flex items-center gap-1">
-                            <Sparkles className="w-3 h-3 text-yellow-500" />
+                        <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-yellow-500/70" />
                             추천 포트폴리오 프리셋
                         </label>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="outline"
-                                    className="w-full h-12 justify-between bg-white/5 border-white/10 hover:bg-white/10 hover:border-sky-500/50 transition-all rounded-xl px-4"
+                                    className="w-full h-12 justify-between bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-sky-500/40 transition-all duration-300 rounded-xl px-4"
                                 >
                                     <div className="flex items-center gap-2">
                                         {(() => {
@@ -633,10 +638,13 @@ export function PortfolioRegretCalculator() {
                         </DropdownMenu>
                     </div>
 
+                    {/* Section Divider */}
+                    <div className="border-t border-white/[0.06]" />
+
                     {/* Assets Input Section */}
-                    <div className="space-y-4 bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div className="space-y-4 bg-white/[0.02] dark:bg-white/[0.03] p-4 rounded-2xl border border-white/[0.06]">
                         <div className="flex justify-between items-center">
-                            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider flex items-center gap-1.5">
+                            <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 rounded-full bg-sky-500" />
                                 구성 종목 및 비중 설정
                             </label>
@@ -690,7 +698,7 @@ export function PortfolioRegretCalculator() {
                         </div>
 
                         {/* Total Weight Indicator */}
-                        <div className="flex justify-end items-center gap-2 pt-2 border-t border-white/5">
+                        <div className="flex justify-end items-center gap-2 pt-2 border-t border-white/[0.04]">
                             <span className="text-xs text-muted-foreground">총 비중:</span>
                             <span className={cn(
                                 "text-sm font-bold tabular-nums",
@@ -701,12 +709,15 @@ export function PortfolioRegretCalculator() {
                         </div>
                     </div>
 
-                    {/* Amount & Period */}
-                    {/* Amount & Period */}
-                    <div className="space-y-6">
+                    {/* Section Divider */}
+                    <div className="border-t border-white/[0.06]" />
+
+                    {/* Amount & Period & Rebalance */}
+                    <div className="space-y-7">
                         {/* Amount Selection */}
-                        <div className="space-y-2">
-                            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider ml-1">
+                        <div className="space-y-3">
+                            <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
+                                <DollarSign className="w-3.5 h-3.5 text-sky-500/70" />
                                 기준 투자 금액 ({currency === "KRW" ? "원" : "$"})
                             </label>
                             <div className="grid grid-cols-4 gap-2">
@@ -718,10 +729,10 @@ export function PortfolioRegretCalculator() {
                                         key={amt}
                                         onClick={() => setAmount(amt)}
                                         className={cn(
-                                            "relative h-10 rounded-lg text-sm font-medium transition-all duration-200",
+                                            "relative h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                             amount === amt
-                                                ? "bg-sky-500/10 text-sky-500 border border-sky-500/50"
-                                                : "bg-transparent hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent hover:border-white/10"
+                                                ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                                : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                         )}
                                     >
                                         {currency === "KRW"
@@ -732,9 +743,13 @@ export function PortfolioRegretCalculator() {
                             </div>
                         </div>
 
+                        {/* Section Divider */}
+                        <div className="border-t border-white/[0.06]" />
+
                         {/* Period Selection */}
-                        <div className="space-y-2">
-                            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider ml-1">
+                        <div className="space-y-3">
+                            <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
+                                <CalendarDays className="w-3.5 h-3.5 text-sky-500/70" />
                                 투자 시점 (과거)
                             </label>
                             <div className="grid grid-cols-3 gap-2">
@@ -743,10 +758,10 @@ export function PortfolioRegretCalculator() {
                                         key={p}
                                         onClick={() => setPeriod(p)}
                                         className={cn(
-                                            "h-10 rounded-lg text-sm font-medium transition-all duration-200",
+                                            "h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                             period === p
-                                                ? "bg-sky-500/10 text-sky-500 border border-sky-500/50"
-                                                : "bg-transparent hover:bg-white/5 text-muted-foreground hover:text-foreground"
+                                                ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                                : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                         )}
                                     >
                                         {p.replace("Y", "년 전")}
@@ -755,9 +770,13 @@ export function PortfolioRegretCalculator() {
                             </div>
                         </div>
 
+                        {/* Section Divider */}
+                        <div className="border-t border-white/[0.06]" />
+
                         {/* Rebalancing Frequency Selection */}
-                        <div className="space-y-2">
-                            <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider ml-1">
+                        <div className="space-y-3">
+                            <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
+                                <RefreshCw className="w-3.5 h-3.5 text-sky-500/70" />
                                 리밸런싱 주기
                             </label>
                             <div className="grid grid-cols-4 gap-2">
@@ -771,10 +790,10 @@ export function PortfolioRegretCalculator() {
                                         key={opt.value}
                                         onClick={() => setRebalancePeriod(opt.value as any)}
                                         className={cn(
-                                            "h-10 rounded-lg text-sm font-medium transition-all duration-200",
+                                            "h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                             rebalancePeriod === opt.value
-                                                ? "bg-sky-500/10 text-sky-500 border border-sky-500/50"
-                                                : "bg-transparent hover:bg-white/5 text-muted-foreground hover:text-foreground"
+                                                ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                                : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                         )}
                                     >
                                         {opt.label}
@@ -784,20 +803,23 @@ export function PortfolioRegretCalculator() {
                         </div>
                     </div>
 
-                    <Button
-                        onClick={onCalculate}
-                        disabled={isLoading}
-                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98]"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                과거로 시간 여행 중...
-                            </>
-                        ) : (
-                            "결과 확인하기"
-                        )}
-                    </Button>
+                    {/* CTA Button with Glow */}
+                    <div className="pt-2">
+                        <Button
+                            onClick={onCalculate}
+                            disabled={isLoading}
+                            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-[0_4px_24px_rgba(14,165,233,0.3)] hover:shadow-[0_4px_32px_rgba(14,165,233,0.4)] rounded-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                    과거로 시간 여행 중...
+                                </>
+                            ) : (
+                                "결과 확인하기"
+                            )}
+                        </Button>
+                    </div>
 
                     {error && (
                         <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-center animate-in fade-in slide-in-from-top-2">
@@ -844,11 +866,11 @@ export function PortfolioRegretCalculator() {
                                         );
                                     })()}
                                 </div>
-                                <div className="grid grid-cols-3 gap-4 mt-8 w-full max-w-3xl mx-auto">
+                                <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-8 w-full max-w-3xl mx-auto">
                                     {/* 1. Total Profit */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
-                                        <span className={`text-lg font-black flex items-center gap-1 ${result.profit >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                        <span className={`text-sm sm:text-lg font-black flex items-center gap-1 ${result.profit >= 0 ? "text-red-500" : "text-blue-500"} whitespace-nowrap`}>
                                             {result.profit >= 0 ? "+" : ""}{(Math.trunc(result.returnRate * 10) / 10).toFixed(1)}%
                                         </span>
                                     </div>
@@ -861,7 +883,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">연평균 수익률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className={`text-lg font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                <span className={`text-sm sm:text-lg font-black whitespace-nowrap ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`}>
                                                     {result.cagr >= 0 ? "+" : ""}{result.cagr.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -880,7 +902,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className="text-lg font-black text-blue-500">
+                                                <span className="text-sm sm:text-lg font-black text-blue-500 whitespace-nowrap">
                                                     -{result.mdd.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -915,7 +937,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최고의 해</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className={`text-lg font-black ${result.bestYear.return >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                <span className={`text-sm sm:text-lg font-black whitespace-nowrap ${result.bestYear.return >= 0 ? "text-red-500" : "text-blue-500"}`}>
                                                     {result.bestYear.return > 0 ? "+" : ""}{result.bestYear.return.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -934,7 +956,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최악의 해</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className={`text-lg font-black ${result.worstYear.return >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                <span className={`text-sm sm:text-lg font-black whitespace-nowrap ${result.worstYear.return >= 0 ? "text-red-500" : "text-blue-500"}`}>
                                                     {result.worstYear.return > 0 ? "+" : ""}{result.worstYear.return.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -953,7 +975,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">월별 승률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className={`text-lg font-black ${result.winRate >= 50 ? "text-red-500" : "text-blue-500"}`}>
+                                                <span className={`text-sm sm:text-lg font-black whitespace-nowrap ${result.winRate >= 50 ? "text-red-500" : "text-blue-500"}`}>
                                                     {result.winRate.toFixed(1)}%
                                                 </span>
                                             </div>

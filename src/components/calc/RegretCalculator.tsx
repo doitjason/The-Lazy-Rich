@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Loader2, HelpCircle, Share2, Download, TrendingUp } from "lucide-react";
+import { Loader2, HelpCircle, Share2, Download, TrendingUp, Search, DollarSign, CalendarDays } from "lucide-react";
 import { toPng } from 'html-to-image';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -222,22 +222,28 @@ export function RegretCalculator() {
 
     return (
         <div className="space-y-8">
-            {/* Input Card: Premium Glassmorphism */}
-            <Card className="overflow-hidden border border-white/20 bg-white/10 dark:bg-black/20 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
-                <CardHeader className="pb-4 border-b border-white/10">
-                    <div className="flex items-center gap-2 mb-1">
-                        <TrendingUp className="w-5 h-5 text-sky-500" />
+            {/* Input Card: Premium Glassmorphism - Enhanced by Stitch */}
+            <Card className="relative overflow-hidden border border-white/15 bg-white/5 dark:bg-black/30 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
+                {/* Top Gradient Accent Line */}
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-60" />
+
+                <CardHeader className="pb-5 border-b border-white/[0.06]">
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20">
+                            <TrendingUp className="w-4 h-4 text-sky-500" />
+                        </div>
                         <h3 className="text-lg font-bold text-foreground tracking-tight">개별 종목 백테스팅</h3>
                     </div>
-                    <p className="text-sm font-medium text-muted-foreground/80 tracking-wide">
-                        그때 그 종목에 투자했었더라면 지금은 어떻게 되었을지 확인해보세요.
+                    <p className="text-sm font-medium text-muted-foreground/70 tracking-wide leading-relaxed">
+                        그때 그 종목에 투자했었더라면 지금은<br className="sm:hidden" /> 어떻게 되었을지 확인해보세요.
                     </p>
                 </CardHeader>
-                <CardContent className="space-y-9">
+                <CardContent className="space-y-7 pt-6">
 
                     {/* 1. Ticker Input (Real Search) */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider ml-1">
+                    <div className="space-y-3">
+                        <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
+                            <Search className="w-3.5 h-3.5 text-sky-500/70" />
                             투자 종목 (티커)
                         </label>
                         <StockSearchInput
@@ -247,9 +253,13 @@ export function RegretCalculator() {
                         />
                     </div>
 
+                    {/* Section Divider */}
+                    <div className="border-t border-white/[0.06]" />
+
                     {/* 2. Amount Selection (Modern Chips) */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider ml-1">
+                    <div className="space-y-3">
+                        <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
+                            <DollarSign className="w-3.5 h-3.5 text-sky-500/70" />
                             기준 투자 금액 ({currency === "KRW" ? "원" : "$"})
                         </label>
                         <div className="grid grid-cols-4 gap-2">
@@ -261,10 +271,10 @@ export function RegretCalculator() {
                                     key={amt}
                                     onClick={() => setAmount(amt)}
                                     className={cn(
-                                        "relative h-10 rounded-lg text-sm font-medium transition-all duration-200",
+                                        "relative h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                         amount === amt
-                                            ? "bg-sky-500/10 text-sky-500 border border-sky-500/50"
-                                            : "bg-transparent hover:bg-white/5 text-muted-foreground hover:text-foreground border border-transparent hover:border-white/10"
+                                            ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                            : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                     )}
                                 >
                                     {currency === "KRW"
@@ -277,9 +287,13 @@ export function RegretCalculator() {
                         </div>
                     </div>
 
+                    {/* Section Divider */}
+                    <div className="border-t border-white/[0.06]" />
+
                     {/* 3. Period Selection (Grid) */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-semibold text-foreground/80 uppercase tracking-wider ml-1">
+                    <div className="space-y-3">
+                        <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
+                            <CalendarDays className="w-3.5 h-3.5 text-sky-500/70" />
                             투자 시점 (과거)
                         </label>
                         <div className="grid grid-cols-3 gap-2">
@@ -288,10 +302,10 @@ export function RegretCalculator() {
                                     key={p}
                                     onClick={() => setPeriod(p)}
                                     className={cn(
-                                        "h-10 rounded-lg text-sm font-medium transition-all duration-200",
+                                        "h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                         period === p
-                                            ? "bg-sky-500/10 text-sky-500 border border-sky-500/50"
-                                            : "bg-transparent hover:bg-white/5 text-muted-foreground hover:text-foreground"
+                                            ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                            : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                     )}
                                 >
                                     {p.replace("Y", "년 전")}
@@ -300,22 +314,23 @@ export function RegretCalculator() {
                         </div>
                     </div>
 
-                    {/* 4. Action Button (Gradient) */}
-                    {/* 4. Action Button (Gradient) */}
-                    <Button
-                        onClick={onCalculate}
-                        disabled={isLoading || !ticker}
-                        className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                계산 중...
-                            </>
-                        ) : (
-                            "가치 확인하기"
-                        )}
-                    </Button>
+                    {/* CTA Button with Glow */}
+                    <div className="pt-2">
+                        <Button
+                            onClick={onCalculate}
+                            disabled={isLoading || !ticker}
+                            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-[0_4px_24px_rgba(14,165,233,0.3)] hover:shadow-[0_4px_32px_rgba(14,165,233,0.4)] rounded-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                    계산 중...
+                                </>
+                            ) : (
+                                "가치 확인하기"
+                            )}
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -372,11 +387,11 @@ export function RegretCalculator() {
                                     })()}
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-4 mt-4 w-full max-w-3xl mx-auto">
+                                <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 w-full max-w-3xl mx-auto">
                                     {/* 1. Total Profit */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
-                                        <span className={`text-lg font-black flex items-center gap-1 ${result.returnRate >= 0 ? "text-red-500" : "text-blue-500"} whitespace-nowrap`}>
+                                        <span className={`text-sm sm:text-lg font-black flex items-center gap-1 ${result.returnRate >= 0 ? "text-red-500" : "text-blue-500"} whitespace-nowrap`}>
                                             {result.returnRate >= 0 ? "+" : ""}
                                             {result.returnRate >= 10000
                                                 ? formatCompactNumber(result.returnRate)
@@ -393,7 +408,7 @@ export function RegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">연평균 수익률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className={`text-lg font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                <span className={`text-sm sm:text-lg font-black whitespace-nowrap ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`}>
                                                     {result.cagr >= 0 ? "+" : ""}{result.cagr.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -412,7 +427,7 @@ export function RegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className="text-lg font-black text-blue-500">
+                                                <span className="text-sm sm:text-lg font-black text-blue-500 whitespace-nowrap">
                                                     -{result.mdd.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -442,7 +457,7 @@ export function RegretCalculator() {
                                     {/* 4. Quantity */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">보유 수량</span>
-                                        <span className="text-lg font-black text-slate-500 whitespace-nowrap">
+                                        <span className="text-sm sm:text-lg font-black text-slate-500 whitespace-nowrap">
                                             약 {Math.round(result.quantity).toLocaleString()}주
                                         </span>
                                     </div>
@@ -450,7 +465,7 @@ export function RegretCalculator() {
                                     {/* 5. Avg Price */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground whitespace-nowrap">당시 평단가</span>
-                                        <span className="text-lg font-black text-slate-500 whitespace-nowrap">
+                                        <span className="text-sm sm:text-lg font-black text-slate-500 whitespace-nowrap">
                                             {(() => {
                                                 const val = Math.round(result.avgPrice);
                                                 if (currency === "KRW") {
@@ -478,7 +493,7 @@ export function RegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">고점 대비 하락</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className="text-lg font-black text-blue-500">
+                                                <span className="text-sm sm:text-lg font-black text-blue-500 whitespace-nowrap">
                                                     {result.dropFromAth.toFixed(1)}%
                                                 </span>
                                             </div>
