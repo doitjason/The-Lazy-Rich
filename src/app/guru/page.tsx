@@ -36,6 +36,16 @@ export default function GuruPage() {
         }
     };
 
+    // Scroll to top when view changes
+    useEffect(() => {
+        // Ensure scroll reset happens after the DOM has likely updated for the new view
+        const timer = setTimeout(() => {
+            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+            document.body.scrollTo({ top: 0, left: 0, behavior: "instant" });
+        }, 0);
+        return () => clearTimeout(timer);
+    }, [selectedGuru]);
+
     // Reset session when going back
     const handleBack = () => {
         setSelectedGuru(null);
@@ -54,8 +64,8 @@ export default function GuruPage() {
             ) : (
                 <>
                     <header className="pt-8 pb-6">
-                        <h1 className="text-3xl font-bold tracking-tight">AI Guru</h1>
-                        <p className="text-muted-foreground">당신만의 투자 멘토와 대화하세요.</p>
+                        <h1 className="text-3xl font-bold tracking-tight">AI Mentor</h1>
+                        <p className="text-muted-foreground">당신만의 AI Mentor와 대화하세요.</p>
                     </header>
                     <GuruSelector onSelect={handleGuruSelect} />
                 </>

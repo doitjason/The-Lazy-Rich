@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
     return {
         name: 'CORE',
         short_name: 'CORE',
-        description: 'Your Personal Investment Guru & Portfolio Manager',
+        description: 'Your Personal AI Mentor & Portfolio Manager',
         start_url: '/guru',
         display: 'standalone',
         background_color: '#000000',

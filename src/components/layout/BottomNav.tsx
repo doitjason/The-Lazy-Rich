@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageCircle, Calculator, PieChart, Lightbulb, User } from "lucide-react";
+import { Bot, Calculator, PieChart, Lightbulb, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
     {
-        label: "Guru",
-        icon: MessageCircle,
+        label: "AI Mentor",
+        icon: Bot,
         href: "/guru",
     },
     {

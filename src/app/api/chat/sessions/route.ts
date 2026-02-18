@@ -1,17 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 
 // Mark as dynamic to avoid build-time issues with environment variables
 export const dynamic = "force-dynamic";
 
-function getSupabase() {
-    return createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder"
-    );
-}
-
-// Create a new chat session
+// Create or find a chat session
 export async function POST(req: NextRequest) {
     try {
         const { userId, personaId } = await req.json();
@@ -23,7 +16,23 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const supabase = getSupabase();
+        const supabase = await createClient();
+
+        // 1. Check if a session already exists for this persona
+        const { data: existingSession, error: findError } = await supabase
+            .from("chat_sessions")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("persona_id", personaId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (existingSession) {
+            return NextResponse.json({ session: existingSession });
+        }
+
+        // 2. If not, create a new one
         const { data, error } = await supabase
             .from("chat_sessions")
             .insert({
@@ -62,7 +71,7 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    const supabase = getSupabase();
+    const supabase = await createClient();
     const { data, error } = await supabase
         .from("chat_sessions")
         .select("*")

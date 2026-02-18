@@ -82,13 +82,16 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
     };
 
     return (
-        <div className="space-y-4">
-            {/* Disclaimer Banner */}
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2 mx-10">
-                <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-600 dark:text-amber-400">
-                    이 AI는 가상의 페르소나이며, 투자의 책임은 전적으로 본인에게 있습니다.
-                </p>
+        <div className="space-y-6">
+            {/* CTA Button moved to top */}
+            <div className="px-10">
+                <Button
+                    onClick={() => onSelect(currentGuru)}
+                    className="w-full h-14 text-sm font-semibold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all active:scale-[0.98] gap-1.5"
+                >
+                    <MessageCircle className="h-4 w-4 flex-shrink-0" />
+                    {currentGuru.name}와 대화 시작하기
+                </Button>
             </div>
 
             {/* Carousel Container */}
@@ -97,14 +100,14 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
                 <button
                     onClick={() => paginate(-1)}
                     className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/30 flex items-center justify-center text-foreground/60 hover:bg-white/40 hover:text-foreground transition-all active:scale-90"
-                    aria-label="이전 멘토"
+                    aria-label="이전 AI Mentor"
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                     onClick={() => paginate(1)}
                     className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/30 flex items-center justify-center text-foreground/60 hover:bg-white/40 hover:text-foreground transition-all active:scale-90"
-                    aria-label="다음 멘토"
+                    aria-label="다음 AI Mentor"
                 >
                     <ChevronRight className="h-5 w-5" />
                 </button>
@@ -194,15 +197,12 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
                 {currentIndex + 1} / {personas.length}
             </p>
 
-            {/* CTA Button */}
-            <div className="px-10">
-                <Button
-                    onClick={() => onSelect(currentGuru)}
-                    className="w-full h-14 text-sm font-semibold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all active:scale-[0.98] gap-1.5"
-                >
-                    <MessageCircle className="h-4 w-4 flex-shrink-0" />
-                    {currentGuru.name}와 대화 시작하기
-                </Button>
+            {/* Disclaimer Banner restored for legal safety */}
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2 mx-10 mt-4">
+                <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-[10px] text-amber-600 dark:text-amber-400 leading-tight">
+                    AI Mentor는 가상의 캐릭터이며, 제공되는 정보는 투자 권유가 아닙니다. 모든 투자의 책임은 전적으로 본인에게 있습니다.
+                </p>
             </div>
         </div>
     );

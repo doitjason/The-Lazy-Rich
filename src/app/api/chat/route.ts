@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import { getGuruById } from "@/lib/guru-personas";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { getPersonaMarketContext, extractTickersFromMessage } from "@/lib/market-data";
 import { CORE_CONSTITUTION } from "@/constants/constitution";
 
@@ -14,14 +15,12 @@ export async function POST(req: NextRequest) {
         apiKey: process.env.OPENAI_API_KEY || "placeholder",
     });
 
-    // Create Supabase ADMIN client for server-side
-    const supabaseAdmin = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
-        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder"
-    );
+    // Create Supabase client for server-side
+    const supabase = await createClient();
 
     try {
         const { messages, personaId, sessionId, userId } = await req.json();
+        console.log(`[ChatAPI] POST called for session: ${sessionId}, user: ${userId}`);
 
         // Get persona
         const persona = getGuruById(personaId);
@@ -36,7 +35,7 @@ export async function POST(req: NextRequest) {
         let portfolioContext = "";
         let userTickers: string[] = [];
         if (userId) {
-            const { data: portfolioData } = await supabaseAdmin
+            const { data: portfolioData } = await supabase
                 .from("portfolios")
                 .select("ticker, quantity, avg_price")
                 .eq("user_id", userId);
@@ -110,11 +109,13 @@ ${portfolioContext}${marketDataContext}`;
         if (sessionId && messages.length > 0) {
             const lastUserMessage = messages[messages.length - 1];
             if (lastUserMessage.role === "user") {
-                await supabaseAdmin.from("chat_messages").insert({
+                const { error: saveError } = await supabase.from("chat_messages").insert({
                     session_id: sessionId,
                     role: "user",
                     content: lastUserMessage.content,
                 });
+                if (saveError) console.error("[ChatAPI] User message save error:", saveError.message);
+                else console.log("[ChatAPI] User message saved to DB");
             }
         }
 
@@ -156,11 +157,13 @@ ${portfolioContext}${marketDataContext}`;
 
                     // Save assistant message to database after streaming completes
                     if (sessionId && fullResponse) {
-                        await supabaseAdmin.from("chat_messages").insert({
+                        const { error: saveError } = await supabase.from("chat_messages").insert({
                             session_id: sessionId,
                             role: "assistant", // "system"이 아니라 "assistant"
                             content: fullResponse,
                         });
+                        if (saveError) console.error("[ChatAPI] Assistant message save error:", saveError.message);
+                        else console.log("[ChatAPI] Assistant message saved to DB");
                     }
 
                     controller.enqueue(encoder.encode("data: [DONE]\n\n"));

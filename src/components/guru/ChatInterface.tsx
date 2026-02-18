@@ -61,6 +61,45 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
         scrollToBottom();
     }, [messages, streamingContent]);
 
+    // History loading state
+    const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+    // Fetch existing messages if sessionId exists
+    useEffect(() => {
+        if (!sessionId || isHistoryLoading) return;
+
+        const fetchMessages = async () => {
+            setIsHistoryLoading(true);
+            try {
+                console.log(`[ChatHistory] Fetching for session: ${sessionId}`);
+                const response = await fetch(`/api/chat/messages?sessionId=${sessionId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.messages && data.messages.length > 0) {
+                        console.log(`[ChatHistory] Found ${data.messages.length} messages`);
+                        const formattedMessages: Message[] = data.messages.map((m: any) => ({
+                            id: m.id,
+                            role: m.role,
+                            content: m.content,
+                        }));
+                        setMessages(formattedMessages);
+                        // Use instant scroll for historical messages
+                        setTimeout(() => {
+                            messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+                        }, 100);
+                    } else {
+                        console.log("[ChatHistory] No previous messages found");
+                    }
+                }
+            } catch (error) {
+                console.error("[ChatHistory] Failed to fetch messages:", error);
+            } finally {
+                setIsHistoryLoading(false);
+            }
+        };
+        fetchMessages();
+    }, [sessionId]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || isLoading) return;
@@ -81,10 +120,13 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    messages: [...messages, userMessage].filter(m => m.id !== "intro").map(m => ({
-                        role: m.role,
-                        content: m.content,
-                    })),
+                    messages: [...messages, userMessage]
+                        .filter(m => m.id !== "intro")
+                        .slice(-20) // 최근 20개 대화로 기억 범위 확장
+                        .map(m => ({
+                            role: m.role,
+                            content: m.content,
+                        })),
                     personaId: guru.id,
                     sessionId,
                     userId,
@@ -158,12 +200,20 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
         >
-            {/* Disclaimer Banner */}
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-2 mb-3 flex items-center gap-2">
-                <AlertTriangle className="h-3 w-3 text-amber-500 flex-shrink-0" />
-                <p className="text-[10px] text-amber-600 dark:text-amber-400 leading-tight">
-                    이 AI는 가상의 페르소나이며, 투자 책임은 본인에게 있습니다.
-                </p>
+            {/* Info & Disclaimer Banner */}
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 mb-3 space-y-1">
+                <div className="flex items-center gap-2">
+                    <Bot className="h-3 w-3 text-amber-500/70 flex-shrink-0" />
+                    <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 leading-tight">
+                        AI Mentor는 원활한 대화를 위해 최근 20개의 메시지 맥락을 기억합니다.
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-3 w-3 text-amber-500/70 flex-shrink-0" />
+                    <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 leading-tight font-medium">
+                        AI Mentor는 가상의 캐릭터이며 투자 권유가 아닙니다. 투자 책임은 본인에게 있습니다.
+                    </p>
+                </div>
             </div>
 
             {/* Header */}
@@ -360,7 +410,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                                         method: "POST",
                                         headers: { "Content-Type": "application/json" },
                                         body: JSON.stringify({
-                                            messages: [{ role: "user", content: suggestion }],
+                                            messages: [{ role: "user", content: suggestion }], // 첫 질문은 항상 이것만
                                             personaId: guru.id,
                                             sessionId,
                                             userId,
