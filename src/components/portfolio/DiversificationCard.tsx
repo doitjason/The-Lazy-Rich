@@ -44,12 +44,12 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
                     </div>
 
                     <div className="space-y-1 relative z-10">
-                        <div className="text-sm text-muted-foreground font-medium flex items-center gap-1">
+                        <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                             분산 점수 (Correlation)
                         </div>
-                        <div className={cn("text-2xl font-black flex items-end gap-1 text-foreground")}>
+                        <div className={cn("text-lg font-black flex items-end gap-0.5 text-foreground")}>
                             {score}
-                            <span className="text-xs font-normal text-muted-foreground pb-1 ml-1">점</span>
+                            <span className="text-[9px] font-normal text-muted-foreground pb-0.5">점</span>
                         </div>
                     </div>
 

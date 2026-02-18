@@ -416,7 +416,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
                     {/* Style Tags Embedded */}
                     {items.length > 0 && (
-                        <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                        <div className="flex items-center justify-start gap-1.5 mt-2 overflow-x-auto pb-1 scrollbar-hide">
                             {/* Beta Tag */}
                             <Popover>
                                 <PopoverTrigger asChild>
@@ -548,12 +548,12 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             </div>
 
                             <div className="space-y-1 relative z-10">
-                                <div className="text-sm text-muted-foreground font-medium flex items-center gap-1">
+                                <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                                     시장 민감도 (Beta)
                                 </div>
-                                <div className="text-xl font-black flex items-end gap-1 text-foreground">
+                                <div className="text-lg font-black flex items-end gap-0.5 text-foreground">
                                     {portfolioBeta.toFixed(2)}
-                                    <span className="text-[10px] font-normal text-muted-foreground pb-0.5 ml-0.5">/ 1.0 (S&P 500)</span>
+                                    <span className="text-[9px] font-normal text-muted-foreground pb-0.5">/ 1.0</span>
                                 </div>
                             </div>
 
@@ -624,19 +624,19 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                     </div>
 
                     <div className="space-y-1 relative z-10">
-                        <div className="text-sm text-muted-foreground font-medium flex items-center gap-1">
+                        <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                             예상 배당금
                         </div>
-                        <div className="text-2xl font-black text-foreground">
-                            {formatCurrency(estimatedAnnualIncome)}
+                        <div className="text-lg font-black text-foreground">
+                            {formatCurrency(estimatedAnnualIncome, "USD", 0)}
                         </div>
                     </div>
 
                     <div className="mt-4 pt-3 border-t border-sky-500/10 relative z-10">
                         <div className="flex justify-between items-center">
-                            <span className="text-xs text-muted-foreground">월 평균 수령액</span>
-                            <span className="text-sm font-bold text-foreground">
-                                {formatCurrency(estimatedAnnualIncome / 12)}
+                            <span className="text-[10px] text-muted-foreground">월 평균 수령액</span>
+                            <span className="text-xs font-bold text-foreground">
+                                {formatCurrency(estimatedAnnualIncome / 12, "USD", 0)}
                             </span>
                         </div>
                     </div>

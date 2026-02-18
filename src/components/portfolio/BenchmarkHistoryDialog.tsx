@@ -98,32 +98,32 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                     </DialogHeader>
 
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-3 gap-3 mb-2">
-                        <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-100 dark:border-slate-700 shadow-sm">
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-1">내 수익률 ({range})</span>
-                            <span className={cn("text-2xl font-bold tracking-tight", periodReturn.portfolio >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
+                    <div className="grid grid-cols-3 gap-2 mb-2">
+                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm">
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 block mb-0.5">내 수익률 ({range})</span>
+                            <span className={cn("text-base font-bold tracking-tight", periodReturn.portfolio >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
                                 {formatPercent(periodReturn.portfolio)}
                             </span>
                         </div>
-                        <div className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-100 dark:border-slate-700 shadow-sm">
-                            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-1">시장 (SPY ETF)</span>
-                            <span className={cn("text-2xl font-bold tracking-tight", periodReturn.benchmark >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
+                        <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm">
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 block mb-0.5">시장 (SPY)</span>
+                            <span className={cn("text-base font-bold tracking-tight", periodReturn.benchmark >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
                                 {formatPercent(periodReturn.benchmark)}
                             </span>
                         </div>
                         <div className={cn(
-                            "rounded-xl p-4 border shadow-sm flex flex-col justify-center relative overflow-hidden",
+                            "rounded-xl p-3 border shadow-sm flex flex-col justify-center relative overflow-hidden",
                             isWin
                                 ? "bg-sky-50 dark:bg-sky-500/10 border-sky-100 dark:border-sky-500/20"
                                 : "bg-rose-50 dark:bg-rose-500/10 border-rose-100 dark:border-rose-500/20"
                         )}>
-                            <div className={cn("absolute top-0 right-0 p-2 opacity-10 transform translate-x-1 -translate-y-1", isWin ? "text-sky-600" : "text-rose-600")}>
+                            <div className={cn("absolute top-0 right-0 p-1.5 opacity-10 text-[10px] font-bold", isWin ? "text-sky-600" : "text-rose-600")}>
                                 {isWin ? "WIN" : "LOSS"}
                             </div>
-                            <span className={cn("text-xs font-semibold block mb-1", isWin ? "text-sky-700 dark:text-sky-300" : "text-rose-700 dark:text-rose-300")}>
-                                Alpha (초과수익)
+                            <span className={cn("text-[10px] font-semibold block mb-0.5", isWin ? "text-sky-700 dark:text-sky-300" : "text-rose-700 dark:text-rose-300")}>
+                                Alpha
                             </span>
-                            <span className={cn("text-2xl font-bold tracking-tight z-10", isWin ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
+                            <span className={cn("text-base font-bold tracking-tight z-10", isWin ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
                                 {alpha > 0 ? "+" : ""}{alpha.toFixed(2)}%p
                             </span>
                         </div>
@@ -222,7 +222,7 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                         <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">종목별 성과 (기여도 순)</h4>
                         <span className="text-[10px] text-slate-400 dark:text-slate-500">{range} 기준</span>
                     </div>
-                    <div className="max-h-[180px] overflow-y-auto px-6 py-2">
+                    <div className="max-h-[300px] overflow-y-auto px-6 py-2">
                         {holdingsPerformance.length > 0 ? (
                             <div className="space-y-2 pb-4">
                                 {holdingsPerformance.map((h) => (
