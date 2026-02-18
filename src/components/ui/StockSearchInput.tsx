@@ -32,7 +32,7 @@ const POPULAR_STOCKS: StockResult[] = [
     { ticker: "NVDA", name: "NVIDIA Corporation", exchange: "NASDAQ", type: "EQUITY" },
     { ticker: "SPY", name: "S&P 500 ETF", exchange: "NYSE", type: "ETF" },
     { ticker: "TSLA", name: "Tesla, Inc.", exchange: "NASDAQ", type: "EQUITY" },
-    { ticker: "BTC-USD", name: "Bitcoin USD", exchange: "CCC", type: "CRYPTOCURRENCY" },
+    { ticker: "GOOGL", name: "Alphabet Inc.", exchange: "NASDAQ", type: "EQUITY" },
 ];
 
 type StockSearchInputProps = {

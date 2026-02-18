@@ -390,7 +390,7 @@ export function CompoundCalculator() {
                             })()}
                         </div>
 
-                        <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-8 w-full max-w-3xl mx-auto">
+                        <div className="grid grid-cols-3 gap-1 sm:gap-4 mt-8 w-full max-w-3xl mx-auto">
                             {/* 1. Total Invested */}
                             <Popover>
                                 <PopoverTrigger asChild>
@@ -399,7 +399,7 @@ export function CompoundCalculator() {
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">총 원금 합계</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
                                         </div>
-                                        <span className="text-sm sm:text-lg font-black text-slate-500 whitespace-nowrap">
+                                        <span className="text-xs sm:text-lg font-black text-slate-500" style={{ whiteSpace: "nowrap" }}>
                                             {currency === "KRW" ? `${formatCompactNumber(totalInvestedNominal)}원` : `$${formatCompactNumber(totalInvestedNominal)}`}
                                         </span>
                                     </div>
@@ -418,7 +418,7 @@ export function CompoundCalculator() {
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">총 수익률</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
                                         </div>
-                                        <span className={`text-sm sm:text-lg font-black flex items-center gap-1 ${totalReturnRate >= 0 ? "text-red-500" : "text-blue-500"} whitespace-nowrap`}>
+                                        <span className={`text-xs sm:text-lg font-black flex items-center justify-center gap-0.5 ${totalReturnRate >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                             {totalReturnRate >= 0 ? "+" : ""}
                                             {totalReturnRate >= 10000
                                                 ? formatCompactNumber(totalReturnRate)
@@ -441,7 +441,7 @@ export function CompoundCalculator() {
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">실질 가치</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
                                         </div>
-                                        <span className="text-sm sm:text-lg font-black text-red-500 whitespace-nowrap">
+                                        <span className="text-xs sm:text-lg font-black text-red-500" style={{ whiteSpace: "nowrap" }}>
                                             {currency === "KRW" ? `약 ${formatCompactNumber(realValue)}원` : `$${formatCompactNumber(realValue)}`}
                                         </span>
                                     </div>
@@ -460,7 +460,7 @@ export function CompoundCalculator() {
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">순수익 합계</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
                                         </div>
-                                        <span className="text-sm sm:text-lg font-black text-red-500 whitespace-nowrap">
+                                        <span className="text-xs sm:text-lg font-black text-red-500" style={{ whiteSpace: "nowrap" }}>
                                             {currency === "KRW" ? `+${formatCompactNumber(totalNetProfitNominal)}원` : `+$${formatCompactNumber(totalNetProfitNominal)}`}
                                         </span>
                                     </div>
@@ -479,7 +479,7 @@ export function CompoundCalculator() {
                                             <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">평생 실질 월급</span>
                                             <HelpCircle className="w-3 h-3 opacity-40" />
                                         </div>
-                                        <span className="text-sm sm:text-lg font-black text-red-500 whitespace-nowrap">
+                                        <span className="text-xs sm:text-lg font-black text-red-500" style={{ whiteSpace: "nowrap" }}>
                                             {formattedIncome}
                                         </span>
                                     </div>
@@ -496,7 +496,7 @@ export function CompoundCalculator() {
                             {/* 6. Investment Period */}
                             <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                 <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">투자 기간</span>
-                                <span className="text-sm sm:text-lg font-black text-slate-500 whitespace-nowrap">
+                                <span className="text-xs sm:text-lg font-black text-slate-500" style={{ whiteSpace: "nowrap" }}>
                                     {years}년
                                 </span>
                             </div>

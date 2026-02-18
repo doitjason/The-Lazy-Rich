@@ -866,11 +866,11 @@ export function PortfolioRegretCalculator() {
                                         );
                                     })()}
                                 </div>
-                                <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-8 w-full max-w-3xl mx-auto">
+                                <div className="grid grid-cols-3 gap-1 sm:gap-4 mt-8 w-full max-w-3xl mx-auto">
                                     {/* 1. Total Profit */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
-                                        <span className={`text-sm sm:text-lg font-black flex items-center gap-1 ${result.profit >= 0 ? "text-red-500" : "text-blue-500"} whitespace-nowrap`}>
+                                        <span className={`text-xs sm:text-lg font-black flex items-center justify-center gap-0.5 ${result.profit >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                             {result.profit >= 0 ? "+" : ""}{(Math.trunc(result.returnRate * 10) / 10).toFixed(1)}%
                                         </span>
                                     </div>
@@ -883,7 +883,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">연평균 수익률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className={`text-sm sm:text-lg font-black whitespace-nowrap ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                <span className={`text-xs sm:text-lg font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                                     {result.cagr >= 0 ? "+" : ""}{result.cagr.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -902,7 +902,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className="text-sm sm:text-lg font-black text-blue-500 whitespace-nowrap">
+                                                <span className="text-xs sm:text-lg font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
                                                     -{result.mdd.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -937,7 +937,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최고의 해</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className={`text-sm sm:text-lg font-black whitespace-nowrap ${result.bestYear.return >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                <span className={`text-xs sm:text-lg font-black ${result.bestYear.return >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                                     {result.bestYear.return > 0 ? "+" : ""}{result.bestYear.return.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -956,7 +956,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최악의 해</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className={`text-sm sm:text-lg font-black whitespace-nowrap ${result.worstYear.return >= 0 ? "text-red-500" : "text-blue-500"}`}>
+                                                <span className={`text-xs sm:text-lg font-black ${result.worstYear.return >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                                     {result.worstYear.return > 0 ? "+" : ""}{result.worstYear.return.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -975,7 +975,7 @@ export function PortfolioRegretCalculator() {
                                                     <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">월별 승률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40" />
                                                 </div>
-                                                <span className={`text-sm sm:text-lg font-black whitespace-nowrap ${result.winRate >= 50 ? "text-red-500" : "text-blue-500"}`}>
+                                                <span className={`text-xs sm:text-lg font-black ${result.winRate >= 50 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                                     {result.winRate.toFixed(1)}%
                                                 </span>
                                             </div>
