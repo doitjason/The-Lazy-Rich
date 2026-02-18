@@ -2,7 +2,9 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session, AuthError } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
 
 type AuthResult = {
     success: boolean;
@@ -82,7 +84,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: window.location.origin,
+                redirectTo: `${window.location.origin}/auth/callback`,
+                queryParams: {
+                    access_type: "offline",
+                    prompt: "consent",
+                },
             },
         });
     };
