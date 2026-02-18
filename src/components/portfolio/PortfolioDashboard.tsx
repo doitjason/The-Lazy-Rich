@@ -809,7 +809,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                                 {sectorData[0]?.name || "없음"}
                                             </div>
                                             <div className="text-sm font-bold text-primary mt-1">
-                                                {formatPercent((sectorData[0]?.value / totalValue) * 100)}
+                                                {formatPercent((sectorData[0]?.value / totalValue) * 100, 0)}
                                             </div>
                                         </div>
                                     </div>
@@ -828,9 +828,9 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                                 </div>
                                                 <div className="flex items-center gap-4 flex-shrink-0">
                                                     <span className="text-[12px] text-muted-foreground font-medium tabular-nums">{formatCurrency(sector.value)}</span>
-                                                    <div className="w-[50px] text-right">
-                                                        <span className="text-[14px] font-black tabular-nums">
-                                                            {formatPercent((sector.value / totalValue) * 100)}
+                                                    <div className="min-w-[65px] text-right">
+                                                        <span className="text-[14px] font-black tabular-nums whitespace-nowrap">
+                                                            {formatPercent((sector.value / totalValue) * 100, 0)}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -952,8 +952,23 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
                                     {/* Left: Info */}
                                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center text-xs font-bold ring-1 ring-white/10 flex-shrink-0">
-                                            {item.ticker.slice(0, 1)}
+                                        <div className="relative w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10 shadow-sm flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                                            {/* Using API Route to proxy logo requests to avoid CORS/broken images */}
+                                            <img
+                                                src={`/api/logo?ticker=${item.ticker}`}
+                                                alt={item.ticker}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                    // Show fallback
+                                                    const fallback = e.currentTarget.parentElement?.querySelector('.fallback-initial');
+                                                    if (fallback) fallback.classList.remove('hidden');
+                                                }}
+                                            />
+                                            {/* Fallback Initial */}
+                                            <div className="fallback-initial hidden absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-sm font-bold text-white/90">
+                                                {item.ticker.slice(0, 1)}
+                                            </div>
                                         </div>
                                         <div className="min-w-0">
                                             <div className="font-bold text-sm truncate">{item.ticker}</div>

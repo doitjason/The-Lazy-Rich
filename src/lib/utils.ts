@@ -18,7 +18,7 @@ export function formatCurrency(value: number, currency: string = "USD", fraction
   }).format(value);
 }
 
-export function formatPercent(value: number): string {
+export function formatPercent(value: number, decimals: number = 2): string {
   const sign = value >= 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)}%`;
+  return `${sign}${value.toFixed(decimals)}%`;
 }
