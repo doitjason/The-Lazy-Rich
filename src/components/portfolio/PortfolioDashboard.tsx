@@ -635,7 +635,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
                     <div className="space-y-1 relative z-10">
                         <div className="text-xs text-muted-foreground font-medium flex items-center gap-1">
-                            예상 배당금
+                            예상 배당금 <span className="text-[10px] opacity-60 font-normal">(세전)</span>
                         </div>
                         <div className="text-lg font-black text-foreground">
                             {formatCurrency(estimatedAnnualIncome, "USD", 0)}

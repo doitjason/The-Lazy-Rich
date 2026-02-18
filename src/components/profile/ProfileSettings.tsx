@@ -9,11 +9,35 @@ import { motion } from "framer-motion";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { AlertCircle } from "lucide-react";
 
 export function ProfileSettings() {
     const { currency, setCurrency } = useCurrency();
-    const { user, signInWithGoogle, signOut } = useAuth();
+    const { user, signInWithGoogle, signInWithEmail, signOut } = useAuth();
     const { theme, setTheme } = useTheme();
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+    const handleEmailLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError(null);
+        setIsLoggingIn(true);
+        try {
+            const result = await signInWithEmail(email, password);
+            if (!result.success) {
+                setError(result.error || "로그인 정보를 다시 확인해주세요.");
+            }
+        } catch (err) {
+            setError("로그인 처리 중 오류가 발생했습니다.");
+        } finally {
+            setIsLoggingIn(false);
+        }
+    };
 
     const container = {
         hidden: { opacity: 0 },
@@ -57,22 +81,24 @@ export function ProfileSettings() {
                 </div>
             </motion.div>
 
-            {/* Google Login (Guest Only) */}
+            {/* Authentication Group (Guest Only) */}
             {!user && (
-                <motion.div variants={item} className="space-y-3">
+                <motion.div variants={item} className="space-y-4">
                     <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">
                         로그인
                     </h3>
+
+                    {/* Google Login Card */}
                     <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md p-6">
                         <div className="text-center space-y-4">
-                            <p className="text-sm text-muted-foreground mb-4">
+                            <p className="text-xs text-muted-foreground">
                                 구글 계정으로 간편하게 시작하세요.
                             </p>
                             <Button
                                 onClick={signInWithGoogle}
-                                className="w-full h-12 bg-white hover:bg-gray-100 text-black border border-gray-200 shadow-sm relative transition-all active:scale-[0.98]"
+                                className="w-full h-11 bg-white hover:bg-gray-100 text-black border border-gray-200 shadow-sm relative transition-all active:scale-[0.98]"
                             >
-                                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                                <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24">
                                     <path
                                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                                         fill="#4285F4"
@@ -93,6 +119,44 @@ export function ProfileSettings() {
                                 Google로 계속하기
                             </Button>
                         </div>
+                    </Card>
+
+                    <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md p-6">
+                        <form onSubmit={handleEmailLogin} className="space-y-4">
+                            <div className="space-y-2">
+                                <Input
+                                    type="email"
+                                    placeholder="이메일 주소"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="bg-white/50 dark:bg-black/20 border-white/20 h-11"
+                                    required
+                                />
+                                <Input
+                                    type="password"
+                                    placeholder="비밀번호"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="bg-white/50 dark:bg-black/20 border-white/20 h-11"
+                                    required
+                                />
+                            </div>
+
+                            {error && (
+                                <div className="flex items-center gap-2 text-rose-500 text-[11px] bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20">
+                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                                    {error}
+                                </div>
+                            )}
+
+                            <Button
+                                type="submit"
+                                disabled={isLoggingIn}
+                                className="w-full h-11 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+                            >
+                                {isLoggingIn ? "로그인 중..." : "이메일로 로그인"}
+                            </Button>
+                        </form>
                     </Card>
                 </motion.div>
             )}

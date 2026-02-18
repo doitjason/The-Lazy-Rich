@@ -49,53 +49,7 @@
 :root {
   --radius: 0.75rem;
 
-  /* Modern Glassy Light Theme */
-  --background: oklch(0.98 0.01 240);
-  /* Very Subtle Cool Grey/Blue for background depth */
-  --foreground: oklch(0.13 0.02 240);
-
-  --card: oklch(1 0 0 / 0.7);
-  /* Translucent White */
-  --card-foreground: oklch(0.13 0.02 240);
-
-  --popover: oklch(1 0 0 / 0.8);
-  --popover-foreground: oklch(0.13 0.02 240);
-
-  /* Primary: Sky Blue 500 #0EA5E9 -> oklch approx 0.69 0.16 235 */
-  --primary: oklch(0.69 0.16 235);
-  --primary-foreground: oklch(1 0 0);
-
-  --secondary: oklch(0.96 0.01 240);
-  --secondary-foreground: oklch(0.2 0.02 240);
-
-  --muted: oklch(0.96 0.01 240);
-  --muted-foreground: oklch(0.5 0.02 240);
-
-  --accent: oklch(0.96 0.01 240);
-  --accent-foreground: oklch(0.2 0.02 240);
-
-  --destructive: oklch(0.6 0.25 25);
-  --border: oklch(0.9 0.01 240);
-  --input: oklch(0.9 0.01 240);
-  --ring: oklch(0.69 0.16 235);
-
-  --chart-1: oklch(0.69 0.16 235);
-  --chart-2: oklch(0.6 0.16 180);
-  --chart-3: oklch(0.5 0.16 280);
-  --chart-4: oklch(0.8 0.16 100);
-  --chart-5: oklch(0.7 0.16 30);
-
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
+  /* Modern Glassy Dark Theme (Default) */
   --background: oklch(0.1 0.01 240);
   --foreground: oklch(0.98 0 0);
 
@@ -137,6 +91,51 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+
+.light {
+  --background: oklch(0.98 0.01 240);
+  --foreground: oklch(0.13 0.02 240);
+
+  --card: oklch(1 0 0 / 0.7);
+  --card-foreground: oklch(0.13 0.02 240);
+
+  --popover: oklch(1 0 0 / 0.8);
+  --popover-foreground: oklch(0.13 0.02 240);
+
+  --primary: oklch(0.69 0.16 235);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.96 0.01 240);
+  --secondary-foreground: oklch(0.2 0.02 240);
+
+  --muted: oklch(0.96 0.01 240);
+  --muted-foreground: oklch(0.5 0.02 240);
+
+  --accent: oklch(0.96 0.01 240);
+  --accent-foreground: oklch(0.2 0.02 240);
+
+  --destructive: oklch(0.6 0.25 25);
+  --border: oklch(0.9 0.01 240);
+  --input: oklch(0.9 0.01 240);
+  --ring: oklch(0.69 0.16 235);
+
+  --chart-1: oklch(0.69 0.16 235);
+  --chart-2: oklch(0.6 0.16 180);
+  --chart-3: oklch(0.5 0.16 280);
+  --chart-4: oklch(0.8 0.16 100);
+  --chart-5: oklch(0.7 0.16 30);
+
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* Dark mode is handled by :root by default. */
 
 @layer base {
   * {

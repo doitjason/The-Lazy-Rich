@@ -207,7 +207,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                 <div className="flex-1 min-h-[300px] bg-card/50">
                     <div className="px-5 py-3 border-b border-white/5 flex justify-between items-center bg-muted/20">
                         <span className="text-xs font-semibold text-muted-foreground">
-                            {currentDate.getMonth() + 1}월 예상 배당 총액
+                            {currentDate.getMonth() + 1}월 예상 배당 총액 <span className="text-[10px] opacity-60 font-normal">(세전)</span>
                         </span>
                         <span className="text-lg font-bold text-sky-400">
                             {formatCurrency(totalMonthDividend, monthCurrency)}
