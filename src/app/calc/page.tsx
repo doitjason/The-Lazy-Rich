@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { RegretCalculator } from "@/components/calc/RegretCalculator";
 import { CompoundCalculator } from "@/components/calc/CompoundCalculator";
 import { PortfolioRegretCalculator } from "@/components/calc/PortfolioRegretCalculator";
+import { motion } from "framer-motion";
 
 export default function CalcPage() {
     const [activeTab, setActiveTab] = useState<"regret" | "regret-v2" | "compound">("regret");
@@ -17,23 +18,33 @@ export default function CalcPage() {
             </header>
 
             {/* Navigation Tabs (Pill Style) */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 mask-linear">
+            <div className="flex items-center justify-center gap-1 pb-2 w-full overflow-x-auto no-scrollbar relative">
                 {[
-                    { id: "regret", label: "했제 계산기 V1" },
-                    { id: "regret-v2", label: "했제 계산기 V2" },
-                    { id: "compound", label: "자유 계산기" },
+                    { id: "regret", label: "했제 계산기 V1", icon: "🕰️" },
+                    { id: "regret-v2", label: "했제 계산기 V2", icon: "📊" },
+                    { id: "compound", label: "자유 계산기", icon: "📈" },
                 ].map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={cn(
-                            "px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all duration-300",
+                            "px-3.5 py-2.5 rounded-full text-[12px] font-black whitespace-nowrap transition-all duration-500 relative overflow-hidden group/tab flex-shrink-0",
                             activeTab === tab.id
-                                ? "bg-foreground text-background shadow-lg scale-105"
-                                : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                                ? "text-white scale-105 shadow-xl shadow-emerald-500/20"
+                                : "text-muted-foreground hover:text-foreground bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md"
                         )}
                     >
-                        {tab.label}
+                        {activeTab === tab.id && (
+                            <motion.div
+                                layoutId="activeTabCalc"
+                                className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 -z-10"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                        <span className="relative z-10 flex items-center gap-1.5 transition-transform group-hover/tab:scale-105">
+                            <span className="text-xs">{tab.icon}</span>
+                            {tab.label}
+                        </span>
                     </button>
                 ))}
             </div>
