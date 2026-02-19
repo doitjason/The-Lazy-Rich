@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from "react";
 import { usePortfolioStore } from "@/store/usePortfolioStore";
 import { getPortfolioData, getBenchmarkData } from "@/app/actions/portfolio-actions";
 import { EnrichedPortfolioItem } from "@/lib/market-types";
-import { formatCurrency, formatPercent, cn } from "@/lib/utils";
+import { formatPercent, cn } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, LineChart, Line } from "recharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, ArrowUpRight, ArrowDownRight, RefreshCw, TrendingUp, Wallet, PieChart as PieChartIcon, Activity, MoreHorizontal, Copy, SlidersHorizontal, ArrowUpDown } from "lucide-react";
@@ -46,11 +46,16 @@ interface PortfolioDashboardProps {
 const COLORS = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { EmptyPortfolio } from "./EmptyPortfolio";
 
 export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     const { user } = useAuth();
+    const { currency, exchangeRate, formatCurrency, formatCompactNumber } = useCurrency();
     const { items, loading: storeLoading, deleteItem, fetchPortfolio, setLocalItems } = usePortfolioStore();
+
+    // Helper to convert USD to selected currency
+    const convert = (value: number) => currency === "KRW" ? value * exchangeRate : value;
 
     const [enrichedData, setEnrichedData] = useState<Record<string, EnrichedPortfolioItem>>({});
     const [loading, setLoading] = useState(true);
@@ -392,9 +397,9 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
 
                 <CardContent className="relative z-10 py-6 px-6 flex flex-col items-center justify-center gap-3 text-white">
-                    <div className="text-white/80 text-lg font-medium tracking-wide">총 순자산</div>
+                    <div className="text-white/80 text-lg font-medium tracking-wide">총 순자산 {currency === "KRW" ? "(₩)" : "($)"}</div>
                     {(() => {
-                        const formattedTotal = formatCurrency(totalValue);
+                        const formattedTotal = formatCurrency(convert(totalValue));
                         const len = formattedTotal.length;
                         let sizeClass = "text-4xl"; // 기본값을 3xl에서 4xl로 상향
                         if (len > 22) sizeClass = "text-xl";
@@ -411,7 +416,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             <span className="text-white/80 text-sm font-semibold flex-shrink-0">일간 수익</span>
                             <div className={cn("flex items-center font-bold text-sm whitespace-nowrap", totalDayChange >= 0 ? "text-emerald-300" : "text-rose-300")} style={{ whiteSpace: 'nowrap' }}>
                                 {totalDayChange >= 0 ? <Plus className="w-3.5 h-3.5 mr-0.5 flex-shrink-0" /> : null}
-                                {formatCurrency(totalDayChange)} ({formatPercent(dayChangePercent)})
+                                {formatCurrency(convert(totalDayChange))} ({formatPercent(dayChangePercent)})
                             </div>
                         </div>
                         <div className="h-px w-full bg-white/10 my-0.5" />
@@ -419,7 +424,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             <span className="text-white/80 text-sm font-semibold flex-shrink-0">총 수익</span>
                             <div className={cn("flex items-center font-bold text-sm whitespace-nowrap", totalReturn >= 0 ? "text-emerald-300" : "text-rose-300")} style={{ whiteSpace: 'nowrap' }}>
                                 {totalReturn >= 0 ? <Plus className="w-3.5 h-3.5 mr-0.5 flex-shrink-0" /> : null}
-                                {formatCurrency(totalReturn, "USD", 0)} ({formatPercent(totalReturnPercent)})
+                                {formatCurrency(convert(totalReturn), { maximumFractionDigits: 0 })} ({formatPercent(totalReturnPercent)})
                             </div>
                         </div>
                     </div>
@@ -638,7 +643,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             예상 배당금 <span className="text-[10px] opacity-60 font-normal">(세전)</span>
                         </div>
                         <div className="text-lg font-black text-foreground">
-                            {formatCurrency(estimatedAnnualIncome, "USD", 0)}
+                            {formatCurrency(convert(estimatedAnnualIncome), { maximumFractionDigits: 0 })}
                         </div>
                     </div>
 
@@ -646,7 +651,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] text-muted-foreground">월 평균 수령액</span>
                             <span className="text-xs font-bold text-emerald-500 dark:text-emerald-400">
-                                {formatCurrency(estimatedAnnualIncome / 12, "USD", 0)}
+                                {formatCurrency(convert(estimatedAnnualIncome / 12), { maximumFractionDigits: 0 })}
                             </span>
                         </div>
                     </div>
@@ -786,7 +791,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                                 ))}
                                             </Pie>
                                             <RechartsTooltip
-                                                formatter={(value: number | undefined) => [formatCurrency(value || 0), "평가금액"]}
+                                                formatter={(value: number | undefined) => [formatCurrency(convert(value || 0)), "평가금액"]}
                                                 contentStyle={{
                                                     backgroundColor: 'rgba(23, 23, 23, 0.95)',
                                                     border: '1px solid rgba(255,255,255,0.1)',
@@ -827,7 +832,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-4 flex-shrink-0">
-                                                    <span className="text-[12px] text-muted-foreground font-medium tabular-nums">{formatCurrency(sector.value)}</span>
+                                                    <span className="text-[12px] text-muted-foreground font-medium tabular-nums">{formatCurrency(convert(sector.value))}</span>
                                                     <div className="min-w-[65px] text-right">
                                                         <span className="text-[14px] font-black tabular-nums whitespace-nowrap">
                                                             {formatPercent((sector.value / totalValue) * 100, 0)}
@@ -982,9 +987,9 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
                                     {/* Right: Price */}
                                     <div className="text-right flex-shrink-0">
-                                        <div className="font-medium text-sm whitespace-nowrap">{formatCurrency(currentValue)}</div>
+                                        <div className="font-medium text-sm whitespace-nowrap">{formatCurrency(convert(currentValue))}</div>
                                         <div className={cn("text-[11px] font-medium whitespace-nowrap", isProfit ? "text-emerald-400" : "text-rose-400")}>
-                                            {isProfit ? "+" : ""}{formatCurrency(gain)} ({formatPercent(gainPercent)})
+                                            {isProfit ? "+" : ""}{formatCurrency(convert(gain))} ({formatPercent(gainPercent)})
                                         </div>
                                     </div>
 
