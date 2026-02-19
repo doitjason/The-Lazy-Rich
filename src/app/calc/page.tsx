@@ -18,19 +18,19 @@ export default function CalcPage() {
             </header>
 
             {/* Navigation Tabs (Pill Style) */}
-            <div className="flex items-center justify-center gap-1.5 pb-2 w-full overflow-hidden relative">
+            <div className="flex items-center justify-between w-full gap-1">
                 {[
-                    { id: "regret", label: "했제 계산기 V1", icon: "🕰️" },
-                    { id: "regret-v2", label: "했제 계산기 V2", icon: "📊" },
-                    { id: "compound", label: "자유 계산기", icon: "📈" },
+                    { id: "regret", label: "했제 계산기 V1" },
+                    { id: "regret-v2", label: "했제 계산기 V2" },
+                    { id: "compound", label: "자유 계산기" },
                 ].map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={cn(
-                            "px-2.5 sm:px-3.5 py-2 rounded-full text-[11px] xs:text-[12px] sm:text-[13px] font-black whitespace-nowrap transition-all duration-500 relative overflow-hidden group/tab flex-shrink-0 tracking-tight",
+                            "flex-1 py-3 rounded-full text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-300 relative overflow-hidden group/tab",
                             activeTab === tab.id
-                                ? "text-white scale-105"
+                                ? "text-white"
                                 : "text-muted-foreground hover:text-foreground bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md"
                         )}
                     >
@@ -41,8 +41,7 @@ export default function CalcPage() {
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                             />
                         )}
-                        <span className="relative z-10 flex items-center gap-1.5 transition-transform group-hover/tab:scale-105">
-                            <span className="text-xs">{tab.icon}</span>
+                        <span className="relative z-10 w-full text-center block">
                             {tab.label}
                         </span>
                     </button>

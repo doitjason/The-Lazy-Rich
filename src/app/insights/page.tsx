@@ -17,20 +17,20 @@ export default function InsightsPage() {
             </header>
 
             {/* Navigation Tabs */}
-            <div className="flex items-center justify-center gap-1 pb-2 w-full overflow-hidden">
+            <div className="flex items-center justify-between w-full gap-1 pb-2">
                 {[
-                    { id: "market", label: "시장 상황", icon: "📊" },
-                    { id: "blog", label: "블로그", icon: "✍️" },
-                    { id: "community", label: "커뮤니티", icon: "👥" },
-                    { id: "recommended", label: "추천 컨텐츠", icon: "📚" },
+                    { id: "market", label: "시장 상황" },
+                    { id: "blog", label: "블로그" },
+                    { id: "community", label: "커뮤니티" },
+                    { id: "recommended", label: "추천 컨텐츠" },
                 ].map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setSelectedTab(tab.id as any)}
                         className={cn(
-                            "px-2.5 py-2 rounded-full text-[11px] xs:text-[12px] sm:text-[13px] font-black whitespace-nowrap transition-all duration-500 relative overflow-hidden group/tab flex-shrink-0",
+                            "flex-1 py-3 rounded-full text-[11px] sm:text-sm font-black whitespace-nowrap transition-all duration-300 relative overflow-hidden group/tab",
                             selectedTab === tab.id
-                                ? "text-white scale-105"
+                                ? "text-white"
                                 : "text-muted-foreground hover:text-foreground bg-white/50 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-sm"
                         )}
                     >
@@ -41,8 +41,7 @@ export default function InsightsPage() {
                                 transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                             />
                         )}
-                        <span className="relative z-10 flex items-center gap-1 scale-[0.9] sm:scale-100 origin-center">
-                            <span className="text-[10px] sm:text-xs">{tab.icon}</span>
+                        <span className="relative z-10 w-full text-center block">
                             {tab.label}
                         </span>
                     </button>
