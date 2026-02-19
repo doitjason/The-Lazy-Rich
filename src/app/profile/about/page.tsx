@@ -49,7 +49,9 @@ export default function AboutPage() {
                         <Club className="w-12 h-12 text-white fill-white/10" />
                     </div>
                     <h1 className="text-4xl font-bold tracking-tight text-white drop-shadow-md font-serif mb-2">Trifoli</h1>
-                    <p className="text-emerald-100/90 text-sm font-medium tracking-widest uppercase">Luck is rare, Value is everywhere.</p>
+                    <p className="text-emerald-100/90 text-sm font-medium tracking-widest uppercase text-center leading-relaxed">
+                        Luck is rare,<br />Value is everywhere.
+                    </p>
                 </motion.div>
             </div>
 
@@ -68,17 +70,16 @@ export default function AboutPage() {
                             <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Service Story</h2>
                         </div>
                         <p className="text-sm leading-7 text-foreground/90">
-                            투자 시장은 거대한 클로버 들판과 같습니다.<br />
-                            대부분의 사람들은 눈에 불을 켜고 <strong className="text-emerald-600 dark:text-emerald-400">1% 확률의 '네잎클로버(행운, Luck)'</strong>를 찾으려 혈안이 되어 있습니다.
-                            그 '행운'을 찾기 위해 수많은 <strong className="text-emerald-600 dark:text-emerald-400">'세잎클로버(행복, Happiness)'</strong>들을 짓밟고 다닙니다.
+                            네잎클로버의 꽃말이 <strong>'행운'</strong>이라면, 세잎클로버의 꽃말은 <strong>'행복'</strong>입니다. 투자 시장이라는 거대한 들판에서, 우리는 어떤 클로버를 찾고 있을까요?<br /><br />
+                            대다수의 시장 참여자들은 단 1%의 확률로 피어나는 <strong className="text-emerald-600 dark:text-emerald-400">'네잎클로버(단기적 대박, 테마주)'</strong>라는 행운을 찾기 위해 맹목적으로 달려갑니다. 하지만 그 희박한 요행을 좇는 사이, 정작 우리 주변을 가득 채우고 있는 99%의 <strong className="text-emerald-600 dark:text-emerald-400">'세잎클로버(장기적 성장, 우량 기업)'</strong>라는 일상의 확실한 행복은 무심코 짓밟고 지나치곤 합니다.
                         </p>
-                        <blockquote className="my-4 pl-4 border-l-2 border-emerald-500 py-2 text-sm italic text-foreground/80 font-medium bg-emerald-500/5 rounded-r-lg pr-2">
-                            "왜 보이지 않는 행운에 당신의 인생을 거나요?<br />
-                            당신 발밑에 언제나 당신과 함께하는 99%의 확실한 행복은 보이지 않나요?"
+                        <blockquote className="my-6 pl-4 border-l-2 border-emerald-500 py-3 text-sm italic text-foreground/80 font-medium bg-emerald-500/5 rounded-r-lg pr-2">
+                            "왜 잡히지 않는 행운에 당신의 소중한 자산과 내일을 거시나요?"
                         </blockquote>
-                        <p className="text-sm leading-7 text-foreground/90">
-                            <strong>트리폴리(Trifoli)</strong>는 행운을 쫓지 않습니다.
-                            지루해 보일지 몰라도, 비바람에도 꺾이지 않고 언제나 들판을 가득 채우는 <strong>세잎클로버(건전한 기업, 배당, 성장)</strong>의 생명력에 집중합니다.
+                        <p className="text-sm leading-7 text-foreground/90 space-y-4">
+                            <strong>트리폴리(Trifoli)</strong>라는 이름은 세잎클로버의 학명인 'Trifolium'에서 비롯되었습니다. 우리의 사명은 신기루 같은 요행을 약속하는 것이 아닙니다. 대신, 비바람에도 꺾이지 않고 들판을 푸르게 덮는 세잎클로버의 강인한 생명력처럼, 당신의 포트폴리오를 <strong>'단단한 가치와 흔들리지 않는 평온'</strong>으로 채우는 데 집중합니다.<br /><br />
+                            우리는 단기적인 가격 변동성에 베팅하지 않습니다. 건전한 펀더멘털을 갖춘 기업, 꾸준한 배당, 그리고 정교한 자산 배분을 통한 <strong>'시간과 복리의 마법'</strong>이라는 변하지 않는 투자의 본질에 투자합니다.<br /><br />
+                            당신 발밑에 이미 굳건히 뿌리내린 확실한 행복, 그 올바른 장기투자의 여정을 트리폴리가 든든하게 함께 걷겠습니다.
                         </p>
                     </section>
 
@@ -125,14 +126,14 @@ export default function AboutPage() {
                     {/* Slogan */}
                     <div className="pt-8 text-center">
                         <div className="h-px w-full bg-gradient-to-r from-transparent via-border to-transparent mb-8" />
-                        <p className="text-lg font-serif italic text-foreground/80 font-medium mb-8">
-                            " 행운을 쫓지 마세요.<br />행복을 심으세요. "
+                        <p className="text-base font-serif italic text-foreground/80 font-medium mb-8 whitespace-nowrap">
+                            " 행운을 쫓지 마세요. 행복을 심으세요. "
                         </p>
 
                         <div className="flex flex-col gap-2 items-center">
-                            <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Designed by</span>
+                            <span className="text-[10px] text-muted-foreground uppercase tracking-widest">All Rights Reserved</span>
                             <span className="text-sm font-bold flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-                                <Club className="w-4 h-4 fill-current" /> Trifoli Team
+                                <Club className="w-4 h-4 fill-current" /> Trifoli
                             </span>
                         </div>
                     </div>

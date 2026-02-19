@@ -68,12 +68,19 @@ export function ProfileSettings() {
             animate="show"
         >
             {/* Header */}
-            <motion.div variants={item} className="flex flex-col items-center text-center space-y-3 pt-4">
-                <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center border-2 border-primary/20 shadow-lg overflow-hidden">
-                    {user?.user_metadata?.avatar_url ? (
-                        <img src={user.user_metadata.avatar_url} alt="Profile" className="h-full w-full object-cover" />
-                    ) : (
-                        <User className="h-10 w-10 text-primary" />
+            <motion.div variants={item} className="flex flex-col items-center text-center space-y-4 pt-4">
+                <div className="relative">
+                    <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-emerald-500/30 flex items-center justify-center border-2 border-primary/20 shadow-2xl overflow-hidden backdrop-blur-sm">
+                        {user?.user_metadata?.avatar_url ? (
+                            <img src={user.user_metadata.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                        ) : (
+                            <User className="h-10 w-10 text-primary" />
+                        )}
+                    </div>
+                    {user && (
+                        <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-primary border-4 border-background flex items-center justify-center">
+                            <Sparkles className="h-3 w-3 text-white fill-current" />
+                        </div>
                     )}
                 </div>
                 <div>
@@ -172,22 +179,22 @@ export function ProfileSettings() {
                 <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">환경설정</h3>
                 <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md">
                     <div className="divide-y divide-white/10 dark:divide-white/5">
-                        <div className="p-4 flex items-center justify-between">
+                        <div className="p-4 flex items-center justify-between hover:bg-white/5 dark:hover:bg-white/5 transition-colors group">
                             <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                     <Bell className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">알림 설정</span>
+                                <span className="font-semibold text-[13px]">알림 설정</span>
                             </div>
                             <Switch defaultChecked={mounted ? true : false} />
                         </div>
 
-                        <div className="p-4 flex items-center justify-between">
+                        <div className="p-4 flex items-center justify-between hover:bg-white/5 dark:hover:bg-white/5 transition-colors group">
                             <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-500">
+                                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                     <Moon className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">다크 모드</span>
+                                <span className="font-semibold text-[13px]">다크 모드</span>
                             </div>
                             <Switch
                                 checked={mounted ? theme === "dark" : false}
@@ -196,17 +203,17 @@ export function ProfileSettings() {
                         </div>
 
                         <div
-                            className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors"
+                            className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors group"
                             onClick={() => setCurrency(currency === "KRW" ? "USD" : "KRW")}
                         >
                             <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
+                                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                     <DollarSign className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">기본 통화</span>
+                                <span className="font-semibold text-[13px]">기본 통화</span>
                             </div>
                             <div className="flex items-center gap-2 text-muted-foreground">
-                                <span className="text-sm font-medium text-foreground">{currency === "KRW" ? "원화 (KRW)" : "달러 (USD)"}</span>
+                                <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded-md">{currency === "KRW" ? "원화 (KRW)" : "달러 (USD)"}</span>
                                 <ChevronRight className="h-4 w-4" />
                             </div>
                         </div>
@@ -219,36 +226,36 @@ export function ProfileSettings() {
                 <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">지원 및 정보</h3>
                 <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md">
                     <div className="divide-y divide-white/10 dark:divide-white/5">
-                        <Link href="/profile/about" className="block">
-                            <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+                        <Link href="/profile/about" className="block group">
+                            <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                    <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                         <Club className="h-4 w-4" />
                                     </div>
-                                    <span className="font-medium">서비스 스토리</span>
+                                    <span className="font-semibold text-[13px]">서비스 스토리</span>
                                 </div>
-                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
                             </div>
                         </Link>
 
-                        <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+                        <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors group">
                             <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
+                                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                     <HelpCircle className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">고객 센터</span>
+                                <span className="font-semibold text-[13px]">고객 센터</span>
                             </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
                         </div>
 
-                        <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+                        <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors group">
                             <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-500">
+                                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                     <Shield className="h-4 w-4" />
                                 </div>
-                                <span className="font-medium">개인정보 처리방침</span>
+                                <span className="font-semibold text-[13px]">개인정보 처리방침</span>
                             </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
                         </div>
                     </div>
                 </Card>
