@@ -123,12 +123,12 @@ export function CompoundCalculator() {
             {/* Input Card: Premium Glassmorphism - Enhanced by Stitch */}
             <Card className="relative overflow-hidden border border-white/15 bg-white/5 dark:bg-black/30 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
                 {/* Top Gradient Accent Line */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-60" />
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-60" />
 
                 <CardHeader className="pb-5 border-b border-white/[0.06]">
                     <div className="flex items-center gap-2.5 mb-1.5">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20">
-                            <Calculator className="w-4 h-4 text-sky-500" />
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                            <Calculator className="w-4 h-4 text-emerald-500" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground tracking-tight">경제적 자유 시뮬레이션</h3>
                     </div>
@@ -141,7 +141,7 @@ export function CompoundCalculator() {
                     {/* 1. Initial Amount */}
                     <div className="space-y-3">
                         <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                            <Wallet className="w-3.5 h-3.5 text-sky-500/70" />
+                            <Wallet className="w-3.5 h-3.5 text-emerald-500/70" />
                             기초 보유 자산 ({currency === "KRW" ? "원" : "$"})
                         </label>
                         <Input
@@ -151,7 +151,7 @@ export function CompoundCalculator() {
                                 const val = Number(e.target.value.replace(/[^0-9]/g, ""));
                                 setInitial(val);
                             }}
-                            className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-sky-500/50 focus:ring-sky-500/20 transition-all rounded-xl text-lg font-medium"
+                            className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl text-lg font-medium"
                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
                         />
                         <div className="flex flex-nowrap overflow-x-auto gap-1.5 pb-2 -mx-1 px-1 scrollbar-none">
@@ -165,7 +165,7 @@ export function CompoundCalculator() {
                                     className={cn(
                                         "px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all duration-300 whitespace-nowrap shrink-0",
                                         initial === amt
-                                            ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                             : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                     )}
                                 >
@@ -188,7 +188,7 @@ export function CompoundCalculator() {
                     <div className="space-y-3">
                         <div className="flex items-center gap-1">
                             <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                                <Coins className="w-3.5 h-3.5 text-sky-500/70" />
+                                <Coins className="w-3.5 h-3.5 text-emerald-500/70" />
                                 월 추가 투자 금액 ({currency === "KRW" ? "원" : "$"})
                             </label>
                             <Popover>
@@ -196,7 +196,7 @@ export function CompoundCalculator() {
                                     <HelpCircle className="w-3 h-3 text-muted-foreground/50 cursor-help" />
                                 </PopoverTrigger>
                                 <PopoverContent className="w-64 text-xs leading-relaxed">
-                                    <p className="font-bold mb-1 text-sky-500">납입금 증액 가정</p>
+                                    <p className="font-bold mb-1 text-emerald-500">납입금 증액 가정</p>
                                     설정하신 인플레이션 수치만큼 매년 월 납입액도 비례해서 증액된다고 가정합니다. 이는 시간이 흘러도 저축의 '실질 가치'를 일정하게 유지하는 현실적인 시나리오를 반영합니다.
                                 </PopoverContent>
                             </Popover>
@@ -208,7 +208,7 @@ export function CompoundCalculator() {
                                 const val = Number(e.target.value.replace(/[^0-9]/g, ""));
                                 setMonthly(val);
                             }}
-                            className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-sky-500/50 focus:ring-sky-500/20 transition-all rounded-xl text-lg font-medium"
+                            className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl text-lg font-medium"
                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
                         />
                         <div className="flex flex-wrap gap-2">
@@ -222,7 +222,7 @@ export function CompoundCalculator() {
                                     className={cn(
                                         "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
                                         monthly === amt
-                                            ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                             : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                     )}
                                 >
@@ -243,10 +243,10 @@ export function CompoundCalculator() {
                     <div className="space-y-4">
                         <div className="flex justify-between items-end">
                             <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                                <TrendingUp className="w-3.5 h-3.5 text-sky-500/70" />
+                                <TrendingUp className="w-3.5 h-3.5 text-emerald-500/70" />
                                 연평균 목표(명목) 수익률 (%)
                             </label>
-                            <span className="text-sm font-bold text-sky-500">{rate}%</span>
+                            <span className="text-sm font-bold text-emerald-500">{rate}%</span>
                         </div>
                         <Slider
                             value={[rate]}
@@ -268,7 +268,7 @@ export function CompoundCalculator() {
                                     className={cn(
                                         "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
                                         rate === item.val
-                                            ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                             : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                     )}
                                 >
@@ -285,10 +285,10 @@ export function CompoundCalculator() {
                     <div className="space-y-4">
                         <div className="flex justify-between items-end">
                             <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                                <CalendarDays className="w-3.5 h-3.5 text-sky-500/70" />
+                                <CalendarDays className="w-3.5 h-3.5 text-emerald-500/70" />
                                 투자 기간 (년)
                             </label>
-                            <span className="text-sm font-bold text-sky-500">{years}년</span>
+                            <span className="text-sm font-bold text-emerald-500">{years}년</span>
                         </div>
                         <Slider
                             defaultValue={[years]}
@@ -308,7 +308,7 @@ export function CompoundCalculator() {
                                     className={cn(
                                         "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
                                         years === y
-                                            ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                             : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                     )}
                                 >
@@ -324,14 +324,14 @@ export function CompoundCalculator() {
                     {/* 5. Inflation */}
                     <div className="space-y-3">
                         <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                            <Percent className="w-3.5 h-3.5 text-sky-500/70" />
+                            <Percent className="w-3.5 h-3.5 text-emerald-500/70" />
                             연평균 인플레이션 (%)
                         </label>
                         <Input
                             type="number"
                             value={inflation}
                             onChange={(e) => setInflation(Number(e.target.value))}
-                            className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-sky-500/50 focus:ring-sky-500/20 transition-all rounded-xl text-lg font-medium"
+                            className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl text-lg font-medium"
                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
                         />
                         <div className="flex flex-wrap gap-2">
@@ -342,7 +342,7 @@ export function CompoundCalculator() {
                                     className={cn(
                                         "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
                                         inflation === val
-                                            ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                             : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                     )}
                                 >
@@ -356,7 +356,7 @@ export function CompoundCalculator() {
                     <div className="pt-2">
                         <Button
                             onClick={onCalculate}
-                            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-[0_4px_24px_rgba(14,165,233,0.3)] hover:shadow-[0_4px_32px_rgba(14,165,233,0.4)] rounded-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98]"
+                            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-[0_4px_24px_rgba(16,185,129,0.3)] hover:shadow-[0_4px_32px_rgba(16,185,129,0.4)] rounded-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98]"
                         >
                             자유 계산하기
                         </Button>
@@ -381,7 +381,7 @@ export function CompoundCalculator() {
 
                                 return (
                                     <h2 className={cn(
-                                        "font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 tracking-tight whitespace-nowrap px-4 py-2 text-center",
+                                        "font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-700 tracking-tight whitespace-nowrap px-4 py-2 text-center",
                                         fontSizeClass
                                     )}>
                                         {formattedValue}
@@ -528,8 +528,8 @@ export function CompoundCalculator() {
                                 >
                                     <defs>
                                         <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="colorInvested" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#64748b" stopOpacity={0.3} />
@@ -570,10 +570,10 @@ export function CompoundCalculator() {
                                                         <div className="space-y-1.5 min-w-[180px]">
                                                             <div className="flex justify-between gap-4 items-center">
                                                                 <div className="flex items-center gap-1.5">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                                                     <span className="text-muted-foreground">누적 명목 자산</span>
                                                                 </div>
-                                                                <span className="font-bold text-sky-500 tabular-nums">
+                                                                <span className="font-bold text-emerald-500 tabular-nums">
                                                                     {formatVal(nominalAsset)}
                                                                 </span>
                                                             </div>
@@ -605,7 +605,7 @@ export function CompoundCalculator() {
                                     <Area
                                         type="monotone"
                                         dataKey="totalAmount"
-                                        stroke="#0EA5E9"
+                                        stroke="#10B981"
                                         fill="url(#colorTotal)"
                                         strokeWidth={2}
                                     />

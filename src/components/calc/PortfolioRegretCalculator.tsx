@@ -571,12 +571,12 @@ export function PortfolioRegretCalculator() {
             {/* Input Card: Premium Glassmorphism - Enhanced by Stitch */}
             <Card className="relative overflow-hidden border border-white/15 bg-white/5 dark:bg-black/30 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
                 {/* Top Gradient Accent Line */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-60" />
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-60" />
 
                 <CardHeader className="pb-5 border-b border-white/[0.06]">
                     <div className="flex items-center gap-2.5 mb-1.5">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20">
-                            <PieChart className="w-4 h-4 text-sky-500" />
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                            <PieChart className="w-4 h-4 text-emerald-500" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground tracking-tight">포트폴리오 백테스팅</h3>
                     </div>
@@ -596,13 +596,13 @@ export function PortfolioRegretCalculator() {
                             <DropdownMenuTrigger asChild>
                                 <Button
                                     variant="outline"
-                                    className="w-full h-12 justify-between bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-sky-500/40 transition-all duration-300 rounded-xl px-4"
+                                    className="w-full h-12 justify-between bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-emerald-500/40 transition-all duration-300 rounded-xl px-4"
                                 >
                                     <div className="flex items-center gap-2">
                                         {(() => {
                                             const preset = PRESETS.find(p => p.name === selectedPreset);
                                             if (preset) return <span className="text-xl">{preset.icon}</span>;
-                                            if (selectedPreset === "나만의 조합 만들기") return <Plus className="w-4 h-4 text-sky-500" />;
+                                            if (selectedPreset === "나만의 조합 만들기") return <Plus className="w-4 h-4 text-emerald-500" />;
                                             return <Sparkles className="w-4 h-4 text-yellow-500" />;
                                         })()}
                                         <span className="font-semibold text-foreground">{selectedPreset}</span>
@@ -629,9 +629,9 @@ export function PortfolioRegretCalculator() {
                                         setAssets([{ ticker: "", weight: 100 }]);
                                         setSelectedPreset("나만의 조합 만들기");
                                     }}
-                                    className="flex items-center gap-2 p-3 cursor-pointer focus:bg-white/10 transition-colors rounded-lg text-sky-500 font-semibold"
+                                    className="flex items-center gap-2 p-3 cursor-pointer focus:bg-white/10 transition-colors rounded-lg text-emerald-500 font-semibold"
                                 >
-                                    <Plus className="w-4 h-4 ml-1 text-sky-500" />
+                                    <Plus className="w-4 h-4 ml-1 text-emerald-500" />
                                     <span>직접 구성하기 (초기화)</span>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -645,14 +645,14 @@ export function PortfolioRegretCalculator() {
                     <div className="space-y-4 bg-white/[0.02] dark:bg-white/[0.03] p-4 rounded-2xl border border-white/[0.06]">
                         <div className="flex justify-between items-center">
                             <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider flex items-center gap-1.5">
-                                <div className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                 구성 종목 및 비중 설정
                             </label>
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={normalizeWeights}
-                                className="text-xs h-7 px-3 text-sky-500 hover:text-white hover:bg-sky-500 rounded-lg transition-colors"
+                                className="text-xs h-7 px-3 text-emerald-500 hover:text-white hover:bg-emerald-500 rounded-lg transition-colors"
                             >
                                 비중 100% 자동 맞춤
                             </Button>
@@ -673,7 +673,7 @@ export function PortfolioRegretCalculator() {
                                             type="number"
                                             value={asset.weight}
                                             onChange={(e) => handleAssetChange(index, "weight", Number(e.target.value))}
-                                            className="pr-8 text-right font-medium bg-white/40 dark:bg-black/20 border-white/10 focus:border-sky-500/50 transition-all"
+                                            className="pr-8 text-right font-medium bg-white/40 dark:bg-black/20 border-white/10 focus:border-emerald-500/50 transition-all"
                                         />
                                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">%</span>
                                     </div>
@@ -691,7 +691,7 @@ export function PortfolioRegretCalculator() {
                             <Button
                                 variant="outline"
                                 onClick={handleAddAsset}
-                                className="w-full border-dashed border-white/20 hover:bg-white/5 hover:border-sky-500/30 hover:text-sky-500 text-muted-foreground transition-all h-10 rounded-xl"
+                                className="w-full border-dashed border-white/20 hover:bg-white/5 hover:border-emerald-500/30 hover:text-emerald-500 text-muted-foreground transition-all h-10 rounded-xl"
                             >
                                 <Plus className="h-4 w-4 mr-2" /> 새 종목 추가하기
                             </Button>
@@ -717,7 +717,7 @@ export function PortfolioRegretCalculator() {
                         {/* Amount Selection */}
                         <div className="space-y-3">
                             <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                                <DollarSign className="w-3.5 h-3.5 text-sky-500/70" />
+                                <DollarSign className="w-3.5 h-3.5 text-emerald-500/70" />
                                 기준 투자 금액 ({currency === "KRW" ? "원" : "$"})
                             </label>
                             <div className="grid grid-cols-4 gap-2">
@@ -731,7 +731,7 @@ export function PortfolioRegretCalculator() {
                                         className={cn(
                                             "relative h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                             amount === amt
-                                                ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                                 : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                         )}
                                     >
@@ -749,7 +749,7 @@ export function PortfolioRegretCalculator() {
                         {/* Period Selection */}
                         <div className="space-y-3">
                             <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                                <CalendarDays className="w-3.5 h-3.5 text-sky-500/70" />
+                                <CalendarDays className="w-3.5 h-3.5 text-emerald-500/70" />
                                 투자 시점 (과거)
                             </label>
                             <div className="grid grid-cols-3 gap-2">
@@ -760,7 +760,7 @@ export function PortfolioRegretCalculator() {
                                         className={cn(
                                             "h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                             period === p
-                                                ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                                 : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                         )}
                                     >
@@ -776,7 +776,7 @@ export function PortfolioRegretCalculator() {
                         {/* Rebalancing Frequency Selection */}
                         <div className="space-y-3">
                             <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                                <RefreshCw className="w-3.5 h-3.5 text-sky-500/70" />
+                                <RefreshCw className="w-3.5 h-3.5 text-emerald-500/70" />
                                 리밸런싱 주기
                             </label>
                             <div className="grid grid-cols-4 gap-2">
@@ -792,7 +792,7 @@ export function PortfolioRegretCalculator() {
                                         className={cn(
                                             "h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                             rebalancePeriod === opt.value
-                                                ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                                 : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                         )}
                                     >
@@ -808,7 +808,7 @@ export function PortfolioRegretCalculator() {
                         <Button
                             onClick={onCalculate}
                             disabled={isLoading}
-                            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-[0_4px_24px_rgba(14,165,233,0.3)] hover:shadow-[0_4px_32px_rgba(14,165,233,0.4)] rounded-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
+                            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-[0_4px_24px_rgba(16,185,129,0.3)] hover:shadow-[0_4px_32px_rgba(16,185,129,0.4)] rounded-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
                         >
                             {isLoading ? (
                                 <>
@@ -822,7 +822,7 @@ export function PortfolioRegretCalculator() {
                     </div>
 
                     {error && (
-                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-center animate-in fade-in slide-in-from-top-2">
+                        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/50 text-center animate-in fade-in slide-in-from-top-2">
                             <p className="text-red-500 text-sm font-medium">
                                 {error}
                             </p>
@@ -835,7 +835,7 @@ export function PortfolioRegretCalculator() {
             {isCalculated && result && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <Card className="overflow-hidden border border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-xl shadow-2xl">
-                        <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-purple-500/5 pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-purple-500/5 pointer-events-none" />
                         <CardContent className="pt-8 pb-8 px-6 relative z-10">
                             <div className="text-center space-y-2 mb-10">
                                 <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-white/10 border border-white/10 backdrop-blur-md mb-2">
@@ -858,7 +858,7 @@ export function PortfolioRegretCalculator() {
 
                                         return (
                                             <h1 className={cn(
-                                                "font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 tracking-tight whitespace-nowrap px-1",
+                                                "font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-700 tracking-tight whitespace-nowrap px-1",
                                                 fontSizeClass
                                             )}>
                                                 {formattedFinalValue}
@@ -889,7 +889,7 @@ export function PortfolioRegretCalculator() {
                                             </div>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
-                                            <p className="font-bold text-sky-400 mb-1">연평균 수익률 (CAGR)</p>
+                                            <p className="font-bold text-emerald-400 mb-1">연평균 수익률 (CAGR)</p>
                                             기하급수적으로 자산이 매년 평균 몇 %씩 성장했는지를 보여주는 지표입니다. CAGR이라는 약어로 불리며, 복리 수익을 반영한 실질 성장률을 의미합니다.
                                         </PopoverContent>
                                     </Popover>
@@ -911,7 +911,7 @@ export function PortfolioRegretCalculator() {
                                             <p className="font-bold text-red-400 mb-1">최대 낙폭 (MDD)</p>
                                             투자 기간 중 특정 고점에서 전 저점까지의 최대 하락폭을 의미합니다. 자산 가치가 가장 크게 깎였던 고통의 크기를 보여주는 대표적인 리스크 지표입니다.
                                             {result.mddPeriod && (
-                                                <div className="mt-2 pt-2 border-t border-white/10 text-sky-400/80">
+                                                <div className="mt-2 pt-2 border-t border-white/10 text-emerald-400/80">
                                                     <p className="font-semibold text-[10px] uppercase opacity-70 mb-0.5">최대 낙폭 기간</p>
                                                     <p className="text-[11px] font-bold">
                                                         {result.mddPeriod.start.substring(0, 7)} ~ {result.mddPeriod.end.substring(0, 7)}
@@ -943,7 +943,7 @@ export function PortfolioRegretCalculator() {
                                             </div>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
-                                            <p className="font-bold text-sky-400 mb-1">최고의 해 ({result.bestYear.year}년)</p>
+                                            <p className="font-bold text-emerald-400 mb-1">최고의 해 ({result.bestYear.year}년)</p>
                                             백테스팅 기간 중 연간 수익률(1월~12월 기준)이 가장 높았던 해입니다. {result.bestYear.year}년에 가장 뛰어난 성과를 기록했습니다.
                                         </PopoverContent>
                                     </Popover>
@@ -981,7 +981,7 @@ export function PortfolioRegretCalculator() {
                                             </div>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
-                                            <p className="font-bold text-sky-400 mb-1">월별 승률</p>
+                                            <p className="font-bold text-emerald-400 mb-1">월별 승률</p>
                                             전체 투자 기간 중 전월 대비 자산 가치가 상승하며 마감한 달의 비율입니다. 승률이 높을수록 하락하는 달보다 수익을 내는 달이 더 많았음을 의미하는 지표입니다.
                                         </PopoverContent>
                                     </Popover>
@@ -994,8 +994,8 @@ export function PortfolioRegretCalculator() {
                                     <AreaChart data={result.chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.4} />
-                                                <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
+                                                <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
+                                                <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                                             </linearGradient>
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.06} />
@@ -1038,7 +1038,7 @@ export function PortfolioRegretCalculator() {
                                         <Area
                                             type="monotone"
                                             dataKey="value"
-                                            stroke="#0EA5E9"
+                                            stroke="#10B981"
                                             fill="url(#colorValue)"
                                             strokeWidth={3}
                                             activeDot={{ r: 6, strokeWidth: 0, fill: '#fff' }}
@@ -1051,7 +1051,7 @@ export function PortfolioRegretCalculator() {
                             <div className="bg-white/5 dark:bg-black/20 rounded-3xl p-6 border border-white/5 backdrop-blur-md">
                                 <h3 className="text-xs font-black text-muted-foreground/60 mb-6 uppercase tracking-[0.2em] flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <PieChart className="w-4 h-4 text-sky-500" />
+                                        <PieChart className="w-4 h-4 text-emerald-500" />
                                         종목별 기여도 분석
                                     </div>
                                     <span className="text-[10px] font-medium lowercase italic opacity-50">Contribution Details</span>
@@ -1061,7 +1061,7 @@ export function PortfolioRegretCalculator() {
                                     {[...result.assets].sort((a, b) => b.finalValue - a.finalValue).map((asset, idx) => (
                                         <div
                                             key={asset.ticker}
-                                            className="relative overflow-hidden p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-500/30 transition-all duration-300 group shadow-sm hover:shadow-sky-500/5"
+                                            className="relative overflow-hidden p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all duration-300 group shadow-sm hover:shadow-emerald-500/5"
                                         >
                                             <div className="relative z-10 flex items-center justify-between gap-3">
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -1075,7 +1075,7 @@ export function PortfolioRegretCalculator() {
                                                             {asset.returnRate > result.returnRate && (
                                                                 <Popover>
                                                                     <PopoverTrigger asChild>
-                                                                        <span className="cursor-help flex-shrink-0 text-[7px] font-black px-1 py-0.5 rounded bg-green-500/10 text-green-500 border border-green-500/20 uppercase tracking-tighter shadow-sm hover:bg-green-500/20 transition-colors leading-none">
+                                                                        <span className="cursor-help flex-shrink-0 text-[7px] font-black px-1 py-0.5 rounded bg-green-500/10 text-green-500 border border-emerald-500/30 uppercase tracking-tighter shadow-sm hover:bg-green-500/20 transition-colors leading-none">
                                                                             Ace
                                                                         </span>
                                                                     </PopoverTrigger>

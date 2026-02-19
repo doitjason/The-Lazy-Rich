@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "CORE",
+  title: "Trifoli",
   description: "Investment Companion",
   manifest: "/manifest.json",
 };

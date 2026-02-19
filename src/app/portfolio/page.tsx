@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PortfolioDashboard } from "@/components/portfolio/PortfolioDashboard";
 import { AddStockDialog } from "@/components/portfolio/AddStockDialog";
 import { motion } from "framer-motion";
+import { BrandStoryDialog } from "@/components/layout/BrandStoryDialog";
 
 export default function PortfolioPage() {
     const [isAddOpen, setIsAddOpen] = useState(false);

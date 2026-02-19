@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, Moon, DollarSign, HelpCircle, Shield, LogOut, ChevronRight, User } from "lucide-react";
+import { Bell, Moon, DollarSign, HelpCircle, Shield, LogOut, ChevronRight, User, Sparkles, Club } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -213,6 +214,18 @@ export function ProfileSettings() {
                 <h3 className="text-sm font-medium text-muted-foreground px-1 uppercase tracking-wide">지원 및 정보</h3>
                 <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md">
                     <div className="divide-y divide-white/10 dark:divide-white/5">
+                        <Link href="/profile/about" className="block">
+                            <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                        <Club className="h-4 w-4" />
+                                    </div>
+                                    <span className="font-medium">서비스 스토리</span>
+                                </div>
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                        </Link>
+
                         <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
                             <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">

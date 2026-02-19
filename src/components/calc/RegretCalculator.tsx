@@ -225,12 +225,12 @@ export function RegretCalculator() {
             {/* Input Card: Premium Glassmorphism - Enhanced by Stitch */}
             <Card className="relative overflow-hidden border border-white/15 bg-white/5 dark:bg-black/30 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
                 {/* Top Gradient Accent Line */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-60" />
+                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-60" />
 
                 <CardHeader className="pb-5 border-b border-white/[0.06]">
                     <div className="flex items-center gap-2.5 mb-1.5">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20">
-                            <TrendingUp className="w-4 h-4 text-sky-500" />
+                        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                            <TrendingUp className="w-4 h-4 text-emerald-500" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground tracking-tight">개별 종목 백테스팅</h3>
                     </div>
@@ -243,7 +243,7 @@ export function RegretCalculator() {
                     {/* 1. Ticker Input (Real Search) */}
                     <div className="space-y-3">
                         <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                            <Search className="w-3.5 h-3.5 text-sky-500/70" />
+                            <Search className="w-3.5 h-3.5 text-emerald-500/70" />
                             투자 종목 (티커)
                         </label>
                         <StockSearchInput
@@ -259,7 +259,7 @@ export function RegretCalculator() {
                     {/* 2. Amount Selection (Modern Chips) */}
                     <div className="space-y-3">
                         <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                            <DollarSign className="w-3.5 h-3.5 text-sky-500/70" />
+                            <DollarSign className="w-3.5 h-3.5 text-emerald-500/70" />
                             기준 투자 금액 ({currency === "KRW" ? "원" : "$"})
                         </label>
                         <div className="grid grid-cols-4 gap-2">
@@ -273,7 +273,7 @@ export function RegretCalculator() {
                                     className={cn(
                                         "relative h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                         amount === amt
-                                            ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                             : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                     )}
                                 >
@@ -293,7 +293,7 @@ export function RegretCalculator() {
                     {/* 3. Period Selection (Grid) */}
                     <div className="space-y-3">
                         <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                            <CalendarDays className="w-3.5 h-3.5 text-sky-500/70" />
+                            <CalendarDays className="w-3.5 h-3.5 text-emerald-500/70" />
                             투자 시점 (과거)
                         </label>
                         <div className="grid grid-cols-3 gap-2">
@@ -304,7 +304,7 @@ export function RegretCalculator() {
                                     className={cn(
                                         "h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                         period === p
-                                            ? "bg-sky-500/15 text-sky-400 border border-sky-500/40 shadow-[0_0_12px_rgba(14,165,233,0.15)]"
+                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                                             : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
                                     )}
                                 >
@@ -319,7 +319,7 @@ export function RegretCalculator() {
                         <Button
                             onClick={onCalculate}
                             disabled={isLoading || !ticker}
-                            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-[0_4px_24px_rgba(14,165,233,0.3)] hover:shadow-[0_4px_32px_rgba(14,165,233,0.4)] rounded-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
+                            className="w-full h-14 text-lg font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-[0_4px_24px_rgba(16,185,129,0.3)] hover:shadow-[0_4px_32px_rgba(16,185,129,0.4)] rounded-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:shadow-none"
                         >
                             {isLoading ? (
                                 <>
@@ -350,7 +350,7 @@ export function RegretCalculator() {
                             <CardContent className="pt-0 text-center space-y-2">
                                 {/* Stock Name Badge */}
                                 <div className="flex items-center justify-center gap-2 mb-2 whitespace-nowrap">
-                                    <span className="text-sm font-medium text-sky-500 bg-sky-500/10 border border-sky-500/50 px-2 py-0.5 rounded-md shrink-0">
+                                    <span className="text-sm font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/50 px-2 py-0.5 rounded-md shrink-0">
                                         {result.ticker}
                                     </span>
                                     <span className="text-sm text-muted-foreground truncate max-w-[200px]">{result.name}</span>
@@ -378,7 +378,7 @@ export function RegretCalculator() {
 
                                         return (
                                             <h2 className={cn(
-                                                "font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-500 whitespace-nowrap px-2 pb-2 text-center w-full",
+                                                "font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-700 whitespace-nowrap px-2 pb-2 text-center w-full",
                                                 fontSizeClass
                                             )}>
                                                 {formattedValue}
@@ -414,7 +414,7 @@ export function RegretCalculator() {
                                             </div>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
-                                            <p className="font-bold text-sky-400 mb-1">연평균 수익률 (CAGR)</p>
+                                            <p className="font-bold text-emerald-400 mb-1">연평균 수익률 (CAGR)</p>
                                             기하급수적으로 자산이 매년 평균 몇 %씩 성장했는지를 보여주는 지표입니다. 복리 수익을 반영한 실질 성장률입니다.
                                         </PopoverContent>
                                     </Popover>
@@ -436,7 +436,7 @@ export function RegretCalculator() {
                                             <p className="font-bold text-red-400 mb-1">최대 낙폭 (MDD)</p>
                                             투자 기간 중 최고점에서 최저점까지 최대 하락했던 정도입니다. 투자자의 인내심을 테스트하는 가장 중요한 리스크 지표입니다.
                                             {result.mddPeriod && (
-                                                <div className="mt-2 pt-2 border-t border-white/10 text-sky-400/80">
+                                                <div className="mt-2 pt-2 border-t border-white/10 text-emerald-400/80">
                                                     <p className="font-semibold text-[10px] uppercase opacity-70 mb-0.5">최대 낙폭 기간</p>
                                                     <p className="text-[11px] font-bold">
                                                         {result.mddPeriod.start.substring(0, 7)} ~ {result.mddPeriod.end.substring(0, 7)}
@@ -499,7 +499,7 @@ export function RegretCalculator() {
                                             </div>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-64 text-xs font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed">
-                                            <p className="font-bold text-sky-400 mb-1">고점 대비 하락</p>
+                                            <p className="font-bold text-emerald-400 mb-1">고점 대비 하락</p>
                                             역대 최고가(ATH) 대비 현재 주가의 위치입니다. 0%이면 최고가 경신중이며, 수치가 클수록 전성기 대비 많이 할인된 상태입니다.
                                         </PopoverContent>
                                     </Popover>
@@ -513,8 +513,8 @@ export function RegretCalculator() {
                                         >
                                             <defs>
                                                 <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.3} />
-                                                    <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
+                                                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                                                 </linearGradient>
                                             </defs>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
@@ -563,7 +563,7 @@ export function RegretCalculator() {
                                                                 <p className="mb-1 font-bold">{label}</p>
                                                                 <div className="space-y-1">
                                                                     <p className="text-muted-foreground">
-                                                                        가치: <span className="font-bold text-sky-500">{formatCurrency(data.value)}</span>
+                                                                        가치: <span className="font-bold text-emerald-500">{formatCurrency(data.value)}</span>
                                                                     </p>
                                                                     <p className="text-muted-foreground">
                                                                         주가: <span className="font-medium text-current">{formatCompactNumber(data.stockPrice)}</span>
@@ -578,7 +578,7 @@ export function RegretCalculator() {
                                             <Area
                                                 type="monotone"
                                                 dataKey="value"
-                                                stroke="#0EA5E9"
+                                                stroke="#10B981"
                                                 strokeWidth={2}
                                                 fillOpacity={1}
                                                 fill="url(#colorValue)"
@@ -598,7 +598,7 @@ export function RegretCalculator() {
                     <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-6">
                         <Button
                             onClick={handleShare}
-                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2"
+                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2"
                         >
                             <Share2 className="w-5 h-5 text-white" />
                             <span>친구에게 공유하기</span>
@@ -606,7 +606,7 @@ export function RegretCalculator() {
                         <Button
                             onClick={handleDownloadImage}
                             disabled={isLoading}
-                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             <Download className="w-5 h-5 text-white" />
                             <span>이미지로 저장하기</span>

@@ -5,6 +5,7 @@ import { GuruSelector } from "@/components/guru/GuruSelector";
 import { ChatInterface } from "@/components/guru/ChatInterface";
 import { GuruPersona } from "@/lib/guru-personas";
 import { useAuth } from "@/contexts/AuthContext";
+import { BrandStoryDialog } from "@/components/layout/BrandStoryDialog";
 
 export default function GuruPage() {
     const [selectedGuru, setSelectedGuru] = useState<GuruPersona | null>(null);

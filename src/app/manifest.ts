@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: 'CORE',
-        short_name: 'CORE',
+        name: 'Trifoli',
+        short_name: 'Trifoli',
         description: 'Your Personal AI Mentor & Portfolio Manager',
         start_url: '/guru',
         display: 'standalone',
