@@ -18,7 +18,7 @@ export default function CalcPage() {
             </header>
 
             {/* Navigation Tabs (Pill Style) */}
-            <div className="flex items-center justify-center gap-1 pb-2 w-full overflow-x-auto no-scrollbar relative">
+            <div className="flex items-center justify-center gap-1.5 pb-2 w-full overflow-hidden relative">
                 {[
                     { id: "regret", label: "했제 계산기 V1", icon: "🕰️" },
                     { id: "regret-v2", label: "했제 계산기 V2", icon: "📊" },
@@ -28,7 +28,7 @@ export default function CalcPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={cn(
-                            "px-3.5 py-2.5 rounded-full text-[12px] font-black whitespace-nowrap transition-all duration-500 relative overflow-hidden group/tab flex-shrink-0",
+                            "px-2.5 sm:px-3.5 py-2 rounded-full text-[11px] xs:text-[12px] sm:text-[13px] font-black whitespace-nowrap transition-all duration-500 relative overflow-hidden group/tab flex-shrink-0 tracking-tight",
                             activeTab === tab.id
                                 ? "text-white scale-105 shadow-xl shadow-emerald-500/20"
                                 : "text-muted-foreground hover:text-foreground bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md"
