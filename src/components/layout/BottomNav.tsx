@@ -7,27 +7,27 @@ import { cn } from "@/lib/utils";
 
 const items = [
     {
-        label: "AI Mentor",
+        label: "AI 멘토",
         icon: Bot,
         href: "/guru",
     },
     {
-        label: "Calc",
+        label: "계산기",
         icon: Calculator,
         href: "/calc",
     },
     {
-        label: "Portfolio",
+        label: "포트폴리오",
         icon: PieChart,
         href: "/portfolio",
     },
     {
-        label: "Insights",
+        label: "인사이트",
         icon: Lightbulb,
         href: "/insights",
     },
     {
-        label: "Profile",
+        label: "내 정보",
         icon: User,
         href: "/profile",
     },

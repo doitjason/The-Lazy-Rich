@@ -30,7 +30,7 @@ export default function CalcPage() {
                         className={cn(
                             "px-2.5 sm:px-3.5 py-2 rounded-full text-[11px] xs:text-[12px] sm:text-[13px] font-black whitespace-nowrap transition-all duration-500 relative overflow-hidden group/tab flex-shrink-0 tracking-tight",
                             activeTab === tab.id
-                                ? "text-white scale-105 shadow-xl shadow-emerald-500/20"
+                                ? "text-white scale-105"
                                 : "text-muted-foreground hover:text-foreground bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md"
                         )}
                     >

@@ -871,7 +871,11 @@ export function PortfolioRegretCalculator() {
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                         <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
                                         <span className={`text-xs sm:text-lg font-black flex items-center justify-center gap-0.5 ${result.profit >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
-                                            {result.profit >= 0 ? "+" : ""}{(Math.trunc(result.returnRate * 10) / 10).toFixed(1)}%
+                                            {result.profit >= 0 ? "+" : ""}
+                                            {result.returnRate >= 10000
+                                                ? formatCompactNumber(result.returnRate)
+                                                : result.returnRate.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+                                            }%
                                         </span>
                                     </div>
 
@@ -1115,7 +1119,7 @@ export function PortfolioRegretCalculator() {
                                                             {asset.profit >= 0 ? "+" : ""}{formatCompactNumber(asset.profit)}{currency === "KRW" ? " 원" : ""}
                                                         </span>
                                                         <span className={`flex-shrink-0 text-[10px] font-black px-1.5 py-0.5 rounded-md shadow-sm ${asset.returnRate >= 0 ? "bg-red-500 text-white" : "bg-blue-500 text-white"}`}>
-                                                            {asset.returnRate >= 0 ? "+" : ""}{asset.returnRate.toFixed(1)}%
+                                                            {asset.returnRate >= 0 ? "+" : ""}{asset.returnRate.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                                                         </span>
                                                     </div>
                                                 </div>

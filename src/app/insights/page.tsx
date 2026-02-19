@@ -30,7 +30,7 @@ export default function InsightsPage() {
                         className={cn(
                             "px-2.5 py-2 rounded-full text-[11px] xs:text-[12px] sm:text-[13px] font-black whitespace-nowrap transition-all duration-500 relative overflow-hidden group/tab flex-shrink-0",
                             selectedTab === tab.id
-                                ? "text-white scale-105 shadow-lg shadow-emerald-500/20"
+                                ? "text-white scale-105"
                                 : "text-muted-foreground hover:text-foreground bg-white/50 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-sm"
                         )}
                     >
