@@ -98,7 +98,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
             </p>
             <Button
                 onClick={onAdd}
-                className="bg-gradient-to-r from-primary to-sky-600 hover:from-primary/90 hover:to-sky-600/90 shadow-lg shadow-primary/20"
+                className="bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-teal-600/90 shadow-lg shadow-primary/20"
             >
                 <Plus className="h-4 w-4 mr-2" />
                 자산 추가하기
@@ -369,7 +369,7 @@ export function PortfolioList() {
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
-                                className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-sky-500/10 border border-primary/20 space-y-3"
+                                className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-teal-500/10 border border-primary/20 space-y-3"
                             >
                                 {/* Stock Search Dropdown */}
                                 <StockSearchInput
@@ -398,7 +398,7 @@ export function PortfolioList() {
                                         size="sm"
                                         onClick={handleAdd}
                                         disabled={loading}
-                                        className="flex-1 h-10 bg-gradient-to-r from-primary to-sky-600 hover:from-primary/90 hover:to-sky-600/90"
+                                        className="flex-1 h-10 bg-gradient-to-r from-primary to-teal-600 hover:from-primary/90 hover:to-teal-600/90"
                                     >
                                         <Check className="h-4 w-4 mr-1" />
                                         저장

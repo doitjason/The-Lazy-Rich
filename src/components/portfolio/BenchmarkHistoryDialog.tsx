@@ -86,7 +86,7 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                                         className={cn(
                                             "px-3 py-1.5 text-xs font-semibold rounded-md transition-all",
                                             range === r
-                                                ? "bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-400 shadow-sm border border-slate-200 dark:border-slate-600"
+                                                ? "bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm border border-slate-200 dark:border-slate-600"
                                                 : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                                         )}
                                     >
@@ -101,29 +101,29 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                     <div className="grid grid-cols-3 gap-2 mb-2">
                         <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm min-w-0 overflow-hidden">
                             <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 block mb-0.5 whitespace-nowrap">내 수익률 ({range})</span>
-                            <span className={cn("text-sm font-bold tracking-tight whitespace-nowrap block", periodReturn.portfolio >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
+                            <span className={cn("text-sm font-bold tracking-tight whitespace-nowrap block", periodReturn.portfolio >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
                                 {formatPercent(periodReturn.portfolio)}
                             </span>
                         </div>
                         <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-100 dark:border-slate-700 shadow-sm min-w-0 overflow-hidden">
                             <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400 block mb-0.5 whitespace-nowrap">시장 (SPY)</span>
-                            <span className={cn("text-sm font-bold tracking-tight whitespace-nowrap block", periodReturn.benchmark >= 0 ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
+                            <span className={cn("text-sm font-bold tracking-tight whitespace-nowrap block", periodReturn.benchmark >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
                                 {formatPercent(periodReturn.benchmark)}
                             </span>
                         </div>
                         <div className={cn(
                             "rounded-xl p-3 border shadow-sm flex flex-col justify-center relative overflow-hidden min-w-0",
                             isWin
-                                ? "bg-sky-50 dark:bg-sky-500/10 border-sky-100 dark:border-sky-500/20"
+                                ? "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20"
                                 : "bg-rose-50 dark:bg-rose-500/10 border-rose-100 dark:border-rose-500/20"
                         )}>
-                            <div className={cn("absolute top-0 right-0 p-1.5 opacity-10 text-[10px] font-bold", isWin ? "text-sky-600" : "text-rose-600")}>
+                            <div className={cn("absolute top-0 right-0 p-1.5 opacity-10 text-[10px] font-bold", isWin ? "text-emerald-600" : "text-rose-600")}>
                                 {isWin ? "WIN" : "LOSS"}
                             </div>
-                            <span className={cn("text-[10px] font-semibold block mb-0.5 whitespace-nowrap", isWin ? "text-sky-700 dark:text-sky-300" : "text-rose-700 dark:text-rose-300")}>
+                            <span className={cn("text-[10px] font-semibold block mb-0.5 whitespace-nowrap", isWin ? "text-emerald-700 dark:text-emerald-300" : "text-rose-700 dark:text-rose-300")}>
                                 Alpha
                             </span>
-                            <span className={cn("text-sm font-bold tracking-tight z-10 whitespace-nowrap block", isWin ? "text-sky-600 dark:text-sky-400" : "text-rose-600 dark:text-rose-400")}>
+                            <span className={cn("text-sm font-bold tracking-tight z-10 whitespace-nowrap block", isWin ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
                                 {alpha > 0 ? "+" : ""}{alpha.toFixed(2)}%p
                             </span>
                         </div>
@@ -134,7 +134,7 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                 <div className="h-[350px] w-full bg-white dark:bg-slate-900 p-4 relative border-t border-slate-100 dark:border-slate-800">
                     {loading ? (
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-slate-500 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
-                            <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
+                            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
                             <span className="text-sm font-medium animate-pulse text-slate-600 dark:text-slate-300">데이터를 분석하고 있습니다...</span>
                         </div>
                     ) : error ? (
@@ -189,10 +189,10 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                                     type="monotone"
                                     dataKey="portfolio"
                                     name="내 포트폴리오"
-                                    stroke="#0ea5e9" // sky-500
+                                    stroke="#10b981" // emerald-500
                                     strokeWidth={2.5}
                                     dot={false}
-                                    activeDot={{ r: 6, fill: "#0ea5e9", stroke: "#fff", strokeWidth: 2 }}
+                                    activeDot={{ r: 6, fill: "#10b981", stroke: "#fff", strokeWidth: 2 }}
                                     animationDuration={1500}
                                 />
                                 <Line
@@ -224,30 +224,50 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                     </div>
                     <div className="max-h-[300px] overflow-y-auto px-6 py-2">
                         {holdingsPerformance.length > 0 ? (
-                            <div className="space-y-2 pb-4">
-                                {holdingsPerformance.map((h) => (
-                                    <div key={h.ticker} className="flex items-center justify-between py-1 group">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-slate-200 shadow-sm group-hover:border-sky-500/30 transition-colors">
-                                                {h.ticker.slice(0, 2)}
+                            <div className="space-y-2 pb-4 pt-1">
+                                {holdingsPerformance.map((h) => {
+                                    const isProfit = h.return >= 0;
+                                    const profitColor = isProfit ? "text-red-500" : "text-blue-500";
+                                    const profitBg = isProfit ? "bg-red-500/10 border-red-500/20" : "bg-blue-500/10 border-blue-500/20";
+
+                                    return (
+                                        <div
+                                            key={h.ticker}
+                                            className="flex items-center justify-between p-3 rounded-xl bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/30 dark:border-white/10 shadow-sm hover:shadow-md hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-200 group"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10 shadow-sm flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                                                    <img
+                                                        src={`/api/logo?ticker=${h.ticker}`}
+                                                        alt={h.ticker}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = 'none';
+                                                            const fallback = e.currentTarget.parentElement?.querySelector('.fallback-initial');
+                                                            if (fallback) fallback.classList.remove('hidden');
+                                                        }}
+                                                    />
+                                                    <div className="fallback-initial hidden absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-[10px] font-black text-emerald-600 dark:text-emerald-400">
+                                                        {h.ticker.slice(0, 2)}
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm font-black text-foreground uppercase tracking-tight">{h.ticker}</span>
+                                                    <span className="text-[10px] font-medium text-muted-foreground">
+                                                        {h.firstPrice.toLocaleString(undefined, { maximumFractionDigits: 1 })} → {h.lastPrice.toLocaleString(undefined, { maximumFractionDigits: 1 })}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-sm font-bold text-slate-900 dark:text-white uppercase">{h.ticker}</span>
-                                                <span className="text-[10px] text-slate-500 dark:text-slate-400">
-                                                    {h.firstPrice.toLocaleString(undefined, { maximumFractionDigits: 1 })} → {h.lastPrice.toLocaleString(undefined, { maximumFractionDigits: 1 })}
-                                                </span>
+                                            <div className={cn(
+                                                "text-sm font-bold px-2.5 py-1 rounded-full border shadow-sm",
+                                                profitBg,
+                                                profitColor
+                                            )}>
+                                                {h.return >= 0 ? "▲" : "▼"} {Math.abs(h.return).toFixed(2)}%
                                             </div>
                                         </div>
-                                        <div className={cn(
-                                            "text-sm font-bold px-2 py-1 rounded-md",
-                                            h.return >= 0
-                                                ? "text-sky-600 dark:text-sky-400 bg-sky-500/5"
-                                                : "text-rose-600 dark:text-rose-400 bg-rose-500/5"
-                                        )}>
-                                            {h.return >= 0 ? "+" : ""}{h.return.toFixed(2)}%
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         ) : !loading && (
                             <div className="py-8 text-center text-slate-400 text-xs">

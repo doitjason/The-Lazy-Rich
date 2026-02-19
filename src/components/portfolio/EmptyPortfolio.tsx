@@ -53,13 +53,13 @@ export function EmptyPortfolio({ onAdd, onSelectPreset }: EmptyPortfolioProps) {
             className="flex flex-col items-center justify-center min-h-[600px] p-6 relative group"
         >
             {/* Ambient Background Glow */}
-            <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 via-purple-500/5 to-transparent rounded-3xl blur-3xl -z-10" />
+            <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 via-teal-500/5 to-transparent rounded-3xl blur-3xl -z-10" />
 
             <div className="relative z-10 flex flex-col items-center text-center space-y-8 max-w-2xl w-full">
                 {/* Glowing Icon Container */}
                 <div className="relative">
-                    <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-xl animate-pulse" />
-                    <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/20 backdrop-blur-xl flex items-center justify-center shadow-2xl shadow-blue-500/10">
+                    <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
+                    <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/20 backdrop-blur-xl flex items-center justify-center shadow-2xl shadow-emerald-500/10">
                         <Wallet className="h-8 w-8 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
                     </div>
                 </div>
@@ -77,7 +77,7 @@ export function EmptyPortfolio({ onAdd, onSelectPreset }: EmptyPortfolioProps) {
                     <Button
                         onClick={onAdd}
                         size="lg"
-                        className="group relative px-8 py-6 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-lg shadow-blue-500/25 transition-all hover:scale-105 hover:shadow-blue-500/40 border border-white/10"
+                        className="group relative px-8 py-6 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold shadow-lg shadow-emerald-500/25 transition-all hover:scale-105 hover:shadow-emerald-500/40 border border-white/10"
                     >
                         <span className="relative z-10 flex items-center gap-2">
                             직접 자산 추가하기 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -99,11 +99,11 @@ export function EmptyPortfolio({ onAdd, onSelectPreset }: EmptyPortfolioProps) {
                                 whileHover={{ scale: 1.02, y: -2 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => onSelectPreset(createPreset('6040'))}
-                                className="flex flex-col items-center p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-blue-500/30 transition-all group/card relative overflow-hidden"
+                                className="flex flex-col items-center p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-emerald-500/30 transition-all group/card relative overflow-hidden"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
-                                <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform duration-300">
-                                    <Scale className="h-5 w-5 text-blue-400" />
+                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-300" />
+                                <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform duration-300">
+                                    <Scale className="h-5 w-5 text-emerald-400" />
                                 </div>
                                 <h3 className="font-bold text-sm text-foreground mb-1">60/40 포트폴리오</h3>
                                 <p className="text-[11px] text-muted-foreground">주식 60% + 채권 40%<br />전통적인 자산배분</p>

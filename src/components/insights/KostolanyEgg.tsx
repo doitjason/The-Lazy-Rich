@@ -21,11 +21,11 @@ export function KostolanyEgg({ currentPhase, interestRateTrend }: KostolanyEggPr
     return (
         <div className="flex flex-col gap-4 w-full max-w-[400px] mx-auto">
             {/* 1. Macro Phase Egg */}
-            <div className="relative w-full aspect-[4/5] flex items-center justify-center p-6 bg-slate-400/5 dark:bg-slate-900/40 backdrop-blur-xl rounded-[3rem] border border-black/5 dark:border-white/5 shadow-2xl overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-purple-500/10 opacity-50 dark:opacity-30" />
+            <div className="relative w-full aspect-[4/5] flex items-center justify-center p-6 bg-emerald-400/5 dark:bg-emerald-900/10 backdrop-blur-xl rounded-[3rem] border border-emerald-500/10 dark:border-white/5 shadow-2xl overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/10 opacity-50 dark:opacity-30" />
 
                 {/* The Egg SVG */}
-                <svg viewBox="0 0 200 250" className="w-full h-full relative z-10 drop-shadow-[0_0_50px_rgba(99,102,241,0.15)]">
+                <svg viewBox="0 0 200 250" className="w-full h-full relative z-10 drop-shadow-[0_0_50px_rgba(16,185,129,0.15)]">
                     <defs>
                         <radialGradient id="eggOverlayGradient" cx="50%" cy="30%" r="70%">
                             <stop offset="0%" stopColor="currentColor" stopOpacity="0.1" />
@@ -190,18 +190,18 @@ export function KostolanyEgg({ currentPhase, interestRateTrend }: KostolanyEggPr
             {/* 2. Real-time Data Panel */}
             <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 rounded-2xl bg-slate-100/50 dark:bg-white/5 border border-black/5 dark:border-white/5 flex flex-col items-center justify-center gap-1">
-                    <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Interest Rate Trend</span>
+                    <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">금리 추세</span>
                     <div className="flex items-center gap-2">
-                        {interestRateTrend === "Rising" && <span className="text-foreground font-extrabold text-[13px]">↗ Rising</span>}
-                        {interestRateTrend === "Falling" && <span className="text-foreground font-extrabold text-[13px]">↘ Falling</span>}
-                        {interestRateTrend === "Flat" && <span className="text-muted-foreground font-extrabold text-[13px]">→ Flat</span>}
+                        {interestRateTrend === "Rising" && <span className="text-foreground font-extrabold text-[13px]">↗ 상승중</span>}
+                        {interestRateTrend === "Falling" && <span className="text-foreground font-extrabold text-[13px]">↘ 하락중</span>}
+                        {interestRateTrend === "Flat" && <span className="text-muted-foreground font-extrabold text-[13px]">→ 평탄화</span>}
                         {!interestRateTrend && <span className="text-muted-foreground text-xs">-</span>}
                     </div>
                 </div>
                 <div className="p-3 rounded-2xl bg-slate-100/50 dark:bg-white/5 border border-black/5 dark:border-white/5 flex flex-col items-center justify-center gap-1">
-                    <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Market Phase</span>
+                    <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">시장 국면</span>
                     <span className="font-extrabold text-foreground text-[13px]">
-                        {phases.find(p => p.id === currentPhase)?.label || "Neutral"}
+                        {phases.find(p => p.id === currentPhase)?.label.split(' ')[0] || "중립"}
                     </span>
                 </div>
             </div>

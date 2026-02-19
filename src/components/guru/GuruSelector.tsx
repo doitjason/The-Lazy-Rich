@@ -87,7 +87,7 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
             <div className="px-10">
                 <Button
                     onClick={() => onSelect(currentGuru)}
-                    className="w-full h-14 text-sm font-semibold bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 shadow-xl shadow-blue-500/20 rounded-xl transition-all active:scale-[0.98] gap-1.5"
+                    className="w-full h-14 text-sm font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/20 rounded-xl transition-all active:scale-[0.98] gap-1.5"
                 >
                     <MessageCircle className="h-4 w-4 flex-shrink-0" />
                     {currentGuru.name}와 대화 시작하기
@@ -148,7 +148,7 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
                                     {/* Name & Tag */}
                                     <div className="space-y-1.5">
                                         <h3 className="text-xl font-bold text-foreground">{currentGuru.name}</h3>
-                                        <span className="inline-block px-4 py-1.5 rounded-full text-sm bg-primary/10 text-primary font-bold border border-primary/20">
+                                        <span className="inline-block px-4 py-1.5 rounded-full text-sm font-bold border bg-primary/10 text-primary border-primary/20">
                                             {currentGuru.tag}
                                         </span>
                                     </div>

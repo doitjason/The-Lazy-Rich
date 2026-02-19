@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { AlertCircle } from "lucide-react";
 
@@ -23,6 +23,11 @@ export function ProfileSettings() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [isLoggingIn, setIsLoggingIn] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleEmailLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -174,7 +179,7 @@ export function ProfileSettings() {
                                 </div>
                                 <span className="font-medium">알림 설정</span>
                             </div>
-                            <Switch defaultChecked />
+                            <Switch defaultChecked={mounted ? true : false} />
                         </div>
 
                         <div className="p-4 flex items-center justify-between">
@@ -185,7 +190,7 @@ export function ProfileSettings() {
                                 <span className="font-medium">다크 모드</span>
                             </div>
                             <Switch
-                                checked={theme === "dark"}
+                                checked={mounted ? theme === "dark" : false}
                                 onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
                             />
                         </div>

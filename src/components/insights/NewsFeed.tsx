@@ -38,21 +38,21 @@ export function NewsFeed() {
                 {NEWS_DATA.map((news) => (
                     <motion.div key={news.id} variants={item}>
                         <Card
-                            className="group flex overflow-hidden border-white/10 bg-white/40 dark:bg-black/20 backdrop-blur-sm hover:bg-white/50 transition-all cursor-pointer"
+                            className="group flex overflow-hidden border-white/30 dark:border-white/10 bg-white/40 dark:bg-black/20 backdrop-blur-sm hover:bg-white/60 dark:hover:bg-white/30 transition-all duration-300 cursor-pointer rounded-2xl shadow-sm hover:shadow-md"
                         >
                             <div className={cn(
-                                "w-1.5 self-stretch transition-colors",
-                                news.sentiment === "positive" && "bg-green-500",
-                                news.sentiment === "negative" && "bg-red-500",
-                                news.sentiment === "neutral" && "bg-gray-400"
+                                "w-1.5 self-stretch transition-all duration-500 group-hover:w-2",
+                                news.sentiment === "positive" && "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]",
+                                news.sentiment === "negative" && "bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.3)]",
+                                news.sentiment === "neutral" && "bg-slate-400"
                             )} />
                             <div className="p-4 flex-1 space-y-2">
-                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-wide">
-                                    <span className="font-semibold text-primary">{news.source}</span>
-                                    <span>•</span>
+                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+                                    <span className="font-black text-emerald-600 dark:text-emerald-400">{news.source}</span>
+                                    <span className="opacity-30">•</span>
                                     <span>{news.time}</span>
                                 </div>
-                                <h4 className="font-medium text-sm leading-snug group-hover:text-primary transition-colors">
+                                <h4 className="font-black text-[14px] leading-snug group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors break-keep">
                                     {news.title}
                                 </h4>
                             </div>

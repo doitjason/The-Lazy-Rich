@@ -254,7 +254,7 @@ export function CompoundCalculator() {
                             min={0}
                             step={0.5}
                             onValueChange={(vals) => setRate(vals[0])}
-                            className="py-2"
+                            className="py-2 [&_[data-slot=slider-range]]:bg-emerald-500 [&_[data-slot=slider-thumb]]:border-emerald-500"
                         />
                         <div className="flex flex-wrap gap-2">
                             {[
@@ -291,14 +291,12 @@ export function CompoundCalculator() {
                             <span className="text-sm font-bold text-emerald-500">{years}년</span>
                         </div>
                         <Slider
-                            defaultValue={[years]}
-                            autoFocus
                             value={[years]}
                             max={50}
                             min={1}
                             step={1}
                             onValueChange={(vals) => setYears(vals[0])}
-                            className="py-2"
+                            className="py-2 [&_[data-slot=slider-range]]:bg-emerald-500 [&_[data-slot=slider-thumb]]:border-emerald-500"
                         />
                         <div className="flex flex-wrap gap-2">
                             {[1, 5, 10, 20, 30].map((y) => (

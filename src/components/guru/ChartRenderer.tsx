@@ -33,11 +33,11 @@ interface ChartRendererProps {
     chartData: ChartData;
 }
 
-// Brand Colors (CORE Identity)
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+// Brand Colors (Trifoli Identity)
+const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 const GRADIENTS = [
+    { id: "colorEmerald", start: "#10b981", end: "#10b981" },
     { id: "colorBlue", start: "#3b82f6", end: "#3b82f6" },
-    { id: "colorGreen", start: "#10b981", end: "#10b981" },
     { id: "colorYellow", start: "#f59e0b", end: "#f59e0b" },
     { id: "colorRed", start: "#ef4444", end: "#ef4444" },
     { id: "colorPurple", start: "#8b5cf6", end: "#8b5cf6" },

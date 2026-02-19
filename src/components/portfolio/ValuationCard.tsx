@@ -27,7 +27,7 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
     // Status Logic for PER
     const perStatus = useMemo(() => {
         if (portfolioPer < 15) return { label: "저평가", color: "text-emerald-400", bg: "bg-emerald-500", desc: "매수 기회" };
-        if (portfolioPer < 25) return { label: "적정", color: "text-sky-400", bg: "bg-sky-500", desc: "보유 관점" };
+        if (portfolioPer < 25) return { label: "적정", color: "text-emerald-400", bg: "bg-emerald-500", desc: "보유 관점" };
         if (portfolioPer < 35) return { label: "고평가", color: "text-orange-400", bg: "bg-orange-500", desc: "주의 구간" };
         return { label: "과열", color: "text-rose-400", bg: "bg-rose-500", desc: "위험 구간" };
     }, [portfolioPer]);
@@ -35,7 +35,7 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
     // Status Logic for ROE
     const roeStatus = useMemo(() => {
         if (roePercent > 20) return { label: "탁월함 (S등급)", color: "text-emerald-400" };
-        if (roePercent > 15) return { label: "우수함 (A등급)", color: "text-sky-400" };
+        if (roePercent > 15) return { label: "우수함 (A등급)", color: "text-emerald-400" };
         if (roePercent > 10) return { label: "보통 (B등급)", color: "text-yellow-400" };
         return { label: "미흡 (C등급)", color: "text-rose-400" };
     }, [roePercent]);
@@ -47,7 +47,7 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
                     className={cn(
                         "relative overflow-hidden rounded-2xl border backdrop-blur-md p-4 transition-all duration-300 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between group h-full",
                         "bg-white/40 dark:bg-black/20",
-                        "border-sky-500/20 dark:border-sky-500/20"
+                        "border-emerald-500/20 dark:border-emerald-500/20"
                     )}
                 >
                     <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -80,7 +80,7 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
                         </div>
 
                         {/* Section 2: Fundamentals (Quality) */}
-                        <div className="pt-2 border-t border-sky-500/10">
+                        <div className="pt-2 border-t border-emerald-500/10">
                             <div className="flex items-end gap-1.5">
                                 <div className="text-base font-black text-foreground leading-none">
                                     {roeCoverage > 20 ? roePercent.toFixed(1) : "N/A"}<span className="text-[9px] font-normal text-muted-foreground ml-0.5">%</span>
@@ -112,7 +112,7 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
 
                     <div className="space-y-2">
                         <div className="bg-white/5 rounded-lg p-2.5">
-                            <div className="font-bold text-sky-400 mb-1">1. 가치평가 (PER)</div>
+                            <div className="font-bold text-emerald-400 mb-1">1. 가치평가 (PER)</div>
                             <p className="opacity-80">
                                 현재 주가가 기업 이익 대비 싼지 비싼지를 나타냅니다. (S&P 500 평균: {MARKET_PER}배)
                             </p>

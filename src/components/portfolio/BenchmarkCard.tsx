@@ -24,7 +24,7 @@ export function BenchmarkCard({ userReturn, marketReturn, className, holdings = 
                 className={cn(
                     "relative overflow-hidden rounded-2xl border backdrop-blur-md p-4 transition-all duration-300 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]",
                     isWin
-                        ? "bg-gradient-to-br from-sky-500/10 via-sky-500/5 to-transparent border-sky-500/20 dark:border-sky-500/20"
+                        ? "bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border-emerald-500/20 dark:border-emerald-500/20"
                         : "bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent border-rose-500/20 dark:border-rose-500/20",
                     "bg-white/40 dark:bg-black/20", // Light mode compatibility
                     className
@@ -33,9 +33,9 @@ export function BenchmarkCard({ userReturn, marketReturn, className, holdings = 
                 {/* Header: Title & Sentiment Badge */}
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                        <div className={cn("p-1.5 rounded-full", isWin ? "bg-sky-500/20" : "bg-rose-500/20")}>
+                        <div className={cn("p-1.5 rounded-full", isWin ? "bg-emerald-500/20" : "bg-rose-500/20")}>
                             {isWin
-                                ? <Trophy className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                                ? <Trophy className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                                 : <TrendingDown className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                             }
                         </div>
@@ -48,7 +48,7 @@ export function BenchmarkCard({ userReturn, marketReturn, className, holdings = 
                     <div className={cn(
                         "flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold tracking-tight border",
                         isWin
-                            ? "bg-sky-500/10 border-sky-500/20 text-sky-700 dark:text-sky-400"
+                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400"
                             : "bg-rose-500/10 border-rose-500/20 text-rose-700 dark:text-rose-400"
                     )}>
                         {alpha > 0 ? "+" : ""}{alpha.toFixed(2)}%p
@@ -63,7 +63,7 @@ export function BenchmarkCard({ userReturn, marketReturn, className, holdings = 
                         <span className="text-[11px] font-medium text-slate-500 dark:text-white/60">내 포트폴리오</span>
                         <div className={cn("text-xl font-bold tracking-tight flex items-center gap-1",
                             userReturn >= 0
-                                ? "text-sky-700 dark:text-sky-400"
+                                ? "text-emerald-700 dark:text-emerald-400"
                                 : "text-rose-700 dark:text-rose-400"
                         )}>
                             {formatPercent(userReturn)}
@@ -80,7 +80,7 @@ export function BenchmarkCard({ userReturn, marketReturn, className, holdings = 
                         <span className="text-[11px] font-medium text-slate-500 dark:text-white/60">S&P 500 (SPY ETF)</span>
                         <div className={cn("text-xl font-bold tracking-tight flex items-center gap-1",
                             marketReturn >= 0
-                                ? "text-sky-700 dark:text-sky-400"
+                                ? "text-emerald-700 dark:text-emerald-400"
                                 : "text-rose-700 dark:text-rose-400"
                         )}>
                             {formatPercent(marketReturn)}

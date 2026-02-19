@@ -21,10 +21,10 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
 
     // Status Logic
     const status = useMemo(() => {
-        if (score >= 80) return { label: "철벽 방어 (Excellent)", color: "text-sky-400", Icon: ShieldCheck, bg: "bg-sky-500" };
-        if (score >= 60) return { label: "양호 (Good)", color: "text-sky-400", Icon: Shield, bg: "bg-sky-500" };
-        if (score >= 40) return { label: "주의 (Warning)", color: "text-sky-400", Icon: ShieldAlert, bg: "bg-sky-500" };
-        return { label: "취약 (Danger)", color: "text-sky-400", Icon: ShieldAlert, bg: "bg-sky-500" };
+        if (score >= 80) return { label: "철벽 방어 (Excellent)", color: "text-emerald-400", Icon: ShieldCheck, bg: "bg-emerald-500" };
+        if (score >= 60) return { label: "양호 (Good)", color: "text-emerald-400", Icon: Shield, bg: "bg-emerald-500" };
+        if (score >= 40) return { label: "주의 (Warning)", color: "text-emerald-400", Icon: ShieldAlert, bg: "bg-emerald-500" };
+        return { label: "취약 (Danger)", color: "text-emerald-400", Icon: ShieldAlert, bg: "bg-emerald-500" };
     }, [score]);
 
     const Icon = status.Icon;
@@ -36,7 +36,7 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
                     className={cn(
                         "relative overflow-hidden rounded-2xl border backdrop-blur-md p-4 transition-all duration-300 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between group h-full",
                         "bg-white/40 dark:bg-black/20",
-                        "border-sky-500/20 dark:border-sky-500/20"
+                        "border-emerald-500/20 dark:border-emerald-500/20"
                     )}
                 >
                     <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -53,7 +53,7 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-sky-500/10 relative z-10">
+                    <div className="mt-4 pt-3 border-t border-emerald-500/10 relative z-10">
                         <div className="flex justify-between items-center">
                             <span className="text-xs text-muted-foreground">방어력 진단</span>
                             <span className={cn("text-sm font-bold flex items-center gap-1", status.color)}>

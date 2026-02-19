@@ -43,7 +43,7 @@ interface PortfolioDashboardProps {
     onAdd: () => void;
 }
 
-const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
+const COLORS = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
 
 import { useAuth } from "@/contexts/AuthContext";
 import { EmptyPortfolio } from "./EmptyPortfolio";
@@ -388,7 +388,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
         <div className="space-y-6 animate-in fade-in duration-500 pb-20">
             {/* 1. Total Balance Card (Gradient) */}
             <Card className="border-0 overflow-hidden relative shadow-xl">
-                <div className="absolute inset-0 bg-gradient-to-r from-sky-500 to-blue-600 opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-600 opacity-90" />
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
 
                 <CardContent className="relative z-10 py-6 px-6 flex flex-col items-center justify-center gap-3 text-white">
@@ -549,8 +549,8 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                             className={cn(
                                 "relative overflow-hidden rounded-2xl border backdrop-blur-md p-4 transition-all duration-300 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between group",
                                 "bg-white/40 dark:bg-black/20",
-                                // Using Sky theme border only
-                                "border-sky-500/20 dark:border-sky-500/20"
+                                // Using Emerald theme border
+                                "border-emerald-500/20 dark:border-emerald-500/20"
                             )}
                         >
                             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -573,14 +573,14 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                     <div
                                         className={cn("h-full transition-all duration-500",
                                             portfolioBeta > 1.2 ? "bg-rose-500" :
-                                                portfolioBeta < 0.8 ? "bg-emerald-500" : "bg-sky-500"
+                                                portfolioBeta < 0.8 ? "bg-emerald-500" : "bg-primary"
                                         )}
                                         style={{ width: `${Math.min(portfolioBeta * 50, 100)}% ` }}
                                     />
                                 </div>
                                 <div className={cn("text-[10px] font-bold text-right",
                                     portfolioBeta > 1.2 ? "text-rose-500 dark:text-rose-400" :
-                                        portfolioBeta < 0.8 ? "text-emerald-500 dark:text-emerald-400" : "text-sky-500 dark:text-sky-400"
+                                        portfolioBeta < 0.8 ? "text-emerald-500 dark:text-emerald-400" : "text-primary dark:text-primary"
                                 )}>
                                     {portfolioBeta > 1.2 ? "높은 변동성 ⚡" :
                                         portfolioBeta < 0.8 ? "낮은 변동성 🛡️" : "시장 평균 수준 ⚖️"}
@@ -602,7 +602,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                     <span>내 포트폴리오:</span>
                                     <span className={cn(
                                         portfolioBeta > 1.2 ? "text-rose-500" :
-                                            portfolioBeta < 0.8 ? "text-emerald-500" : "text-sky-500"
+                                            portfolioBeta < 0.8 ? "text-emerald-500" : "text-primary"
                                     )}>{portfolioBeta.toFixed(2)} Beta</span>
                                 </div>
                                 <div className="h-px bg-border/50" />
@@ -625,8 +625,8 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                     className={cn(
                         "relative overflow-hidden rounded-2xl border backdrop-blur-md p-4 transition-all duration-300 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] flex flex-col justify-between group",
                         "bg-white/40 dark:bg-black/20",
-                        // Using Sky theme border only
-                        "border-sky-500/20 dark:border-sky-500/20"
+                        // Using Emerald theme border
+                        "border-emerald-500/20 dark:border-emerald-500/20"
                     )}
                 >
                     <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -642,10 +642,10 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                         </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-sky-500/10 relative z-10">
+                    <div className="mt-4 pt-3 border-t border-emerald-500/10 relative z-10">
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] text-muted-foreground">월 평균 수령액</span>
-                            <span className="text-xs font-bold text-foreground">
+                            <span className="text-xs font-bold text-emerald-500 dark:text-emerald-400">
                                 {formatCurrency(estimatedAnnualIncome / 12, "USD", 0)}
                             </span>
                         </div>

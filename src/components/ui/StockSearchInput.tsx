@@ -102,7 +102,7 @@ export function StockSearchInput({
                 >
                     {value ? (
                         <div className="flex items-center gap-2 overflow-hidden">
-                            <span className="text-sm font-medium text-sky-500 bg-sky-500/10 border border-sky-500/50 px-2 py-0.5 rounded-md shrink-0">
+                            <span className="text-sm font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/50 px-2 py-0.5 rounded-md shrink-0">
                                 {value}
                             </span>
                             {selectedName && (

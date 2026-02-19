@@ -1065,9 +1065,21 @@ export function PortfolioRegretCalculator() {
                                         >
                                             <div className="relative z-10 flex items-center justify-between gap-3">
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    {/* Custom Ticker Icon */}
-                                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-white/10 to-transparent flex-shrink-0 flex items-center justify-center font-black text-foreground/90 text-[9px] border border-white/10 shadow-inner group-hover:scale-105 transition-transform duration-500">
-                                                        {asset.ticker.slice(0, 2)}
+                                                    {/* Custom Ticker Icon with Logo Support */}
+                                                    <div className="relative w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10 shadow-sm flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                                                        <img
+                                                            src={`/api/logo?ticker=${asset.ticker}`}
+                                                            alt={asset.ticker}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none';
+                                                                const fallback = e.currentTarget.parentElement?.querySelector('.fallback-initial');
+                                                                if (fallback) fallback.classList.remove('hidden');
+                                                            }}
+                                                        />
+                                                        <div className="fallback-initial hidden absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-[10px] font-bold text-white/90">
+                                                            {asset.ticker.slice(0, 2)}
+                                                        </div>
                                                     </div>
                                                     <div className="space-y-0.5 min-w-0">
                                                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -1075,12 +1087,14 @@ export function PortfolioRegretCalculator() {
                                                             {asset.returnRate > result.returnRate && (
                                                                 <Popover>
                                                                     <PopoverTrigger asChild>
-                                                                        <span className="cursor-help flex-shrink-0 text-[7px] font-black px-1 py-0.5 rounded bg-green-500/10 text-green-500 border border-emerald-500/30 uppercase tracking-tighter shadow-sm hover:bg-green-500/20 transition-colors leading-none">
-                                                                            Ace
+                                                                        <span className="cursor-help flex-shrink-0 text-[8px] font-black px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 uppercase tracking-tighter shadow-sm hover:bg-emerald-500/20 transition-all duration-300 flex items-center gap-0.5 leading-none">
+                                                                            <Sparkles className="w-2 h-2" /> ACE
                                                                         </span>
                                                                     </PopoverTrigger>
                                                                     <PopoverContent className="w-48 text-[11px] font-medium bg-black/90 border-white/10 backdrop-blur-md text-white/90 leading-relaxed p-3">
-                                                                        <p className="font-bold text-green-400 mb-1">Ace 종목</p>
+                                                                        <p className="font-bold text-emerald-400 mb-1 flex items-center gap-1.5">
+                                                                            <Sparkles className="w-3 h-3 text-emerald-400" /> ACE 종목
+                                                                        </p>
                                                                         포트폴리오의 평균 수익률({result.returnRate.toFixed(1)}%)보다 높은 성과를 기록하여 전체 성장을 견인한 우수 종목입니다.
                                                                     </PopoverContent>
                                                                 </Popover>

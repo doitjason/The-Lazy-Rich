@@ -214,6 +214,8 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
             },
             macro: {
                 vix: vix.price,
+                vixChangePercent: vix.changePercent,
+                vixDistanceMA50: vix.fiftyDayAverage ? ((vix.price - vix.fiftyDayAverage) / vix.fiftyDayAverage) * 100 : null,
                 tenYearBondYield: tnx.price,
                 realRate, // Calculated above
                 expectedInflation: EXPECTED_INFLATION_PROXY,

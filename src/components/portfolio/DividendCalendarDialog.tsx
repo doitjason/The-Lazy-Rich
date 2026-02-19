@@ -129,7 +129,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
             <DialogContent className="sm:max-w-md bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-white/20 p-0 overflow-hidden gap-0">
                 <DialogHeader className="p-4 pb-2">
                     <DialogTitle className="flex items-center gap-2 text-xl">
-                        <CalendarIcon className="w-5 h-5 text-sky-500" />
+                        <CalendarIcon className="w-5 h-5 text-emerald-500" />
                         배당 캘린더
                     </DialogTitle>
                     <DialogDescription>
@@ -174,7 +174,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                                             return (
                                                 <div className="bg-black/90 border border-white/10 p-2 rounded-lg text-xs shadow-xl backdrop-blur-md">
                                                     <div className="font-bold mb-1">{data.label}</div>
-                                                    <div className="text-sky-400 font-medium">
+                                                    <div className="text-emerald-400 font-medium">
                                                         {formatCurrency(data.total)}
                                                     </div>
                                                 </div>
@@ -193,7 +193,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                                     {monthlyChartData.map((entry, index) => (
                                         <Cell
                                             key={`cell-${index}`}
-                                            fill={entry.month === currentDate.getMonth() + 1 ? '#0ea5e9' : '#3f3f46'}
+                                            fill={entry.month === currentDate.getMonth() + 1 ? '#10b981' : '#3f3f46'}
                                             className="transition-all duration-300 hover:opacity-80"
                                         />
                                     ))}
@@ -209,7 +209,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                         <span className="text-xs font-semibold text-muted-foreground">
                             {currentDate.getMonth() + 1}월 예상 배당 총액 <span className="text-[10px] opacity-60 font-normal">(세전)</span>
                         </span>
-                        <span className="text-lg font-bold text-sky-400">
+                        <span className="text-lg font-bold text-emerald-400">
                             {formatCurrency(totalMonthDividend, monthCurrency)}
                         </span>
                     </div>
@@ -225,22 +225,34 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: 10 }}
                                             transition={{ delay: idx * 0.05 }}
-                                            className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/30 dark:border-white/10 shadow-sm hover:shadow-md hover:bg-white/50 dark:hover:bg-white/10 transition-all duration-200 group"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500/20 to-sky-600/20 flex items-center justify-center text-sky-500 font-bold border border-sky-500/30">
-                                                    <DollarSign className="w-5 h-5" />
+                                                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-white/5 border border-white/10 shadow-sm flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
+                                                    <img
+                                                        src={`/api/logo?ticker=${item.ticker}`}
+                                                        alt={item.ticker}
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = 'none';
+                                                            const fallback = e.currentTarget.parentElement?.querySelector('.fallback-initial');
+                                                            if (fallback) fallback.classList.remove('hidden');
+                                                        }}
+                                                    />
+                                                    <div className="fallback-initial hidden absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center text-[10px] font-black text-emerald-600 dark:text-emerald-400">
+                                                        {item.ticker.slice(0, 2)}
+                                                    </div>
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-sm">{item.ticker}</div>
-                                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                                        {item.quantity}주 보유 <span className="text-[10px] text-zinc-600">•</span> 주당 {formatCurrency(item.amount, item.currency)}
+                                                    <div className="font-black text-sm text-foreground uppercase tracking-tight">{item.ticker}</div>
+                                                    <div className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+                                                        {item.quantity}주 보유 <span className="text-[10px] opacity-30">•</span> 주당 {formatCurrency(item.amount, item.currency)}
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="font-bold text-sm">{formatCurrency(item.totalAmount, item.currency)}</div>
-                                                <div className="text-[10px] text-muted-foreground">
+                                                <div className="font-black text-sm text-emerald-600 dark:text-emerald-400">{formatCurrency(item.totalAmount, item.currency)}</div>
+                                                <div className="text-[10px] font-medium text-muted-foreground">
                                                     {item.isEstimated ? "예상 지급일" : "지급일"}: {item.paymentDate || item.date}
                                                 </div>
                                             </div>

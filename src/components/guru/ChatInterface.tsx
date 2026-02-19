@@ -243,18 +243,18 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                             transition={{ duration: 0.2 }}
                         >
                             <div className={`h-7 w-7 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === "user"
-                                ? "bg-primary/20 border border-primary/10"
+                                ? "bg-emerald-500/10 border border-emerald-500/20"
                                 : "bg-white/20 border border-white/10"
                                 }`}>
                                 {message.role === "user" ? (
-                                    <UserIcon className="h-3.5 w-3.5 text-primary" />
+                                    <UserIcon className="h-3.5 w-3.5 text-emerald-500" />
                                 ) : (
                                     <Bot className="h-3.5 w-3.5 text-muted-foreground" />
                                 )}
                             </div>
                             <div
                                 className={`max-w-[80%] rounded-2xl p-3 text-sm shadow-sm ${message.role === "user"
-                                    ? "bg-primary/90 text-primary-foreground rounded-tr-none"
+                                    ? "bg-gradient-to-tr from-emerald-600 to-emerald-500 text-white shadow-emerald-500/10 rounded-tr-none"
                                     : "bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/20 rounded-tl-none"
                                     }`}
                             >
@@ -354,7 +354,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
 
                                 return parts;
                             })()}
-                            <span className="inline-block w-1.5 h-4 bg-primary/50 ml-0.5 animate-pulse" />
+                            <span className="inline-block w-1.5 h-4 bg-emerald-500/50 ml-0.5 animate-pulse" />
                         </div>
                     </motion.div>
                 )}
@@ -460,7 +460,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                                         setIsLoading(false);
                                     });
                                 }}
-                                className="px-3 py-1.5 text-xs rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors duration-200"
+                                className="px-3 py-1.5 text-xs rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 transition-colors duration-200"
                             >
                                 {suggestion}
                             </button>
@@ -477,12 +477,12 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder={`${guru.name}에게 질문하세요...`}
-                        className="pr-12 bg-white/50 dark:bg-black/20 border-white/20 backdrop-blur-md"
+                        className="pr-12 bg-white/50 dark:bg-black/20 border-white/20 backdrop-blur-md focus:ring-emerald-500/50"
                         disabled={isLoading}
                     />
                     <Button
                         size="icon"
-                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white"
                         type="submit"
                         disabled={!input.trim() || isLoading}
                     >

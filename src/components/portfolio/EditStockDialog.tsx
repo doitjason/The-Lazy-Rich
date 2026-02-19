@@ -91,7 +91,7 @@ export function EditStockDialog({ open, onOpenChange, item }: EditStockDialogPro
                     <Button
                         onClick={handleSave}
                         disabled={loading}
-                        className="bg-sky-500 hover:bg-sky-600 text-white font-bold"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold"
                     >
                         {loading ? "저장 중..." : "수정하기"}
                     </Button>

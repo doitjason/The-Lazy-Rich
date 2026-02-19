@@ -57,6 +57,8 @@ export interface CommonMarketData {
     };
     macro: {
         vix: number; // 공포 지수
+        vixChangePercent: number; // 전일 대비 변동률
+        vixDistanceMA50: number | null; // 50일선 대비 이격도 (%)
         tenYearBondYield: number; // 10년물 국채 금리
         realRate: number; // 실질 금리 (10Y - Inflation)
         expectedInflation: number; // 기대 인플레이션 (Proxy or Breakeven)

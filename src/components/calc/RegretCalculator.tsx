@@ -348,12 +348,31 @@ export function RegretCalculator() {
                     {result ? (
                         <Card ref={resultRef} className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 p-6">
                             <CardContent className="pt-0 text-center space-y-2">
-                                {/* Stock Name Badge */}
-                                <div className="flex items-center justify-center gap-2 mb-2 whitespace-nowrap">
-                                    <span className="text-sm font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/50 px-2 py-0.5 rounded-md shrink-0">
-                                        {result.ticker}
-                                    </span>
-                                    <span className="text-sm text-muted-foreground truncate max-w-[200px]">{result.name}</span>
+                                {/* Stock Logo & Name */}
+                                <div className="flex flex-col items-center gap-3 mb-4">
+                                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-white/5 border border-white/10 shadow-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-500">
+                                        <img
+                                            src={`/api/logo?ticker=${result.ticker}`}
+                                            alt={result.ticker}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                                const fallback = e.currentTarget.parentElement?.querySelector('.fallback-initial');
+                                                if (fallback) fallback.classList.remove('hidden');
+                                            }}
+                                        />
+                                        <div className="fallback-initial hidden absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-xl font-bold text-white/90">
+                                            {result.ticker.slice(0, 2)}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-center gap-1">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/50 px-2 py-0.5 rounded-md">
+                                                {result.ticker}
+                                            </span>
+                                            <h3 className="text-lg font-black text-foreground tracking-tight">{result.name}</h3>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {result.actualPeriod && (
