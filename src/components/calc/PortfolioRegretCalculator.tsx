@@ -610,12 +610,12 @@ export function PortfolioRegretCalculator() {
                                     <ChevronDown className="w-4 h-4 opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-64 bg-black/90 border-white/10 backdrop-blur-xl rounded-xl p-1 shadow-2xl overflow-hidden" align="start">
+                            <DropdownMenuContent className="w-64 bg-white/95 dark:bg-black/95 border-slate-200/60 dark:border-white/10 backdrop-blur-xl rounded-xl p-1 shadow-2xl overflow-hidden" align="start">
                                 {PRESETS.map((preset) => (
                                     <DropdownMenuItem
                                         key={preset.id}
                                         onClick={() => applyPreset(preset.id)}
-                                        className="flex flex-col items-start gap-1 p-3 cursor-pointer focus:bg-white/10 transition-colors rounded-lg"
+                                        className="flex flex-col items-start gap-1 p-3 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors rounded-lg"
                                     >
                                         <div className="flex items-center gap-2">
                                             <span className="text-lg">{preset.icon}</span>
@@ -629,7 +629,7 @@ export function PortfolioRegretCalculator() {
                                         setAssets([{ ticker: "", weight: 100 }]);
                                         setSelectedPreset("나만의 조합 만들기");
                                     }}
-                                    className="flex items-center gap-2 p-3 cursor-pointer focus:bg-white/10 transition-colors rounded-lg text-emerald-500 font-semibold"
+                                    className="flex items-center gap-2 p-3 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors rounded-lg text-emerald-500 font-semibold"
                                 >
                                     <Plus className="w-4 h-4 ml-1 text-emerald-500" />
                                     <span>직접 구성하기 (초기화)</span>
