@@ -42,7 +42,7 @@ export function BrandStoryDialog({ children }: { children: React.ReactNode }) {
                             당신 발밑에 언제나 당신과 함께하는 99%의 확실한 행복은 보이지 않나요?"
                         </blockquote>
                         <p className="text-sm leading-relaxed text-foreground/80">
-                            <strong>트리폴리(Trifoli)</strong>는 행운을 쫓지 않습니다.
+                            <strong>트라이폴리(Trifoli)</strong>는 행운을 쫓지 않습니다.
                             지루해 보일지 몰라도, 비바람에도 꺾이지 않고 언제나 들판을 가득 채우는 <strong>세잎클로버(건전한 기업, 배당, 성장)</strong>의 생명력에 집중합니다.
                         </p>
                     </div>
