@@ -1822,6 +1822,18 @@ export async function getPersonaMarketContext(
             case "architect": {
                 const data = await fetchArchitectData();
                 specializedPrompt = architectDataToPrompt(data);
+                if (userTickers.length > 0) {
+                    const results = await Promise.all(
+                        userTickers.slice(0, 5).map((t) => fetchSpeculatorData(t))
+                    );
+                    const valid = results.filter((r): r is SpeculatorData => r !== null);
+                    if (valid.length > 0) {
+                        const tickerLines = valid.map(q =>
+                            `- ${q.quote.name} (${q.quote.symbol}): 현재가 ${formatNum(q.quote.price)} ${q.quote.currency} (${q.quote.changePercent >= 0 ? "+" : ""}${q.quote.changePercent.toFixed(2)}%), 50일선 이격도 ${formatNum(q.distanceFromMA50)}%, 52주 고점 이격도 ${formatNum(q.distanceFrom52WeekHigh)}%`
+                        ).join("\n");
+                        specializedPrompt += `\n\n[사용자 관심 대상 개별 종목 현황]\n${tickerLines}\n\n위 개별 종목에 대해 원칙가(자산 배분, 리스크 관리, 매크로 사이클)의 시각에서 조언을 추가해주세요. 시장 사이클 위치를 고려할 때 이들 종목의 비중을 어떻게 가져가면 좋을지 코멘트해도 좋습니다.`;
+                    }
+                }
                 break;
             }
 
@@ -1841,6 +1853,18 @@ export async function getPersonaMarketContext(
             case "father": {
                 const data = await fetchFatherData();
                 specializedPrompt = fatherDataToPrompt(data);
+                if (userTickers.length > 0) {
+                    const results = await Promise.all(
+                        userTickers.slice(0, 5).map((t) => fetchSpeculatorData(t))
+                    );
+                    const valid = results.filter((r): r is SpeculatorData => r !== null);
+                    if (valid.length > 0) {
+                        const tickerLines = valid.map(q =>
+                            `- ${q.quote.name} (${q.quote.symbol}): 현재가 ${formatNum(q.quote.price)} ${q.quote.currency} (${q.quote.changePercent >= 0 ? "+" : ""}${q.quote.changePercent.toFixed(2)}%), 52주 고점 이격도 ${formatNum(q.distanceFrom52WeekHigh)}%`
+                        ).join("\n");
+                        specializedPrompt += `\n\n[사용자 관심 대상 개별 종목 현황]\n${tickerLines}\n\n위 개별 종목 정보에 대해 인덱스의 아버지(패시브 투자 측면)의 시각에서 코멘트하세요. 개별 종목 예측의 한계성이나 장기 적립식 투자의 안정성을 비교설명해주면 좋습니다.`;
+                    }
+                }
                 break;
             }
         }

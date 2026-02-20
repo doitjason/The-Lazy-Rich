@@ -67,7 +67,7 @@ ${holdings}
 [⛔️ 필수 지침 - 절대 위반 금지]
 사용자가 "내 포트폴리오 분석해줘", "진단해줘" 등 **자신의 자산에 대한 분석을 요청할 경우**:
 1. **절대로** "어떤 종목을 가지고 계신가요?"라고 되묻거나 채팅창에서 정보를 입력받으려 하지 마세요.
-2. **반드시** "포트폴리오 데이터가 비어있습니다. 정확한 진단을 위해 먼저 보유 종목을 등록해주세요."라고 정중히 안내하세요.
+2. **반드시** 당신의 **페르소나 성향에 맞는 톤앤매너**로 포트폴리오 데이터가 비어있음을 안내하고, 정확한 진단을 위해 먼저 보유 종목을 등록해달라고 정중히 안내하세요. (예: "진단할 재무제표가 비어있군요. 종목을 등록해주시면 가치를 평가해드리겠습니다." 등)
 3. 답변의 맨 마지막에는 **반드시** 다음 태그를 포함하여 바로가기 버튼을 생성하세요: [ACTION:CREATE_PORTFOLIO]
 `;
             }
@@ -81,10 +81,8 @@ ${holdings}
 [⛔️ 필수 지침 - 절대 위반 금지]
 사용자가 "내 포트폴리오 분석해줘" 등 **자신의 자산에 대한 분석을 요청할 경우**:
 
-1. **상황 설명**: "앗, 포트폴리오 데이터가 없어서 아직 분석해드릴 수가 없네요."라고 
-친절하게 설명해주세요.
-2. **행동 유도**: "간단한 회원가입으로 나만의 포트폴리오를 만들고, 맞춤형 분석을 받아보세요!"라고 
-기대감을 주며 부드럽게 권유해주세요.
+1. **상황 설명**: 당신의 **페르소나 성향에 100% 동기화된 톤앤매너**로 포트폴리오 데이터가 없어서 분석해드릴 수 없음을 창의적으로 설명해주세요. (일반적인 "앗, 포트폴리오 데이터가 없네요" 같은 평범한 말투 절대 금지)
+2. **행동 유도**: "간단한 회원가입으로 나만의 포트폴리오를 만들고, 맞춤형 분석을 받아보세요!"라는 의미를 페르소나의 철학을 담아 매력적으로 권유해주세요.
 3. **버튼 생성**: 답변의 맨 마지막 줄에 정확히 다음 태그를 출력하세요: [ACTION:GO_TO_PROFILE]
    - 🚨 **주의**: 태그를 '회원가입하러 가기' 등으로 번역하지 마세요. 오직 **[ACTION:GO_TO_PROFILE]** 라고만 출력해야 버튼이 정상적으로 작동합니다.
 `;
@@ -100,19 +98,9 @@ ${holdings}
         // Fetch persona-specific market data (캐싱 적용)
         let marketDataContext = "";
         try {
-            const [commonData, personaData] = await Promise.all([
-                import("@/lib/market-data").then(m => m.fetchCommonMarketData()),
-                getPersonaMarketContext(personaId, allTickers)
-            ]);
-
-            let commonContext = "";
-            if (commonData) {
-                const { commonDataToPrompt } = await import("@/lib/market-data");
-                commonContext = commonDataToPrompt(commonData);
-            }
-
-            if (personaData || commonContext) {
-                marketDataContext = `\n\n${commonContext}\n\n${personaData || ""}`;
+            const personaData = await getPersonaMarketContext(personaId, allTickers);
+            if (personaData) {
+                marketDataContext = `\n\n${personaData}`;
             }
         } catch (error) {
             console.error("[Chat] Market data fetch failed (non-blocking):", error);
