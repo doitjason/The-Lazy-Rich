@@ -59,7 +59,12 @@ export interface CommonMarketData {
         vix: number; // 공포 지수
         vixChangePercent: number; // 전일 대비 변동률
         vixDistanceMA50: number | null; // 50일선 대비 이격도 (%)
+        vixDistanceMA200: number | null; // 200일선 대비 이격도 (%)
+        vixHigh52: number | null; // 52주 최고점
         tenYearBondYield: number; // 10년물 국채 금리
+        tnxDistanceMA50: number | null; // 50일선 대비 이격도 (%)
+        tnxDistanceMA200: number | null; // 200일선 대비 이격도 (%)
+        tnxHigh52: number | null; // 52주 최고점
         realRate: number; // 실질 금리 (10Y - Inflation)
         expectedInflation: number; // 기대 인플레이션 (Proxy or Breakeven)
         threeMonthBondYield: number; // 3개월물 국채 금리
@@ -218,8 +223,10 @@ export interface FatherData {
         // Father (Added)
         beta: number | null;
         sharpeRatio: number | null; // (Return - RiskFree) / StdDev (Approx)
+        ytdReturn: number | null;
     }[];
 }
+
 
 export interface DividendEvent {
     ticker: string;
