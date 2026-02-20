@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Send, ArrowLeft, Bot, User as UserIcon, Loader2, AlertTriangle, BarChart as ChartIcon } from "lucide-react";
+import { Send, ArrowLeft, Bot, User as UserIcon, Loader2, AlertTriangle, BarChart as ChartIcon, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { GuruPersona, getIntroMessage, SupportedLanguage } from "@/lib/guru-personas";
@@ -23,6 +23,10 @@ interface ChatInterfaceProps {
 }
 
 // Quick suggestion tags in multiple languages
+import Link from "next/link";
+import { PlusCircle, LogIn } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
 const QUICK_SUGGESTIONS: { [key in SupportedLanguage]: string[] } = {
     ko: ["내 포트폴리오 분석해줘", "요즘 시황에 대해 의견을 들려줘"],
     en: ["Analyze my portfolio", "What's your take on the current market?"],
@@ -34,9 +38,9 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
 
     // Determine language from currency setting
     const language: SupportedLanguage = useMemo(() => {
-        if (currency === "USD") return "en";
-        // Add VND -> vi mapping when VND currency is added
-        return "ko"; // Default to Korean for KRW
+        // Force Korean as default regardless of currency for now
+        // if (currency === "USD") return "en"; 
+        return "ko";
     }, [currency]);
 
     const [messages, setMessages] = useState<Message[]>([
@@ -190,6 +194,34 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
         }
     };
 
+    const handleReset = async () => {
+        if (isLoading) return;
+        if (confirm("⚠️ 모든 대화 기록을 영구적으로 삭제하시겠습니까?\n이 작업은 취소할 수 없으며, 기존의 모든 조언과 대화 내용이 사라집니다.")) {
+            setIsLoading(true);
+            try {
+                if (sessionId) {
+                    await fetch(`/api/chat/messages?sessionId=${sessionId}`, {
+                        method: 'DELETE',
+                    });
+                }
+
+                setMessages([
+                    {
+                        id: "intro",
+                        role: "assistant",
+                        content: getIntroMessage(guru, language),
+                    },
+                ]);
+                setStreamingContent("");
+            } catch (error) {
+                console.error("Failed to reset chat:", error);
+                alert("대화 초기화 중 오류가 발생했습니다.");
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
+
 
 
     return (
@@ -228,6 +260,15 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                     <h3 className="font-semibold text-sm">{guru.name}</h3>
                     <p className="text-xs text-primary">{guru.tag}</p>
                 </div>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleReset}
+                    className="h-8 px-2 text-[11px] text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all gap-1.5 font-medium"
+                >
+                    <RotateCcw className="h-3 w-3" />
+                    대화 리셋하기
+                </Button>
             </div>
 
             {/* Chat Messages */}
@@ -265,7 +306,8 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                                     let match;
 
                                     // Clone content to avoid mutation issues if any
-                                    const content = message.content;
+                                    // Remove special action tags from visible text
+                                    const content = message.content.replace(/\[ACTION:[A-Z_]+\]/g, "").trim();
 
                                     while ((match = regex.exec(content)) !== null) {
                                         if (match.index > lastIndex) {
@@ -294,6 +336,56 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
 
                                     return parts.length > 0 ? parts : <p className="whitespace-pre-wrap leading-relaxed">{content}</p>;
                                 })()}
+                                {/* Action Button Renderer */}
+                                {message.role === "assistant" && message.content.includes("[ACTION:CREATE_PORTFOLIO]") && (
+                                    <div className="mt-3">
+                                        <Link href="/portfolio">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
+                                            >
+                                                <PlusCircle className="w-4 h-4" />
+                                                내 포트폴리오 만들러 가기
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                )}
+                                {message.role === "assistant" && message.content.includes("[ACTION:LOGIN]") && (
+                                    <div className="mt-3">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
+                                            onClick={async () => {
+                                                const supabase = createClient();
+                                                await supabase.auth.signInWithOAuth({
+                                                    provider: 'google',
+                                                    options: {
+                                                        redirectTo: `${window.location.origin}/auth/callback`,
+                                                    },
+                                                });
+                                            }}
+                                        >
+                                            <LogIn className="w-4 h-4" />
+                                            간편하게 시작하기 (로그인)
+                                        </Button>
+                                    </div>
+                                )}
+                                {message.role === "assistant" && message.content.includes("[ACTION:GO_TO_PROFILE]") && (
+                                    <div className="mt-3">
+                                        <Link href="/profile">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
+                                            >
+                                                <LogIn className="w-4 h-4" />
+                                                로그인하고 포트폴리오 만들기
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     ))}
@@ -384,8 +476,8 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
 
             {/* Input Area */}
             <div className="pt-3 mt-auto space-y-2">
-                {/* Quick Suggestion Tags - Only show at start of conversation */}
-                {messages.length === 1 && !isLoading && (
+                {/* Quick Suggestion Tags - Always visible */}
+                {!isLoading && (
                     <motion.div
                         className="flex flex-wrap gap-2"
                         initial={{ opacity: 0, y: 10 }}

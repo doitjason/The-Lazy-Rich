@@ -35,3 +35,31 @@ export async function GET(req: NextRequest) {
     console.log(`[API] Found ${formattedMessages.length} messages for session ${sessionId}`);
     return NextResponse.json({ messages: formattedMessages });
 }
+
+export async function DELETE(req: NextRequest) {
+    const sessionId = req.nextUrl.searchParams.get("sessionId");
+
+    if (!sessionId) {
+        return NextResponse.json(
+            { error: "sessionId is required" },
+            { status: 400 }
+        );
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase
+        .from("chat_messages")
+        .delete()
+        .eq("session_id", sessionId);
+
+    if (error) {
+        console.error("Delete messages error:", error);
+        return NextResponse.json(
+            { error: "Failed to delete messages" },
+            { status: 500 }
+        );
+    }
+
+    console.log(`[API] Deleted messages for session ${sessionId}`);
+    return NextResponse.json({ success: true });
+}

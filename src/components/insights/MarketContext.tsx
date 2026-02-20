@@ -546,7 +546,7 @@ export function MarketContext() {
                 </Dialog>
 
                 <div className="text-[12px] text-muted-foreground/40 text-center pt-8 border-t border-dashed border-white/10 font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-                    * CORE AI는 실시간 지표를 종합 분석합니다. 최종 투자 결정은 본인의 판단하에 이루어져야 합니다.
+                    * Trifoli AI는 실시간 지표를 종합 분석합니다. 최종 투자 결정은 본인의 판단하에 이루어져야 합니다.
                 </div>
             </div>
         </div>

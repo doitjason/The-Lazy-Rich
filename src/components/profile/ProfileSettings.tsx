@@ -11,6 +11,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { AlertCircle } from "lucide-react";
 
@@ -18,6 +19,7 @@ export function ProfileSettings() {
     const { currency, setCurrency } = useCurrency();
     const { user, signInWithGoogle, signInWithEmail, signOut } = useAuth();
     const { theme, setTheme } = useTheme();
+    const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -37,6 +39,8 @@ export function ProfileSettings() {
             const result = await signInWithEmail(email, password);
             if (!result.success) {
                 setError(result.error || "로그인 정보를 다시 확인해주세요.");
+            } else {
+                router.push("/portfolio");
             }
         } catch (err) {
             setError("로그인 처리 중 오류가 발생했습니다.");

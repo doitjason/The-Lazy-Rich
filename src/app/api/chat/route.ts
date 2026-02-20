@@ -32,8 +32,11 @@ export async function POST(req: NextRequest) {
         }
 
         // Fetch user's portfolio for context injection
+        // Fetch user's portfolio for context injection
         let portfolioContext = "";
+
         let userTickers: string[] = [];
+
         if (userId) {
             const { data: portfolioData } = await supabase
                 .from("portfolios")
@@ -54,7 +57,37 @@ export async function POST(req: NextRequest) {
 ${holdings}
 
 위 포트폴리오 정보를 참고하여, 사용자의 보유 종목에 대해 구체적으로 언급하며 조언해주세요. 예를 들어 "삼성전자 포지션이 크시네요" 또는 "테슬라 평균가가 좀 높으신 편이에요" 같이 개인화된 대화를 해주세요.`;
+            } else {
+                // Logged in but empty portfolio
+                portfolioContext = `
+
+[사용자의 포트폴리오 상태]
+현재 사용자는 로그인은 했으나 포트폴리오를 아직 등록하지 않은 상태입니다.
+
+[⛔️ 필수 지침 - 절대 위반 금지]
+사용자가 "내 포트폴리오 분석해줘", "진단해줘" 등 **자신의 자산에 대한 분석을 요청할 경우**:
+1. **절대로** "어떤 종목을 가지고 계신가요?"라고 되묻거나 채팅창에서 정보를 입력받으려 하지 마세요.
+2. **반드시** "포트폴리오 데이터가 비어있습니다. 정확한 진단을 위해 먼저 보유 종목을 등록해주세요."라고 정중히 안내하세요.
+3. 답변의 맨 마지막에는 **반드시** 다음 태그를 포함하여 바로가기 버튼을 생성하세요: [ACTION:CREATE_PORTFOLIO]
+`;
             }
+        } else {
+            // Not logged in
+            portfolioContext = `
+
+[사용자의 포트폴리오 상태]
+현재 사용자는 **로그인하지 않은 상태**입니다.
+
+[⛔️ 필수 지침 - 절대 위반 금지]
+사용자가 "내 포트폴리오 분석해줘" 등 **자신의 자산에 대한 분석을 요청할 경우**:
+
+1. **상황 설명**: "앗, 포트폴리오 데이터가 없어서 아직 분석해드릴 수가 없네요."라고 
+친절하게 설명해주세요.
+2. **행동 유도**: "간단한 회원가입으로 나만의 포트폴리오를 만들고, 맞춤형 분석을 받아보세요!"라고 
+기대감을 주며 부드럽게 권유해주세요.
+3. **버튼 생성**: 답변의 맨 마지막 줄에 정확히 다음 태그를 출력하세요: [ACTION:GO_TO_PROFILE]
+   - 🚨 **주의**: 태그를 '회원가입하러 가기' 등으로 번역하지 마세요. 오직 **[ACTION:GO_TO_PROFILE]** 라고만 출력해야 버튼이 정상적으로 작동합니다.
+`;
         }
 
         // 질문에서 종목 추출 (포트폴리오에 없어도 데이터 가져오기 위함)
@@ -102,7 +135,7 @@ ${persona.systemPrompt}
   - **주의**: 반드시 유효한 JSON 문법을 지켜야 합니다. (Key와 String 값은 반드시 큰따옴표(") 사용, 작은따옴표(') 사용 금지)
   - 차트는 설명 중간 적절한 위치에 삽입하세요.
 - 존댓말(해요체/합쇼체) 사용
-- 사용자가 질문한 언어로 답변
+- **[언어 규칙]**: 기본적으로 **반드시 한국어**로 답변하세요. 단, 사용자가 영어나 베트남어로 질문하는 경우에만 해당 언어로 답변하세요.
 ${portfolioContext}${marketDataContext}`;
 
         // Save user message to database
