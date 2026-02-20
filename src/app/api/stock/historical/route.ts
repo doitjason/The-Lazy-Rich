@@ -72,6 +72,8 @@ export async function GET(request: NextRequest) {
             currentPrice,
             currency: quote?.currency || "USD",
             name: quote?.shortName || quote?.longName || ticker,
+            quoteType: quote?.quoteType || "UNKNOWN",
+            isEtf: quote?.quoteType === "ETF",
             dataPoints: historical.length,
             chartData,
             // Actual data start date (in case stock didn't exist for full period)

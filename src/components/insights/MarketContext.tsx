@@ -20,6 +20,7 @@ import { CommonMarketData } from "@/lib/market-types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TrendingUp, TrendingDown, Minus, Info, Activity, ArrowUpDown, Gauge, Search, BarChart3, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { KostolanyEgg } from "./KostolanyEgg";
 
 export function MarketContext() {
@@ -253,13 +254,13 @@ export function MarketContext() {
                                         <StatusBadge status={marketCondition.snp500Trend} />
                                     </CardHeader>
                                     <CardContent className="px-4 pt-2 pb-4">
-                                        <div className="flex flex-col gap-0.5 mb-1">
-                                            <span className={cn("text-[9px] font-black uppercase tracking-widest", snpTheme.meta)}>S&P 500 vs 200MA</span>
-                                            <div className="flex items-baseline gap-2">
+                                        <div className="flex flex-col gap-0.5 mb-2 min-h-[52px] justify-center">
+                                            <span className={cn("text-[9px] font-black uppercase tracking-widest whitespace-nowrap", snpTheme.meta)}>S&P 500 vs 200MA</span>
+                                            <div className="flex items-baseline gap-1.5 flex-nowrap">
                                                 <span className={cn("text-xl font-black tracking-tighter tabular-nums whitespace-nowrap", snpTheme.text)}>
                                                     {(macro.snp500DistanceMA200 ?? 0) >= 0 ? "+" : ""}{macro.snp500DistanceMA200?.toFixed(2) ?? "N/A"}%
                                                 </span>
-                                                <span className="text-[10px] font-bold text-muted-foreground/50">
+                                                <span className="text-[10px] font-bold text-muted-foreground/50 whitespace-nowrap shrink-0">
                                                     ({indices.snp500.price.toLocaleString()})
                                                 </span>
                                             </div>
@@ -286,9 +287,9 @@ export function MarketContext() {
                                         <StatusBadge status={marketCondition.yieldSpreadStatus} />
                                     </CardHeader>
                                     <CardContent className="px-4 pt-2 pb-4">
-                                        <div className="flex flex-col gap-0.5 mb-1">
-                                            <span className={cn("text-[9px] font-black uppercase tracking-widest", yieldTheme.meta)}>Yield Spread (10Y-3M)</span>
-                                            <div className="flex items-baseline gap-2">
+                                        <div className="flex flex-col gap-0.5 mb-2 min-h-[52px] justify-center">
+                                            <span className={cn("text-[9px] font-black uppercase tracking-widest whitespace-nowrap", yieldTheme.meta)}>Yield Spread (10Y-3M)</span>
+                                            <div className="flex items-baseline gap-2 flex-nowrap">
                                                 <span className={cn("text-xl font-black tracking-tighter tabular-nums whitespace-nowrap", yieldTheme.text)}>
                                                     {macro.yieldSpread10Y3M?.toFixed(2) ?? "N/A"}
                                                     <span className="text-base font-bold ml-0.5">%p</span>
@@ -317,9 +318,9 @@ export function MarketContext() {
                                         <StatusBadge status={marketCondition.realRateStatus} />
                                     </CardHeader>
                                     <CardContent className="px-4 pt-2 pb-4">
-                                        <div className="flex flex-col gap-0.5 mb-1">
-                                            <span className={cn("text-[9px] font-black uppercase tracking-widest", realRateTheme.meta)}>Real Rate (Nominal - {macro.expectedInflation}%)</span>
-                                            <div className="flex items-baseline gap-2">
+                                        <div className="flex flex-col gap-0.5 mb-2 min-h-[52px] justify-center">
+                                            <span className={cn("text-[9px] font-black uppercase tracking-widest whitespace-nowrap", realRateTheme.meta)}>Real Rate (Nominal - {macro.expectedInflation}%)</span>
+                                            <div className="flex items-baseline gap-2 flex-nowrap">
                                                 <span className={cn("text-xl font-black tracking-tighter tabular-nums whitespace-nowrap", realRateTheme.text)}>
                                                     {macro.realRate.toFixed(2)}
                                                     <span className="text-base font-bold ml-0.5">%</span>
@@ -348,15 +349,15 @@ export function MarketContext() {
                                         <StatusBadge status={marketCondition.vixStatus} />
                                     </CardHeader>
                                     <CardContent className="px-4 pt-2 pb-4">
-                                        <div className="flex flex-col gap-0.5 mb-1">
-                                            <span className={cn("text-[9px] font-black uppercase tracking-widest", vixTheme.meta)}>Volatility Index (VIX)</span>
-                                            <div className="flex items-baseline gap-2">
+                                        <div className="flex flex-col gap-0.5 mb-2 min-h-[52px] justify-center">
+                                            <span className={cn("text-[9px] font-black uppercase tracking-widest whitespace-nowrap", vixTheme.meta)}>Volatility Index (VIX)</span>
+                                            <div className="flex items-baseline gap-1.5 flex-nowrap">
                                                 <span className={cn("text-xl font-black tracking-tighter tabular-nums whitespace-nowrap", vixTheme.text)}>
                                                     {macro.vix.toFixed(2)}
                                                 </span>
                                                 {macro.vixDistanceMA50 !== null && (
                                                     <span className={cn(
-                                                        "text-[10px] font-bold tracking-tight opacity-80",
+                                                        "text-[10px] font-bold tracking-tight opacity-80 whitespace-nowrap shrink-0",
                                                         vixTheme.text
                                                     )}>
                                                         {macro.vixDistanceMA50 >= 0 ? "▲" : "▼"}{Math.abs(macro.vixDistanceMA50).toFixed(1)}% (50MA)
@@ -386,13 +387,13 @@ export function MarketContext() {
                                         <StatusBadge status={marketCondition.creditSpreadStatus} />
                                     </CardHeader>
                                     <CardContent className="px-4 pt-2 pb-4">
-                                        <div className="flex flex-col gap-0.5 mb-1">
-                                            <span className={cn("text-[9px] font-black uppercase tracking-widest", creditTheme.meta)}>HYG vs 200MA</span>
-                                            <div className="flex items-baseline gap-2">
+                                        <div className="flex flex-col gap-0.5 mb-2 min-h-[52px] justify-center">
+                                            <span className={cn("text-[9px] font-black uppercase tracking-widest whitespace-nowrap", creditTheme.meta)}>HYG vs 200MA</span>
+                                            <div className="flex items-baseline gap-1.5 flex-nowrap">
                                                 <span className={cn("text-xl font-black tracking-tighter tabular-nums whitespace-nowrap", creditTheme.text)}>
                                                     {(macro.hygDistanceMA200 ?? 0) >= 0 ? "+" : ""}{macro.hygDistanceMA200?.toFixed(2) ?? "N/A"}%
                                                 </span>
-                                                <span className="text-[10px] font-bold text-muted-foreground/50">
+                                                <span className="text-[10px] font-bold text-muted-foreground/50 whitespace-nowrap shrink-0">
                                                     (${macro.hygPrice?.toFixed(1) ?? "N/A"})
                                                 </span>
                                             </div>
@@ -419,14 +420,14 @@ export function MarketContext() {
                                         <StatusBadge status={marketCondition.volumeTrend} />
                                     </CardHeader>
                                     <CardContent className="px-4 pt-2 pb-4">
-                                        <div className="flex flex-col gap-0.5 mb-1">
-                                            <span className={cn("text-[9px] font-black uppercase tracking-widest", volumeTheme.meta)}>Volume vs Avg (3M)</span>
-                                            <div className="flex items-baseline gap-2">
+                                        <div className="flex flex-col gap-0.5 mb-2 min-h-[52px] justify-center">
+                                            <span className={cn("text-[9px] font-black uppercase tracking-widest whitespace-nowrap", volumeTheme.meta)}>Volume vs Avg (3M)</span>
+                                            <div className="flex items-baseline gap-1.5 flex-nowrap">
                                                 <span className={cn("text-xl font-black tracking-tighter tabular-nums whitespace-nowrap", volumeTheme.text)}>
                                                     {macro.snp500Volume ? `${(macro.snp500Volume / 1000000).toFixed(0)}M` : "N/A"}
                                                 </span>
                                                 {macro.snp500Volume && macro.snp500AvgVolume ? (
-                                                    <span className="text-[10px] font-black tracking-tight text-muted-foreground/70">
+                                                    <span className="text-[10px] font-black tracking-tight text-muted-foreground/70 whitespace-nowrap shrink-0">
                                                         ({((macro.snp500Volume / macro.snp500AvgVolume) * 100).toFixed(0)}%)
                                                     </span>
                                                 ) : null}
@@ -445,100 +446,101 @@ export function MarketContext() {
                     })()}
                 </div>
 
-                {/* Indicator Detail Dialog */}
                 <Dialog open={!!selectedDetail} onOpenChange={(open) => !open && setSelectedDetail(null)}>
-                    <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[440px] rounded-[2rem] border-white/10 dark:bg-black/90 backdrop-blur-3xl p-8 outline-none shadow-2xl overflow-hidden">
+                    <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[440px] max-h-[90vh] rounded-[2.5rem] sm:rounded-[2rem] border-white/10 dark:bg-black/90 backdrop-blur-3xl p-0 outline-none shadow-2xl overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 opacity-50" />
 
                         {selectedDetail && indicatorDetails[selectedDetail] && (
-                            <div className="space-y-6">
-                                <DialogHeader>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-                                            {(() => {
-                                                const Icon = indicatorDetails[selectedDetail].icon;
-                                                return <Icon className="w-5 h-5 text-emerald-500" />;
-                                            })()}
-                                        </div>
-                                        <DialogTitle className="text-xl font-black tracking-tight">{indicatorDetails[selectedDetail].title}</DialogTitle>
-                                    </div>
-                                    <DialogDescription className="text-[14px] leading-relaxed font-medium break-keep text-muted-foreground/80">
-                                        {indicatorDetails[selectedDetail].explanation}
-                                    </DialogDescription>
-                                </DialogHeader>
-
-                                <div className="space-y-4">
-                                    {/* Real-time Analysis Result */}
-                                    {(() => {
-                                        const getStatus = () => {
-                                            if (selectedDetail === "snp500") return marketCondition.snp500Trend;
-                                            if (selectedDetail === "yieldSpread") return marketCondition.yieldSpreadStatus;
-                                            if (selectedDetail === "realRate") return marketCondition.realRateStatus;
-                                            if (selectedDetail === "vix") return marketCondition.vixStatus;
-                                            if (selectedDetail === "credit") return marketCondition.creditSpreadStatus;
-                                            if (selectedDetail === "volume") return marketCondition.volumeTrend;
-                                            return "Neutral";
-                                        };
-                                        const currentStatus = getStatus();
-                                        const isEmerald = statusColors[currentStatus]?.includes("emerald");
-                                        const isRose = statusColors[currentStatus]?.includes("rose");
-
-                                        const themeClass = isEmerald
-                                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                                            : isRose
-                                                ? "bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400"
-                                                : "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400";
-
-                                        return (
-                                            <div className={cn("p-6 rounded-[2rem] border space-y-3 relative overflow-hidden group", themeClass.split(' ').slice(0, 2).join(' '))}>
-                                                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
-                                                    <Activity className={cn("w-12 h-12", themeClass.split(' ').slice(-1)[0])} />
-                                                </div>
-                                                <h4 className={cn("text-[11px] font-black uppercase tracking-widest flex items-center gap-2", themeClass.split(' ').slice(-1)[0])}>
-                                                    <Gauge className="w-3 h-3" />
-                                                    현재 국면 집중 분석
-                                                </h4>
-                                                <p className="text-[15px] font-medium text-foreground/90 leading-relaxed break-keep">
-                                                    {selectedDetail === "snp500" && (
-                                                        `현재 S&P 500 지수가 200일 이동평균선 대비 ${macro.snp500DistanceMA200?.toFixed(2)}% ${macro.snp500DistanceMA200! >= 0 ? '상단' : '하단'}에 위치한 것으로 관측됩니다. 이는 시장의 장기적인 에너지가 ${marketCondition.snp500Trend === 'Bull' ? '유지되고 있음' : '다소 약화되었음'}을 시사하는 '${statusLabels[marketCondition.snp500Trend]}' 국면으로 해석될 수 있습니다.`
-                                                    )}
-                                                    {selectedDetail === "yieldSpread" && (
-                                                        `장단기 금리차(10Y-3M)가 ${macro.yieldSpread10Y3M?.toFixed(2)}%p 수준을 기록하고 있습니다. ${macro.yieldSpread10Y3M! < 0 ? '수치가 마이너스 영역에 머물며 경기에 대한 주의가 필요한' : '스프레드가 양의 값을 유지하며 경기가 완만한 흐름을 보이는'} '${statusLabels[marketCondition.yieldSpreadStatus]}' 상태로 풀이됩니다.`
-                                                    )}
-                                                    {selectedDetail === "realRate" && (
-                                                        `실질 금리가 ${macro.realRate.toFixed(2)}% 수준으로 산출되었습니다. 물가 상승률을 고려한 화폐의 실질 가치가 ${macro.realRate > 2 ? '상당히 높아 유동성 위축 가능성이 존재하는' : '상대적으로 낮아 자산 시장에 우호적일 수 있는'} '${statusLabels[marketCondition.realRateStatus]}' 환경으로 판단됩니다.`
-                                                    )}
-                                                    {selectedDetail === "vix" && (
-                                                        `변동성 지수(VIX)가 ${macro.vix.toFixed(2)} 포인트 부근에서 움직이고 있습니다. 이는 전일 대비 ${Math.abs(macro.vixChangePercent).toFixed(2)}% ${macro.vixChangePercent >= 0 ? '상승하며 공포 심리가 확산되는' : '하락하며 투자 심리가 진정되어가는'} 추세입니다. 특히 50일 평균 대비 ${Math.abs(macro.vixDistanceMA50 ?? 0).toFixed(1)}% ${macro.vixDistanceMA50! >= 0 ? '상회하고 있어, 시장의 변동성 체급 자체가 전반적으로 높아진(High Volatility Regime)' : '하회하고 있어, 여전히 구조적인 안정권에 머물러 있는'} 상태로 해석할 수 있습니다.`
-                                                    )}
-                                                    {selectedDetail === "credit" && (
-                                                        `하이일드(HYG) 지표가 200일선 대비 ${macro.hygDistanceMA200?.toFixed(2)}% 수준에 위치하며, 기업들의 자금 조달 여건이 '${statusLabels[marketCondition.creditSpreadStatus]}'한 것으로 분석됩니다. 이는 ${marketCondition.creditSpreadStatus === 'Stable' ? '상대적인 부도 위험이 낮아 시장의 하방 경직성이 확보됨' : '잠재적인 신용 경색 위험을 주시할 필요가 있음'}을 시사할 수 있습니다.`
-                                                    )}
-                                                    {selectedDetail === "volume" && (
-                                                        `3개월 평균 대비 현재 거래량이 약 ${((macro.snp500Volume! / macro.snp500AvgVolume!) * 100).toFixed(0)}% 수준을 기록 중인 것으로 파악됩니다. 이는 현재의 가격 흐름에 ${marketCondition.volumeTrend === 'Accumulation' ? '매수세가 유입되며 신뢰도가 더해지는' : '관망세가 짙어져 힘이 분산되는'} '${statusLabels[marketCondition.volumeTrend]}' 단계로 조심스럽게 예측해 볼 수 있습니다.`
-                                                    )}
-                                                </p>
+                            <ScrollArea className="max-h-[90vh] w-full">
+                                <div className="space-y-6 p-6 sm:p-8">
+                                    <DialogHeader>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                                                {(() => {
+                                                    const Icon = indicatorDetails[selectedDetail].icon;
+                                                    return <Icon className="w-5 h-5 text-emerald-500" />;
+                                                })()}
                                             </div>
-                                        );
-                                    })()}
+                                            <DialogTitle className="text-xl font-black tracking-tight">{indicatorDetails[selectedDetail].title}</DialogTitle>
+                                        </div>
+                                        <DialogDescription className="text-[14px] leading-relaxed font-medium break-keep text-muted-foreground/80">
+                                            {indicatorDetails[selectedDetail].explanation}
+                                        </DialogDescription>
+                                    </DialogHeader>
 
-                                    {/* Decision Criteria */}
-                                    <div className="p-6 rounded-[2rem] bg-slate-500/5 border border-slate-500/10 space-y-4">
-                                        <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                                            <Search className="w-3 h-3" />
-                                            판독 시스템 기준
-                                        </h4>
-                                        <ul className="space-y-3">
-                                            {indicatorDetails[selectedDetail].criteria.map((c, i) => (
-                                                <li key={i} className="text-sm font-medium flex items-start gap-3 group/item">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mt-1.5 shrink-0 group-hover/item:bg-emerald-500 transition-colors" />
-                                                    <span className="text-muted-foreground leading-snug">{c}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                    <div className="space-y-4">
+                                        {/* Real-time Analysis Result */}
+                                        {(() => {
+                                            const getStatus = () => {
+                                                if (selectedDetail === "snp500") return marketCondition.snp500Trend;
+                                                if (selectedDetail === "yieldSpread") return marketCondition.yieldSpreadStatus;
+                                                if (selectedDetail === "realRate") return marketCondition.realRateStatus;
+                                                if (selectedDetail === "vix") return marketCondition.vixStatus;
+                                                if (selectedDetail === "credit") return marketCondition.creditSpreadStatus;
+                                                if (selectedDetail === "volume") return marketCondition.volumeTrend;
+                                                return "Neutral";
+                                            };
+                                            const currentStatus = getStatus();
+                                            const isEmerald = statusColors[currentStatus]?.includes("emerald");
+                                            const isRose = statusColors[currentStatus]?.includes("rose");
+
+                                            const themeClass = isEmerald
+                                                ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                                                : isRose
+                                                    ? "bg-rose-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400"
+                                                    : "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400";
+
+                                            return (
+                                                <div className={cn("p-6 rounded-[2rem] border space-y-3 relative overflow-hidden group", themeClass.split(' ').slice(0, 2).join(' '))}>
+                                                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform">
+                                                        <Activity className={cn("w-12 h-12", themeClass.split(' ').slice(-1)[0])} />
+                                                    </div>
+                                                    <h4 className={cn("text-[11px] font-black uppercase tracking-widest flex items-center gap-2", themeClass.split(' ').slice(-1)[0])}>
+                                                        <Gauge className="w-3 h-3" />
+                                                        현재 국면 집중 분석
+                                                    </h4>
+                                                    <p className="text-[15px] font-medium text-foreground/90 leading-relaxed break-keep">
+                                                        {selectedDetail === "snp500" && (
+                                                            `현재 S&P 500 지수가 200일 이동평균선 대비 ${macro.snp500DistanceMA200?.toFixed(2)}% ${macro.snp500DistanceMA200! >= 0 ? '상단' : '하단'}에 위치한 것으로 관측됩니다. 이는 시장의 장기적인 에너지가 ${marketCondition.snp500Trend === 'Bull' ? '유지되고 있음' : '다소 약화되었음'}을 시사하는 '${statusLabels[marketCondition.snp500Trend]}' 국면으로 해석될 수 있습니다.`
+                                                        )}
+                                                        {selectedDetail === "yieldSpread" && (
+                                                            `장단기 금리차(10Y-3M)가 ${macro.yieldSpread10Y3M?.toFixed(2)}%p 수준을 기록하고 있습니다. ${macro.yieldSpread10Y3M! < 0 ? '수치가 마이너스 영역에 머물며 경기에 대한 주의가 필요한' : '스프레드가 양의 값을 유지하며 경기가 완만한 흐름을 보이는'} '${statusLabels[marketCondition.yieldSpreadStatus]}' 상태로 풀이됩니다.`
+                                                        )}
+                                                        {selectedDetail === "realRate" && (
+                                                            `실질 금리가 ${macro.realRate.toFixed(2)}% 수준으로 산출되었습니다. 물가 상승률을 고려한 화폐의 실질 가치가 ${macro.realRate > 2 ? '상당히 높아 유동성 위축 가능성이 존재하는' : '상대적으로 낮아 자산 시장에 우호적일 수 있는'} '${statusLabels[marketCondition.realRateStatus]}' 환경으로 판단됩니다.`
+                                                        )}
+                                                        {selectedDetail === "vix" && (
+                                                            `변동성 지수(VIX)가 ${macro.vix.toFixed(2)} 포인트 부근에서 움직이고 있습니다. 이는 전일 대비 ${Math.abs(macro.vixChangePercent).toFixed(2)}% ${macro.vixChangePercent >= 0 ? '상승하며 공포 심리가 확산되는' : '하락하며 투자 심리가 진정되어가는'} 추세입니다. 특히 50일 평균 대비 ${Math.abs(macro.vixDistanceMA50 ?? 0).toFixed(1)}% ${macro.vixDistanceMA50! >= 0 ? '상회하고 있어, 시장의 변동성 체급 자체가 전반적으로 높아진(High Volatility Regime)' : '하회하고 있어, 여전히 구조적인 안정권에 머물러 있는'} 상태로 해석할 수 있습니다.`
+                                                        )}
+                                                        {selectedDetail === "credit" && (
+                                                            `하이일드(HYG) 지표가 200일선 대비 ${macro.hygDistanceMA200?.toFixed(2)}% 수준에 위치하며, 기업들의 자금 조달 여건이 '${statusLabels[marketCondition.creditSpreadStatus]}'한 것으로 분석됩니다. 이는 ${marketCondition.creditSpreadStatus === 'Stable' ? '상대적인 부도 위험이 낮아 시장의 하방 경직성이 확보됨' : '잠재적인 신용 경색 위험을 주시할 필요가 있음'}을 시사할 수 있습니다.`
+                                                        )}
+                                                        {selectedDetail === "volume" && (
+                                                            `3개월 평균 대비 현재 거래량이 약 ${((macro.snp500Volume! / macro.snp500AvgVolume!) * 100).toFixed(0)}% 수준을 기록 중인 것으로 파악됩니다. 이는 현재의 가격 흐름에 ${marketCondition.volumeTrend === 'Accumulation' ? '매수세가 유입되며 신뢰도가 더해지는' : '관망세가 짙어져 힘이 분산되는'} '${statusLabels[marketCondition.volumeTrend]}' 단계로 조심스럽게 예측해 볼 수 있습니다.`
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* Decision Criteria */}
+                                        <div className="p-6 rounded-[2rem] bg-slate-500/5 border border-slate-500/10 space-y-4">
+                                            <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                                                <Search className="w-3 h-3" />
+                                                판독 시스템 기준
+                                            </h4>
+                                            <ul className="space-y-3">
+                                                {indicatorDetails[selectedDetail].criteria.map((c, i) => (
+                                                    <li key={i} className="text-sm font-medium flex items-start gap-3 group/item">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40 mt-1.5 shrink-0 group-hover/item:bg-emerald-500 transition-colors" />
+                                                        <span className="text-muted-foreground leading-snug">{c}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </ScrollArea>
                         )}
                     </DialogContent>
                 </Dialog>

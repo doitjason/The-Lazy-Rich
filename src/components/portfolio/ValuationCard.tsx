@@ -65,7 +65,7 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
                                 <div className="text-lg font-black text-foreground leading-none">
                                     {portfolioPer.toFixed(1)} <span className="text-[9px] font-normal text-muted-foreground">배</span>
                                 </div>
-                                <div className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/5 whitespace-nowrap", perStatus.color)}>
+                                <div className={cn("text-xs font-bold whitespace-nowrap bg-white/5 px-1.5 py-0.5 rounded-md", perStatus.color)}>
                                     {perStatus.label}
                                 </div>
                             </div>
@@ -81,18 +81,23 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
 
                         {/* Section 2: Fundamentals (Quality) */}
                         <div className="pt-2 border-t border-emerald-500/10">
-                            <div className="flex items-end gap-1.5">
-                                <div className="text-base font-black text-foreground leading-none">
+                            <div className="text-xs text-muted-foreground font-medium flex items-center gap-1 mb-0.5 whitespace-nowrap">
+                                기초체력 (ROE)
+                            </div>
+                            <div className="flex items-baseline gap-1.5 flex-nowrap">
+                                <div className="text-base font-black text-foreground leading-none whitespace-nowrap">
                                     {roeCoverage > 20 ? roePercent.toFixed(1) : "N/A"}<span className="text-[9px] font-normal text-muted-foreground ml-0.5">%</span>
                                 </div>
-                                <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-white/5 whitespace-nowrap leading-none mb-[1px]", roeStatus.color)}>
-                                    {roeCoverage > 20 ? roeStatus.label.split(' ')[0] : "데이터 부족"}
-                                </span>
-                                {roeCoverage > 20 && roePercent > MARKET_ROE && (
-                                    <span className="text-emerald-400 font-bold text-[10px] flex items-center leading-none mb-[1.5px]">
-                                        <TrendingUp className="w-3 h-3 mr-0.5" /> 상위
+                                <div className="flex items-center gap-1 flex-nowrap shrink-0">
+                                    <span className={cn("text-xs font-bold whitespace-nowrap leading-none bg-white/5 px-1.5 py-0.5 rounded-md", roeStatus.color)}>
+                                        {roeCoverage > 20 ? roeStatus.label.split(' ')[0] : "데이터 부족"}
                                     </span>
-                                )}
+                                    {roeCoverage > 20 && (
+                                        <span className={cn("text-xs font-bold whitespace-nowrap flex items-center leading-none", roeStatus.color)}>
+                                            <TrendingUp className="w-3 h-3 mr-0.5 shrink-0" /> 상위
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -56,8 +56,8 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
                     <div className="mt-4 pt-3 border-t border-emerald-500/10 relative z-10">
                         <div className="flex justify-between items-center">
                             <span className="text-xs text-muted-foreground">방어력 진단</span>
-                            <span className={cn("text-sm font-bold flex items-center gap-1", status.color)}>
-                                <Icon className="w-3 h-3" /> {status.label.split(' ')[0]}
+                            <span className={cn("text-xs font-bold flex items-center gap-1 whitespace-nowrap", status.color)}>
+                                <Icon className="w-3 h-3 shrink-0" /> {status.label.split(' ')[0]}
                             </span>
                         </div>
                     </div>

@@ -583,7 +583,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                         style={{ width: `${Math.min(portfolioBeta * 50, 100)}% ` }}
                                     />
                                 </div>
-                                <div className={cn("text-[10px] font-bold text-right",
+                                <div className={cn("text-xs font-bold text-right whitespace-nowrap",
                                     portfolioBeta > 1.2 ? "text-rose-500 dark:text-rose-400" :
                                         portfolioBeta < 0.8 ? "text-emerald-500 dark:text-emerald-400" : "text-primary dark:text-primary"
                                 )}>
@@ -650,7 +650,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                     <div className="mt-4 pt-3 border-t border-emerald-500/10 relative z-10">
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] text-muted-foreground">월 평균 수령액</span>
-                            <span className="text-xs font-bold text-emerald-500 dark:text-emerald-400">
+                            <span className="text-xs font-bold text-emerald-500 dark:text-emerald-400 whitespace-nowrap">
                                 {formatCurrency(convert(estimatedAnnualIncome / 12), { maximumFractionDigits: 0 })}
                             </span>
                         </div>

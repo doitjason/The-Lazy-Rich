@@ -28,6 +28,8 @@ interface RegretResult {
     dropFromAth: number;
     chartData: { name: string; value: number; stockPrice: number }[];
     actualPeriod?: string;
+    quoteType?: string;
+    isEtf?: boolean;
     mddPeriod?: {
         start: string;
         end: string;
@@ -51,9 +53,10 @@ export function RegretCalculator() {
 
         try {
             setIsLoading(true);
+            const isDark = document.documentElement.classList.contains('dark');
             const dataUrl = await toPng(resultRef.current, {
                 cacheBust: true,
-                backgroundColor: '#ffffff',
+                backgroundColor: isDark ? '#030712' : '#ffffff',
                 style: {
                     borderRadius: '0',
                     fontFamily: 'Pretendard, sans-serif'
@@ -209,7 +212,9 @@ export function RegretCalculator() {
                 mddPeriod: {
                     start: mddStart,
                     end: mddEnd
-                }
+                },
+                quoteType: data.quoteType,
+                isEtf: data.isEtf || data.quoteType === "ETF" || ["SPY", "QQQ", "VOO", "IVV", "VTI", "DIA", "IWM", "VEA", "VWO", "XLF", "XLK", "XLE", "XLV", "XLP", "XLU", "XLI", "XLB", "XLY", "XLC", "XLRE"].includes(data.ticker.toUpperCase())
             });
             setIsCalculated(true);
         } catch (err) {
@@ -348,30 +353,33 @@ export function RegretCalculator() {
                     {result ? (
                         <Card ref={resultRef} className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 p-6">
                             <CardContent className="pt-0 text-center space-y-2">
-                                {/* Stock Logo & Name */}
-                                <div className="flex flex-col items-center gap-3 mb-4">
-                                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-white/5 border border-white/10 shadow-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-500">
-                                        <img
-                                            src={`/api/logo?ticker=${result.ticker}`}
-                                            alt={result.ticker}
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => {
-                                                e.currentTarget.style.display = 'none';
-                                                const fallback = e.currentTarget.parentElement?.querySelector('.fallback-initial');
-                                                if (fallback) fallback.classList.remove('hidden');
-                                            }}
-                                        />
-                                        <div className="fallback-initial hidden absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-xl font-bold text-white/90">
-                                            {result.ticker.slice(0, 2)}
+                                {/* Stock Name & Ticker */}
+                                <div className="flex flex-col items-center gap-1 mb-4 w-full">
+                                    {/* Conditionally show logo for individual stocks, hide for ETFs */}
+                                    {!result.isEtf && (
+                                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-white/5 border border-white/10 shadow-xl flex items-center justify-center flex-shrink-0 mb-3 group-hover:scale-105 transition-transform duration-500">
+                                            <img
+                                                src={`/api/logo?ticker=${result.ticker}`}
+                                                alt={result.ticker}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                    const fallback = e.currentTarget.parentElement?.querySelector('.fallback-initial');
+                                                    if (fallback) fallback.classList.remove('hidden');
+                                                }}
+                                            />
+                                            <div className="fallback-initial hidden absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-xl font-bold text-white/90">
+                                                {result.ticker.slice(0, 2)}
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex flex-col items-center gap-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/50 px-2 py-0.5 rounded-md">
-                                                {result.ticker}
-                                            </span>
-                                            <h3 className="text-lg font-black text-foreground tracking-tight">{result.name}</h3>
-                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-center gap-2 w-full px-4 overflow-hidden">
+                                        <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/50 px-2 py-0.5 rounded-md whitespace-nowrap shrink-0">
+                                            {result.ticker}
+                                        </span>
+                                        <h3 className="text-lg font-black text-foreground tracking-tight truncate whitespace-nowrap">
+                                            {result.name}
+                                        </h3>
                                     </div>
                                 </div>
 
