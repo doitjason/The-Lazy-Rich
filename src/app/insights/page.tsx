@@ -70,8 +70,18 @@ export default function InsightsPage() {
                 )}
 
                 {selectedTab === "recommended" && (
-                    <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-2xl bg-muted/20">
-                        <p>📚 당신을 위한 맞춤형 투자 컨텐츠를 선별 중입니다.</p>
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                            <button className="px-4 py-1.5 rounded-full text-sm font-semibold text-foreground bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-all whitespace-nowrap">
+                                📚 추천 도서
+                            </button>
+                            <button className="px-4 py-1.5 rounded-full text-sm font-semibold text-foreground bg-secondary/80 border border-border hover:bg-secondary transition-all whitespace-nowrap">
+                                🎬 추천 동영상
+                            </button>
+                        </div>
+                        <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-2xl bg-muted/20 mt-4">
+                            <p>당신을 위한 맞춤형 투자 컨텐츠를 선별 중입니다. 🚀</p>
+                        </div>
                     </div>
                 )}
             </div>
