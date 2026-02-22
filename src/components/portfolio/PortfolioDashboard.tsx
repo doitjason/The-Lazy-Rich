@@ -783,7 +783,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                                 {guru.tag}
                                             </span>
                                         </div>
-                                        <span className="text-xs text-muted-foreground truncate">{guru.description}</span>
+                                        <span className="text-xs text-muted-foreground leading-tight break-keep line-clamp-2">{guru.description}</span>
                                     </div>
                                 </button>
                             ))}
