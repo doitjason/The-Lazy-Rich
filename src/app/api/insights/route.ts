@@ -1,20 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 import OpenAI from "openai";
 
 // Mark as dynamic to avoid build-time issues with environment variables
 export const dynamic = "force-dynamic";
-
-function getClients() {
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder"
-    );
-    const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY || "placeholder",
-    });
-    return { supabase, openai };
-}
 
 // Save insight (summarize conversation to 3 lines)
 export async function POST(req: NextRequest) {
@@ -28,7 +17,20 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { supabase, openai } = getClients();
+        const supabase = await createClient();
+
+        // Security check: Validate the request comes from the authenticated user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || user.id !== userId) {
+            return NextResponse.json(
+                { error: "Unauthorized: Invalid user session" },
+                { status: 401 }
+            );
+        }
+
+        const openai = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY || "placeholder",
+        });
 
         // Use GPT to summarize the conversation into 3 lines
         const conversationText = messages
@@ -103,7 +105,16 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    const { supabase } = getClients();
+    const supabase = await createClient();
+
+    // Security check: Validate the request comes from the authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || user.id !== userId) {
+        return NextResponse.json(
+            { error: "Unauthorized: Invalid user session" },
+            { status: 401 }
+        );
+    }
 
     const { data, error } = await supabase
         .from("saved_insights")

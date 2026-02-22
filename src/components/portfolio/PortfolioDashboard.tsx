@@ -24,6 +24,13 @@ import {
     DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
+import {
     Popover,
     PopoverContent,
     PopoverTrigger,
@@ -45,6 +52,8 @@ interface PortfolioDashboardProps {
 
 const COLORS = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
 
+import { GURU_PERSONAS } from "@/lib/guru-personas";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { EmptyPortfolio } from "./EmptyPortfolio";
@@ -57,9 +66,11 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     // Helper to convert USD to selected currency
     const convert = (value: number) => currency === "KRW" ? value * exchangeRate : value;
 
+    const router = useRouter();
     const [enrichedData, setEnrichedData] = useState<Record<string, EnrichedPortfolioItem>>({});
     const [loading, setLoading] = useState(true);
 
+    const [isGuruSelectOpen, setIsGuruSelectOpen] = useState(false);
     const [showReturnPercent, setShowReturnPercent] = useState(true);
     const [marketReturn, setMarketReturn] = useState(0);
     const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
@@ -381,9 +392,12 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
         });
     }, [items, enrichedData, sortBy]);
 
-    // Extract holdings for BenchmarkCard to avoid inline hook call
     const holdingsForBenchmark = useMemo(() => items.map(i => ({ ticker: i.ticker, quantity: i.quantity })), [items]);
 
+    const handleGuruSelect = (guruId: string) => {
+        setIsGuruSelectOpen(false);
+        router.push(`/guru?action=analyze_portfolio&persona=${guruId}`);
+    };
 
     if (!storeLoading && items.length === 0) {
         return <EmptyPortfolio onAdd={onAdd} onSelectPreset={setLocalItems} />;
@@ -397,6 +411,15 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
 
                 <CardContent className="relative z-10 py-6 px-6 flex flex-col items-center justify-center gap-3 text-white">
+                    {/* "✨ AI 멘토 진단" Button on top-right */}
+                    <button
+                        onClick={() => setIsGuruSelectOpen(true)}
+                        className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all shadow-sm active:scale-95 text-xs font-bold text-white z-20 overflow-hidden group"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <span className="relative z-10">✨ AI 멘토 진단</span>
+                    </button>
+
                     <div className="text-white/80 text-lg font-medium tracking-wide">총 순자산 {currency === "KRW" ? "(₩)" : "($)"}</div>
                     {(() => {
                         const formattedTotal = formatCurrency(convert(totalValue));
@@ -729,6 +752,45 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                     );
                 })()
             }
+
+            {/* AI Guru Quick Select Modal */}
+            <Dialog open={isGuruSelectOpen} onOpenChange={setIsGuruSelectOpen}>
+                <DialogContent className="sm:max-w-[425px] bg-white/95 dark:bg-[#1a1c23]/95 backdrop-blur-3xl border-white/20 dark:border-white/10 p-0 overflow-hidden fixed bottom-0 top-auto translate-y-0 translate-x-[-50%] sm:top-[50%] sm:-translate-y-1/2 rounded-t-3xl rounded-b-none sm:rounded-2xl">
+                    <div className="p-6">
+                        <DialogHeader className="mb-4 text-center sm:text-left">
+                            <DialogTitle className="text-xl font-bold flex items-center justify-center sm:justify-start gap-2">
+                                ✨ AI 멘토 진단
+                            </DialogTitle>
+                            <DialogDescription className="text-sm mt-1">
+                                어떤 멘토에게 자산 진단을 받을까요?
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="grid grid-cols-1 gap-2 mt-2">
+                            {GURU_PERSONAS.map((guru) => (
+                                <button
+                                    key={guru.id}
+                                    onClick={() => handleGuruSelect(guru.id)}
+                                    className="flex items-center gap-4 p-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-all text-left group border border-transparent hover:border-black/10 dark:hover:border-white/10 active:scale-[0.98]"
+                                >
+                                    <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-sm shrink-0 transition-transform group-hover:scale-110", guru.color)}>
+                                        {guru.avatarEmoji}
+                                    </div>
+                                    <div className="flex flex-col gap-0.5 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-foreground text-sm truncate">{guru.name}</span>
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
+                                                {guru.tag}
+                                            </span>
+                                        </div>
+                                        <span className="text-xs text-muted-foreground truncate">{guru.description}</span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* 2. Asset Allocation & Stats Grid */}
             <div className="grid grid-cols-1 gap-4">

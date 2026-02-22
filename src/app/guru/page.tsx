@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { GuruSelector } from "@/components/guru/GuruSelector";
 import { ChatInterface } from "@/components/guru/ChatInterface";
-import { GuruPersona } from "@/lib/guru-personas";
+import { GuruPersona, getGuruById } from "@/lib/guru-personas";
 import { useAuth } from "@/contexts/AuthContext";
 import { BrandStoryDialog } from "@/components/layout/BrandStoryDialog";
 
-export default function GuruPage() {
+function GuruPageContent() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
     const [selectedGuru, setSelectedGuru] = useState<GuruPersona | null>(null);
     const [sessionId, setSessionId] = useState<string | null>(null);
+    const [initialMessage, setInitialMessage] = useState<string | undefined>(undefined);
     const { user } = useAuth();
 
     // Create a new chat session when guru is selected
@@ -37,6 +42,23 @@ export default function GuruPage() {
         }
     };
 
+    // Handle auto-selection based on URL query param
+    useEffect(() => {
+        const action = searchParams.get("action");
+        const personaId = searchParams.get("persona");
+
+        if (action === "analyze_portfolio" && personaId) {
+            const autoGuru = getGuruById(personaId);
+            if (autoGuru && !selectedGuru) {  // only auto-select if a guru isn't already active
+                // Clean the URL so refreshing doesn't keep triggering it
+                router.replace("/guru", { scroll: false });
+
+                setInitialMessage("내 포트폴리오를 기반으로 현재 자산 상태를 상세히 분석해줘");
+                handleGuruSelect(autoGuru);
+            }
+        }
+    }, [searchParams, selectedGuru, router]);
+
     // Scroll to top when view changes
     useEffect(() => {
         // Ensure scroll reset happens after the DOM has likely updated for the new view
@@ -51,6 +73,7 @@ export default function GuruPage() {
     const handleBack = () => {
         setSelectedGuru(null);
         setSessionId(null);
+        setInitialMessage(undefined);
     };
 
     return (
@@ -61,6 +84,7 @@ export default function GuruPage() {
                     onBack={handleBack}
                     userId={user?.id}
                     sessionId={sessionId || undefined}
+                    initialMessage={initialMessage}
                 />
             ) : (
                 <>
@@ -72,5 +96,13 @@ export default function GuruPage() {
                 </>
             )}
         </div>
+    );
+}
+
+export default function GuruPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading AI Mentor...</div>}>
+            <GuruPageContent />
+        </Suspense>
     );
 }

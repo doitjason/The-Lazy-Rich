@@ -20,6 +20,7 @@ interface ChatInterfaceProps {
     onBack: () => void;
     userId?: string;
     sessionId?: string;
+    initialMessage?: string;
 }
 
 // Quick suggestion tags in multiple languages
@@ -33,7 +34,7 @@ const QUICK_SUGGESTIONS: { [key in SupportedLanguage]: string[] } = {
     vi: ["Phân tích danh mục của tôi", "Ý kiến của bạn về thị trường hiện tại?"],
 };
 
-export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterfaceProps) {
+export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage }: ChatInterfaceProps) {
     const { currency } = useCurrency();
 
     // Determine language from currency setting
@@ -104,18 +105,18 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
         fetchMessages();
     }, [sessionId]);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input.trim() || isLoading) return;
+    const hasSentInitialRef = useRef(false);
+
+    const sendMessage = async (content: string) => {
+        if (!content.trim() || isLoading) return;
 
         const userMessage: Message = {
             id: Date.now().toString(),
             role: "user",
-            content: input.trim(),
+            content: content.trim(),
         };
 
         setMessages((prev) => [...prev, userMessage]);
-        setInput("");
         setIsLoading(true);
         setStreamingContent("");
 
@@ -126,7 +127,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                 body: JSON.stringify({
                     messages: [...messages, userMessage]
                         .filter(m => m.id !== "intro")
-                        .slice(-20) // 최근 20개 대화로 기억 범위 확장
+                        .slice(-20)
                         .map(m => ({
                             role: m.role,
                             content: m.content,
@@ -157,7 +158,6 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
                         if (line.startsWith("data: ")) {
                             const data = line.slice(6);
                             if (data === "[DONE]") {
-                                // Streaming complete
                                 const assistantMessage: Message = {
                                     id: (Date.now() + 1).toString(),
                                     role: "assistant",
@@ -193,6 +193,31 @@ export function ChatInterface({ guru, onBack, userId, sessionId }: ChatInterface
             inputRef.current?.focus();
         }
     };
+
+    // Auto trigger initialMessage
+    useEffect(() => {
+        const isSessionReady = userId ? !!sessionId : true;
+
+        if (
+            initialMessage &&
+            isSessionReady &&
+            !isHistoryLoading &&
+            messages.length === 1 &&
+            !hasSentInitialRef.current
+        ) {
+            hasSentInitialRef.current = true;
+            sendMessage(initialMessage);
+        }
+    }, [initialMessage, sessionId, userId, isHistoryLoading, messages.length]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const msg = input;
+        setInput("");
+        await sendMessage(msg);
+    };
+
+
 
     const handleReset = async () => {
         if (isLoading) return;

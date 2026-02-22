@@ -31,17 +31,36 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Fetch user's portfolio for context injection
+        // Get authenticated user ID from session for security
+        let authUserId = null;
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                authUserId = user.id;
+            }
+        } catch (authErr) {
+            console.error("[ChatAPI] Auth check failed:", authErr);
+        }
+
+        // Validate client provided userId matches authenticated user (if provided)
+        if (userId && userId !== authUserId) {
+            console.warn(`[ChatAPI] Security Warning: Client provided userId (${userId}) does not match authenticated user (${authUserId})`);
+            // Optional: You could reject here, but for now we'll just use the authenticated ID if available
+        }
+
+        // Use authenticated ID if available, fallback to client provided (or null)
+        const effectiveUserId = authUserId || userId;
+
         // Fetch user's portfolio for context injection
         let portfolioContext = "";
 
         let userTickers: string[] = [];
 
-        if (userId) {
+        if (effectiveUserId) {
             const { data: portfolioData } = await supabase
                 .from("portfolios")
                 .select("ticker, quantity, avg_price")
-                .eq("user_id", userId);
+                .eq("user_id", effectiveUserId);
 
             if (portfolioData && portfolioData.length > 0) {
                 userTickers = portfolioData.map((p) => p.ticker);
@@ -65,10 +84,15 @@ ${holdings}
 현재 사용자는 로그인은 했으나 포트폴리오를 아직 등록하지 않은 상태입니다.
 
 [⛔️ 필수 지침 - 절대 위반 금지]
-사용자가 "내 포트폴리오 분석해줘", "진단해줘" 등 **자신의 자산에 대한 분석을 요청할 경우**:
-1. **절대로** "어떤 종목을 가지고 계신가요?"라고 되묻거나 채팅창에서 정보를 입력받으려 하지 마세요.
-2. **반드시** 당신의 **페르소나 성향에 맞는 톤앤매너**로 포트폴리오 데이터가 비어있음을 안내하고, 정확한 진단을 위해 먼저 보유 종목을 등록해달라고 정중히 안내하세요. (예: "진단할 재무제표가 비어있군요. 종목을 등록해주시면 가치를 평가해드리겠습니다." 등)
-3. 답변의 맨 마지막에는 **반드시** 다음 태그를 포함하여 바로가기 버튼을 생성하세요: [ACTION:CREATE_PORTFOLIO]
+1. 사용자가 "내 포트폴리오 분석해줘", "진단해줘" 등 **자신의 자산에 대한 분석을 명시적으로 요청할 경우**:
+   - **절대로** "어떤 종목을 가지고 계신가요?"라고 되묻거나 채팅창에서 정보를 입력받으려 하지 마세요.
+   - **반드시** 당신의 **페르소나 성향에 맞는 톤앤매너**로 포트폴리오 데이터가 비어있음을 안내하고 종목 등록을 권유하세요. (예: "진단할 재무제표가 비어있군요. 종목을 등록해주시면 가치를 평가해드리겠습니다." 등)
+   - 답변의 맨 마지막 줄에 반드시 다음 태그를 포함하여 버튼을 생성하세요: [ACTION:CREATE_PORTFOLIO]
+
+2. 일반적인 투자/시황/프리셋 질문 등에 답변할 때, **개인화된 분석이나 포트폴리오 기반 조언이 곁들여지면 유용할 것이라 판단되는 적절한 경우**:
+   - 질문에 대한 답변(투자 철학, 시장 전망 등)을 먼저 충실히 제공하세요.
+   - 마지막에 자연스럽게 현재 포트폴리오가 비어있음을 언급하며 종목 등록을 권장하세요.
+   - 답변의 맨 마지막 줄에 반드시 다음 태그를 포함하여 버튼을 생성하세요: [ACTION:CREATE_PORTFOLIO]
 `;
             }
         } else {
@@ -79,12 +103,17 @@ ${holdings}
 현재 사용자는 **로그인하지 않은 상태**입니다.
 
 [⛔️ 필수 지침 - 절대 위반 금지]
-사용자가 "내 포트폴리오 분석해줘" 등 **자신의 자산에 대한 분석을 요청할 경우**:
+1. 사용자가 "내 포트폴리오 분석해줘" 등 **자신의 자산 분석을 명시적으로 요청할 경우**:
+   - 당신의 **페르소나 성향에 100% 동기화된 톤앤매너**로 포트폴리오 데이터가 없어서 분석해드릴 수 없음을 창의적으로 설명하세요. (일반적인 "앗, 포트폴리오 데이터가 없네요" 같은 평범한 말투 절대 금지)
+   - "간단한 회원가입으로 나만의 포트폴리오를 만들고, 맞춤형 분석을 받아보세요!"를 페르소나 철학을 담아 매력적으로 권유하세요.
+   - 답변의 맨 마지막 줄에 정확히 다음 태그를 출력하세요: [ACTION:GO_TO_PROFILE]
 
-1. **상황 설명**: 당신의 **페르소나 성향에 100% 동기화된 톤앤매너**로 포트폴리오 데이터가 없어서 분석해드릴 수 없음을 창의적으로 설명해주세요. (일반적인 "앗, 포트폴리오 데이터가 없네요" 같은 평범한 말투 절대 금지)
-2. **행동 유도**: "간단한 회원가입으로 나만의 포트폴리오를 만들고, 맞춤형 분석을 받아보세요!"라는 의미를 페르소나의 철학을 담아 매력적으로 권유해주세요.
-3. **버튼 생성**: 답변의 맨 마지막 줄에 정확히 다음 태그를 출력하세요: [ACTION:GO_TO_PROFILE]
-   - 🚨 **주의**: 태그를 '회원가입하러 가기' 등으로 번역하지 마세요. 오직 **[ACTION:GO_TO_PROFILE]** 라고만 출력해야 버튼이 정상적으로 작동합니다.
+2. 일반적인 투자/시황/프리셋 질문 등에 답변할 때, **개인화된 분석이나 포트폴리오 기반 조언이 곁들여지면 유용할 것이라 판단되는 적절한 경우**:
+   - 질문에 대한 답변(투자 철학, 시장 전망 등)을 먼저 충실히 제공하세요.
+   - 마지막에 자연스럽게 비로그인 상태임을 언급하며 회원가입 및 포트폴리오 구성을 권장하세요.
+   - 답변의 맨 마지막 줄에 정확히 다음 태그를 출력하세요: [ACTION:GO_TO_PROFILE]
+
+🚨 **공통 주의사항**: 태그를 '회원가입하러 가기' 등으로 번역하지 마세요. 오직 **[ACTION:GO_TO_PROFILE]** 라고만 출력해야 버튼이 정상적으로 작동합니다.
 `;
         }
 
