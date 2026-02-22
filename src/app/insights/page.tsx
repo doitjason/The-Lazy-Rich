@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { QuoteCard } from "@/components/insights/QuoteCard";
 import { MarketContext } from "@/components/insights/MarketContext";
+import { RecommendedBooks } from "@/components/insights/RecommendedBooks";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export default function InsightsPage() {
     const [selectedTab, setSelectedTab] = useState<"market" | "blog" | "community" | "recommended">("market");
+    const [recommendedType, setRecommendedType] = useState<"book" | "video">("book");
 
     return (
         <div className="flex min-h-screen flex-col p-4 max-w-md mx-auto space-y-8 pb-24">
@@ -72,16 +74,27 @@ export default function InsightsPage() {
                 {selectedTab === "recommended" && (
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                            <button className="px-4 py-1.5 rounded-full text-sm font-semibold text-foreground bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-all whitespace-nowrap">
+                            <button
+                                onClick={() => setRecommendedType("book")}
+                                className={cn("px-4 py-1.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap border", recommendedType === "book" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "text-muted-foreground bg-transparent border-transparent hover:bg-white/5")}
+                            >
                                 📚 추천 도서
                             </button>
-                            <button className="px-4 py-1.5 rounded-full text-sm font-semibold text-foreground bg-secondary/80 border border-border hover:bg-secondary transition-all whitespace-nowrap">
+                            <button
+                                onClick={() => setRecommendedType("video")}
+                                className={cn("px-4 py-1.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap border", recommendedType === "video" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "text-muted-foreground bg-transparent border-transparent hover:bg-white/5")}
+                            >
                                 🎬 추천 동영상
                             </button>
                         </div>
-                        <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-2xl bg-muted/20 mt-4">
-                            <p>당신을 위한 맞춤형 투자 컨텐츠를 선별 중입니다. 🚀</p>
-                        </div>
+
+                        {recommendedType === "book" ? (
+                            <RecommendedBooks />
+                        ) : (
+                            <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-2xl bg-muted/20 mt-4">
+                                <p>당신을 위한 맞춤형 투자 영상을 선별 중입니다. 🚀</p>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
