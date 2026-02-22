@@ -410,15 +410,33 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-600 opacity-90" />
                 <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay" />
 
-                <CardContent className="relative z-10 py-6 px-6 flex flex-col items-center justify-center gap-3 text-white">
-                    {/* "✨ AI 멘토 진단" Button on top-right */}
-                    <button
-                        onClick={() => setIsGuruSelectOpen(true)}
-                        className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all shadow-sm active:scale-95 text-xs font-bold text-white z-20 overflow-hidden group"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <span className="relative z-10">✨ AI 멘토 진단</span>
-                    </button>
+                <CardContent className="relative z-10 pt-4 pb-6 px-5 flex flex-col items-center justify-center gap-3 text-white">
+                    {/* "✨ AI 멘토 진단" Button: Now in document flow to prevent text overlap */}
+                    <div className="w-full flex justify-end -mb-1">
+                        <motion.button
+                            onClick={() => setIsGuruSelectOpen(true)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            animate={{
+                                boxShadow: ["0px 0px 0px rgba(255, 255, 255, 0)", "0px 0px 15px rgba(255, 255, 255, 0.3)", "0px 0px 0px rgba(255, 255, 255, 0)"]
+                            }}
+                            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-white/10 to-white/5 hover:from-white/20 hover:to-white/10 border border-white/30 backdrop-blur-md shadow-sm text-xs font-bold text-white overflow-hidden group z-20 relative"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-orange-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <motion.span
+                                animate={{
+                                    rotate: [0, 15, -15, 0],
+                                    scale: [1, 1.2, 1.2, 1]
+                                }}
+                                transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 2 }}
+                                className="relative z-10"
+                            >
+                                ✨
+                            </motion.span>
+                            <span className="relative z-10 tracking-wide text-[13px]">AI 멘토 진단</span>
+                        </motion.button>
+                    </div>
 
                     <div className="text-white/80 text-lg font-medium tracking-wide">총 순자산 {currency === "KRW" ? "(₩)" : "($)"}</div>
                     {(() => {

@@ -68,10 +68,11 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
 
     // History loading state
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+    const fetchedSessionId = useRef<string | null>(null);
 
     // Fetch existing messages if sessionId exists
     useEffect(() => {
-        if (!sessionId || isHistoryLoading) return;
+        if (!sessionId || isHistoryLoading || fetchedSessionId.current === sessionId) return;
 
         const fetchMessages = async () => {
             setIsHistoryLoading(true);
@@ -100,10 +101,11 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                 console.error("[ChatHistory] Failed to fetch messages:", error);
             } finally {
                 setIsHistoryLoading(false);
+                fetchedSessionId.current = sessionId;
             }
         };
         fetchMessages();
-    }, [sessionId]);
+    }, [sessionId, isHistoryLoading]);
 
     const hasSentInitialRef = useRef(false);
 
@@ -196,19 +198,18 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
 
     // Auto trigger initialMessage
     useEffect(() => {
-        const isSessionReady = userId ? !!sessionId : true;
+        const isSessionReady = userId ? (!!sessionId && fetchedSessionId.current === sessionId) : true;
 
         if (
             initialMessage &&
             isSessionReady &&
             !isHistoryLoading &&
-            messages.length === 1 &&
             !hasSentInitialRef.current
         ) {
             hasSentInitialRef.current = true;
             sendMessage(initialMessage);
         }
-    }, [initialMessage, sessionId, userId, isHistoryLoading, messages.length]);
+    }, [initialMessage, sessionId, userId, isHistoryLoading]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -251,7 +252,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
 
     return (
         <motion.div
-            className="flex flex-col h-[calc(100vh-180px)]"
+            className="flex flex-col h-full"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}

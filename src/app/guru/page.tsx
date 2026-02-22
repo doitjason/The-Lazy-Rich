@@ -77,7 +77,7 @@ function GuruPageContent() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col p-4 max-w-md mx-auto pb-24">
+        <div className={selectedGuru ? "flex flex-col h-[calc(100dvh-85px)] p-4 max-w-md mx-auto" : "flex min-h-screen flex-col p-4 max-w-md mx-auto pb-24"}>
             {selectedGuru ? (
                 <ChatInterface
                     guru={selectedGuru}
