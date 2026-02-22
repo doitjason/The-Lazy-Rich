@@ -248,7 +248,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
         }
     };
 
-
+    const isPreparing = !!(isHistoryLoading || (initialMessage && !hasSentInitialRef.current));
 
     return (
         <motion.div
@@ -477,6 +477,25 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                     </motion.div>
                 )}
 
+                {/* Preparing Indicator */}
+                {isPreparing && (
+                    <motion.div
+                        className="flex gap-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                    >
+                        <div className="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center border border-white/10 flex-shrink-0">
+                            <Bot className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <div className="bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl rounded-tl-none p-3 text-sm shadow-sm flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+                            <span className="text-muted-foreground text-xs font-medium">
+                                {initialMessage ? "포트폴리오 분석 준비 중..." : "대화 기록을 불러오는 중..."}
+                            </span>
+                        </div>
+                    </motion.div>
+                )}
+
                 {/* Loading Indicator */}
                 {isLoading && !streamingContent && (
                     <motion.div
@@ -502,8 +521,8 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
 
             {/* Input Area */}
             <div className="pt-3 mt-auto space-y-2">
-                {/* Quick Suggestion Tags - Always visible */}
-                {!isLoading && (
+                {/* Quick Suggestion Tags - Always visible unless busy */}
+                {!(isLoading || isPreparing) && (
                     <motion.div
                         className="flex flex-wrap gap-2"
                         initial={{ opacity: 0, y: 10 }}
@@ -596,13 +615,13 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                         onChange={(e) => setInput(e.target.value)}
                         placeholder={`${guru.name}에게 질문하세요...`}
                         className="pr-12 bg-white/50 dark:bg-black/20 border-white/20 backdrop-blur-md focus:ring-emerald-500/50"
-                        disabled={isLoading}
+                        disabled={isLoading || isPreparing}
                     />
                     <Button
                         size="icon"
                         className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white"
                         type="submit"
-                        disabled={!input.trim() || isLoading}
+                        disabled={!input.trim() || isLoading || isPreparing}
                     >
                         {isLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
