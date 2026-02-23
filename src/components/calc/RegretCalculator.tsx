@@ -94,10 +94,12 @@ export function RegretCalculator() {
         const cleanTicker = result.ticker.replace(".KS", "");
 
         let shareText = "";
+        const formattedReturnRate = result.returnRate.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
         if (result.returnRate >= 0) {
-            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사자고 했제? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${result.cagr.toFixed(1)}%🔥🔥🔥`;
+            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사자고 했제~? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${formattedReturnRate}%🔥🔥🔥`;
         } else {
-            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사지 말자고 했제? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${result.cagr.toFixed(1)}%... 😢😢😢`;
+            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사지 말자고 했제~? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${formattedReturnRate}%... 😢😢😢`;
         }
 
         shareText += `\n\n지금 했제 계산기에서 다른 종목들도 확인해보세요!`;
