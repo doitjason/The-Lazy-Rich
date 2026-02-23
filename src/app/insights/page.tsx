@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QuoteCard } from "@/components/insights/QuoteCard";
 import { MarketContext } from "@/components/insights/MarketContext";
 import { RecommendedBooks } from "@/components/insights/RecommendedBooks";
@@ -9,7 +9,20 @@ import { cn } from "@/lib/utils";
 
 export default function InsightsPage() {
     const [selectedTab, setSelectedTab] = useState<"market" | "blog" | "community" | "recommended">("market");
-    const [recommendedType, setRecommendedType] = useState<"book" | "video">("book");
+
+    // Retrieve the active tab from sessionStorage when component mounts
+    useEffect(() => {
+        const savedTab = sessionStorage.getItem("insightsTab");
+        if (savedTab) {
+            setSelectedTab(savedTab as any);
+        }
+    }, []);
+
+    // Save the active tab to sessionStorage whenever it changes
+    const handleTabChange = (tab: "market" | "blog" | "community" | "recommended") => {
+        setSelectedTab(tab);
+        sessionStorage.setItem("insightsTab", tab);
+    };
 
     return (
         <div className="flex min-h-screen flex-col p-4 max-w-md mx-auto space-y-8 pb-24">
@@ -24,11 +37,11 @@ export default function InsightsPage() {
                     { id: "market", label: "시장 상황" },
                     { id: "blog", label: "블로그" },
                     { id: "community", label: "커뮤니티" },
-                    { id: "recommended", label: "추천 컨텐츠" },
+                    { id: "recommended", label: "추천 도서" },
                 ].map((tab) => (
                     <button
                         key={tab.id}
-                        onClick={() => setSelectedTab(tab.id as any)}
+                        onClick={() => handleTabChange(tab.id as any)}
                         className={cn(
                             "flex-1 py-3 px-1 rounded-full text-[11px] min-[350px]:text-[12px] min-[390px]:text-[13px] sm:text-sm font-black tracking-tight whitespace-nowrap transition-all duration-300 relative overflow-hidden group/tab",
                             selectedTab === tab.id
@@ -72,29 +85,8 @@ export default function InsightsPage() {
                 )}
 
                 {selectedTab === "recommended" && (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                            <button
-                                onClick={() => setRecommendedType("book")}
-                                className={cn("px-4 py-1.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap border", recommendedType === "book" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "text-muted-foreground bg-transparent border-transparent hover:bg-white/5")}
-                            >
-                                📚 추천 도서
-                            </button>
-                            <button
-                                onClick={() => setRecommendedType("video")}
-                                className={cn("px-4 py-1.5 rounded-full text-sm font-semibold transition-all whitespace-nowrap border", recommendedType === "video" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "text-muted-foreground bg-transparent border-transparent hover:bg-white/5")}
-                            >
-                                🎬 추천 동영상
-                            </button>
-                        </div>
-
-                        {recommendedType === "book" ? (
-                            <RecommendedBooks />
-                        ) : (
-                            <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-2xl bg-muted/20 mt-4">
-                                <p>당신을 위한 맞춤형 투자 영상을 선별 중입니다. 🚀</p>
-                            </div>
-                        )}
+                    <div className="space-y-4 pt-2">
+                        <RecommendedBooks />
                     </div>
                 )}
             </div>
