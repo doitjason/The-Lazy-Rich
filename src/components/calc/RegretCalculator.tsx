@@ -76,11 +76,26 @@ export function RegretCalculator() {
     const handleShare = useCallback(async () => {
         if (!result) return;
 
-        const shareText = `했제? 그때 ${result.name}(${result.ticker}) 샀으면 지금쯤 수익률이 ${result.returnRate.toFixed(1)}%라니까! 🔥\n\n` +
-            `📊 투자 기간: ${result.actualPeriod} ~ 현재\n` +
-            `📈 연평균 수익률(CAGR): ${result.cagr.toFixed(1)}%\n` +
-            `📉 최대 낙폭(MDD): ${result.mdd.toFixed(1)}%\n\n` +
-            `지금 CORE에서 당신의 후회를 확인해보세요!`;
+        const formattedInitial = currency === "KRW"
+            ? `${formatCompactNumber(result.initialInvestment)}원`
+            : `$${formatCompactNumber(result.initialInvestment)}`;
+
+        let valueStr = formatCurrency(result.currentValue);
+        if (currency === "KRW" && !valueStr.includes("원")) {
+            valueStr += "원";
+        }
+
+        const timeStr = result.actualPeriod ? `${result.actualPeriod}년` : result.period.replace("Y", "년 전");
+        const cleanTicker = result.ticker.replace(".KS", "");
+
+        let shareText = "";
+        if (result.returnRate >= 0) {
+            shareText = `내가 ${timeStr}에 ${result.name}(${cleanTicker}) 사자고 했제? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${result.cagr.toFixed(1)}%🔥🔥🔥`;
+        } else {
+            shareText = `내가 ${timeStr}에 ${result.name}(${cleanTicker}) 사지 말자고 했제? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${result.cagr.toFixed(1)}%... 😢😢😢`;
+        }
+
+        shareText += `\n\n지금 트라이폴리에서 다른 종목들도 확인해보세요!`;
 
         if (navigator.share) {
             try {
@@ -351,8 +366,8 @@ export function RegretCalculator() {
             {isCalculated && (
                 <div className="space-y-6">
                     {result ? (
-                        <Card ref={resultRef} className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 p-3 sm:p-6">
-                            <CardContent className="pt-0 text-center space-y-2">
+                        <Card ref={resultRef} className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
+                            <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-2 sm:px-6 text-center space-y-2 relative z-10">
                                 {/* Stock Name & Ticker */}
                                 <div className="flex flex-col items-center gap-1 mb-4 w-full">
                                     {/* Conditionally show logo for individual stocks, hide for ETFs */}
@@ -414,10 +429,10 @@ export function RegretCalculator() {
                                     })()}
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-x-2 gap-y-8 mt-8 w-full max-w-3xl mx-auto">
+                                <div className="grid grid-cols-3 gap-1 sm:gap-4 gap-y-8 mt-8 w-full max-w-3xl mx-auto">
                                     {/* 1. Total Profit */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
-                                        <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">총 수익률</span>
+                                        <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground">총 수익률</span>
                                         <span className={`text-xs sm:text-lg font-black flex items-center justify-center gap-0.5 ${result.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                             {result.returnRate >= 0 ? "+" : ""}
                                             {result.returnRate >= 10000
@@ -431,9 +446,9 @@ export function RegretCalculator() {
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
-                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
-                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">연평균 수익률</span>
-                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                <div className="flex items-center gap-0.5 sm:gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">연평균 수익률</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40 shrink-0" />
                                                 </div>
                                                 <span className={`text-xs sm:text-lg font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                                     {result.cagr >= 0 ? "+" : ""}{result.cagr.toFixed(1)}%
@@ -450,9 +465,9 @@ export function RegretCalculator() {
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
-                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
-                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
-                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                <div className="flex items-center gap-0.5 sm:gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40 shrink-0" />
                                                 </div>
                                                 <span className="text-xs sm:text-lg font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
                                                     -{result.mdd.toFixed(1)}%
@@ -483,7 +498,7 @@ export function RegretCalculator() {
 
                                     {/* 4. Quantity */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
-                                        <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground">보유 수량</span>
+                                        <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground">보유 수량</span>
                                         <span className="text-xs sm:text-lg font-black text-slate-500" style={{ whiteSpace: "nowrap" }}>
                                             약 {Math.round(result.quantity).toLocaleString()}주
                                         </span>
@@ -491,7 +506,7 @@ export function RegretCalculator() {
 
                                     {/* 5. Avg Price */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
-                                        <span className="opacity-70 text-xs font-semibold tracking-tight mb-1 text-muted-foreground whitespace-nowrap">당시 평단가</span>
+                                        <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground whitespace-nowrap">당시 평단가</span>
                                         <span className="text-xs sm:text-lg font-black text-slate-500" style={{ whiteSpace: "nowrap" }}>
                                             {(() => {
                                                 const val = Math.round(result.avgPrice);
@@ -516,9 +531,9 @@ export function RegretCalculator() {
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
-                                                <div className="flex items-center gap-1 mb-1 whitespace-nowrap">
-                                                    <span className="opacity-70 text-xs font-semibold tracking-tight text-muted-foreground">고점 대비 하락</span>
-                                                    <HelpCircle className="w-3 h-3 opacity-40" />
+                                                <div className="flex items-center gap-0.5 sm:gap-1 mb-1 whitespace-nowrap">
+                                                    <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">고점 대비 하락</span>
+                                                    <HelpCircle className="w-3 h-3 opacity-40 shrink-0" />
                                                 </div>
                                                 <span className="text-xs sm:text-lg font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
                                                     {result.dropFromAth.toFixed(1)}%
