@@ -30,7 +30,7 @@ export default function InsightsPage() {
                         key={tab.id}
                         onClick={() => setSelectedTab(tab.id as any)}
                         className={cn(
-                            "flex-1 py-3 rounded-full text-[11px] sm:text-sm font-black whitespace-nowrap transition-all duration-300 relative overflow-hidden group/tab",
+                            "flex-1 py-3 px-1 rounded-full text-[11px] min-[350px]:text-[12px] min-[390px]:text-[13px] sm:text-sm font-black tracking-tight whitespace-nowrap transition-all duration-300 relative overflow-hidden group/tab",
                             selectedTab === tab.id
                                 ? "text-white"
                                 : "text-muted-foreground hover:text-foreground bg-white/50 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-sm"

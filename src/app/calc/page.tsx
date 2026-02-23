@@ -28,7 +28,7 @@ export default function CalcPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={cn(
-                            "flex-1 py-3 rounded-full text-xs sm:text-sm font-black whitespace-nowrap transition-all duration-300 relative overflow-hidden group/tab",
+                            "flex-1 py-3 px-1 rounded-full text-[12px] min-[350px]:text-[13px] min-[390px]:text-sm sm:text-[15px] font-black tracking-tight whitespace-nowrap transition-all duration-300 relative overflow-hidden group/tab",
                             activeTab === tab.id
                                 ? "text-white"
                                 : "text-muted-foreground hover:text-foreground bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-md"
