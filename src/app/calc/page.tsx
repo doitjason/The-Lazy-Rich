@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { cn } from "@/lib/utils";
 import { RegretCalculator } from "@/components/calc/RegretCalculator";
 import { CompoundCalculator } from "@/components/calc/CompoundCalculator";
@@ -50,9 +50,11 @@ export default function CalcPage() {
 
             {/* Content Area */}
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {activeTab === "regret" && <RegretCalculator />}
-                {activeTab === "regret-v2" && <PortfolioRegretCalculator />}
-                {activeTab === "compound" && <CompoundCalculator />}
+                <Suspense fallback={<div className="text-center py-10 opacity-50">Loading...</div>}>
+                    {activeTab === "regret" && <RegretCalculator />}
+                    {activeTab === "regret-v2" && <PortfolioRegretCalculator />}
+                    {activeTab === "compound" && <CompoundCalculator />}
+                </Suspense>
             </div>
         </div>
     );

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Loader2, HelpCircle, Share2, Download, TrendingUp, Search, DollarSign, CalendarDays } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { toPng } from 'html-to-image';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -48,6 +49,10 @@ export function RegretCalculator() {
     const [error, setError] = useState<string | null>(null);
     const resultRef = useRef<HTMLDivElement>(null);
 
+    const searchParams = useSearchParams();
+    const [hasInitializedParams, setHasInitializedParams] = useState(false);
+    const [shouldAutoCalculate, setShouldAutoCalculate] = useState(false);
+
     const handleDownloadImage = useCallback(async () => {
         if (resultRef.current === null) return;
 
@@ -90,35 +95,64 @@ export function RegretCalculator() {
 
         let shareText = "";
         if (result.returnRate >= 0) {
-            shareText = `내가 ${timeStr}에 ${result.name}(${cleanTicker}) 사자고 했제? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${result.cagr.toFixed(1)}%🔥🔥🔥`;
+            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사자고 했제? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${result.cagr.toFixed(1)}%🔥🔥🔥`;
         } else {
-            shareText = `내가 ${timeStr}에 ${result.name}(${cleanTicker}) 사지 말자고 했제? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${result.cagr.toFixed(1)}%... 😢😢😢`;
+            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사지 말자고 했제? 그때 사서 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${result.cagr.toFixed(1)}%... 😢😢😢`;
         }
 
-        shareText += `\n\n지금 트라이폴리에서 다른 종목들도 확인해보세요!`;
+        shareText += `\n\n지금 했제 계산기에서 다른 종목들도 확인해보세요!`;
+
+        const shareUrl = new URL(window.location.href);
+        shareUrl.searchParams.set("ticker", result.ticker);
+        shareUrl.searchParams.set("amount", amount.toString());
+        shareUrl.searchParams.set("period", period);
+        if (result.name) shareUrl.searchParams.set("name", result.name);
+
+        const urlString = shareUrl.toString();
 
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: 'CORE 했제 계산기 결과',
                     text: shareText,
-                    url: window.location.href,
+                    url: urlString,
                 });
             } catch (err) {
                 console.log('Share cancelled or failed', err);
             }
         } else {
             try {
-                await navigator.clipboard.writeText(shareText + "\n" + window.location.href);
+                await navigator.clipboard.writeText(shareText + "\n" + urlString);
                 alert('결과가 클립보드에 복사되었습니다! 친구에게 공유해보세요.');
             } catch (err) {
                 console.error('Failed to copy', err);
             }
         }
-    }, [result]);
+    }, [result, amount, period]);
+
+    // Initialize from URL parameters
+    useEffect(() => {
+        if (!searchParams || hasInitializedParams) return;
+
+        const pTicker = searchParams.get('ticker');
+        const pAmount = searchParams.get('amount');
+        const pPeriod = searchParams.get('period');
+        const pName = searchParams.get('name');
+
+        if (pTicker) {
+            setTicker(pTicker);
+            if (pName) setStockName(pName);
+            if (pAmount) setAmount(Number(pAmount));
+            if (pPeriod) setPeriod(pPeriod as any);
+            setShouldAutoCalculate(true);
+        }
+        setHasInitializedParams(true);
+    }, [searchParams, hasInitializedParams]);
 
     // Update default amount when currency changes
     useEffect(() => {
+        if (!hasInitializedParams) return;
+        if (shouldAutoCalculate) return;
+
         if (currency === "KRW") {
             setAmount(1000000);
         } else {
@@ -126,7 +160,25 @@ export function RegretCalculator() {
         }
         setIsCalculated(false);
         setResult(null);
-    }, [currency]);
+    }, [currency, hasInitializedParams, shouldAutoCalculate]);
+
+    // Auto calculate trigger
+    useEffect(() => {
+        if (shouldAutoCalculate && ticker) {
+            setShouldAutoCalculate(false);
+            onCalculate();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldAutoCalculate, ticker]);
+
+    // Auto scroll to result
+    useEffect(() => {
+        if (isCalculated && resultRef.current && hasInitializedParams && !isLoading) {
+            setTimeout(() => {
+                resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+    }, [isCalculated, hasInitializedParams, isLoading]);
 
     const handleStockSelect = (selectedTicker: string, name?: string) => {
         setTicker(selectedTicker);
