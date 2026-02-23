@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
         console.log(`[Historical] Fetching ${ticker} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
 
-        // Get historical data
+        // Get historical data for the stock
         const historical = await yahooFinance.historical(ticker.toUpperCase(), {
             period1: startDate,
             period2: endDate,
@@ -49,19 +49,56 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "No historical data available" }, { status: 404 });
         }
 
-        // Get current quote for latest price
-        const quote = await yahooFinance.quote(ticker.toUpperCase()) as any;
+        // Fetch USD/KRW exchange rate historical data
+        let exchangeRateHistorical: HistoricalResult[] = [];
+        try {
+            exchangeRateHistorical = await yahooFinance.historical("KRW=X", {
+                period1: startDate,
+                period2: endDate,
+                interval: "1mo"
+            }) as HistoricalResult[];
+        } catch (e) {
+            console.log("Could not fetch KRW=X historical, trying USDKRW=X", e);
+            try {
+                exchangeRateHistorical = await yahooFinance.historical("USDKRW=X", {
+                    period1: startDate,
+                    period2: endDate,
+                    interval: "1mo"
+                }) as HistoricalResult[];
+            } catch (err) {
+                console.log("Failed both KRW=X and USDKRW=X", err);
+            }
+        }
+
+        const exchangeRateMap = new Map<string, number>();
+        for (const er of exchangeRateHistorical) {
+            const key = new Date(er.date).toISOString().substring(0, 7); // YYYY-MM
+            if (er.adjClose || er.close) exchangeRateMap.set(key, er.adjClose || er.close);
+        }
+
+        // Get current quotes
+        const [quote, erQuote] = await Promise.all([
+            yahooFinance.quote(ticker.toUpperCase()).catch(() => null) as any,
+            yahooFinance.quote("KRW=X").catch(() => null) as any
+        ]);
+
         const currentPrice = quote?.regularMarketPrice || historical[historical.length - 1]?.close;
+        const currentExchangeRate = erQuote?.regularMarketPrice || Array.from(exchangeRateMap.values()).pop() || 1350;
 
         // First record is the past price
         const pastPrice = historical[0]?.close || historical[0]?.adjClose;
+        const pastDateKey = new Date(historical[0]?.date).toISOString().substring(0, 7);
+        const pastExchangeRate = exchangeRateMap.get(pastDateKey) || currentExchangeRate;
 
         // Build full chart data (monthly) for accurate calculations
         const chartData = historical.map((item) => {
             const date = new Date(item.date);
+            const key = date.toISOString().substring(0, 7);
+            const er = exchangeRateMap.get(key) || pastExchangeRate; // Use mapped month ER or fallback
             return {
                 name: date.toISOString().split('T')[0], // YYYY-MM-DD
                 price: item.adjClose || item.close, // Use Adjusted Close for dividends/splits if available
+                exchangeRate: er
             };
         });
 
@@ -70,6 +107,8 @@ export async function GET(request: NextRequest) {
             period,
             pastPrice,
             currentPrice,
+            pastExchangeRate,
+            currentExchangeRate,
             currency: quote?.currency || "USD",
             name: quote?.shortName || quote?.longName || ticker,
             quoteType: quote?.quoteType || "UNKNOWN",

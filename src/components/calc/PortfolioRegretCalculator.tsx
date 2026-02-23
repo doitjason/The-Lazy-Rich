@@ -49,6 +49,8 @@ interface PortfolioResult {
     };
     rebalanceCount: number;
     rebalancePeriodUsed: string;
+    pastExchangeRate?: number;
+    currentExchangeRate?: number;
     assets: {
         ticker: string;
         initialValue: number;
@@ -295,9 +297,15 @@ export function PortfolioRegretCalculator() {
                 data: d.data.slice(d.data.length - minLength) // Take from end
             }));
 
+            // Exchange rates for initial and final conversion
+            const pastExchangeRate = responses[0].pastExchangeRate || exchangeRate;
+            const currentExchangeRate = responses[0].currentExchangeRate || exchangeRate;
+            const pastRate = currency === "KRW" ? pastExchangeRate : 1;
+            const currRate = currency === "KRW" ? currentExchangeRate : 1;
+
             // 4. Calculate Weighted Portfolio Value Series
-            // Initial Investment per asset
-            const investmentUSD = currency === "KRW" ? amount / exchangeRate : amount;
+            // Initial Investment per asset (in USD, as stock prices are in USD)
+            const investmentUSD = amount / pastRate;
             const assetInvestments = validAssets.map(asset => ({
                 ticker: asset.ticker,
                 initialAmount: investmentUSD * (asset.weight / 100),
@@ -345,8 +353,8 @@ export function PortfolioRegretCalculator() {
                     const dateLabel = truncatedData[0].data[i].name;
                     const currentMonthKey = getMonthKey(dateLabel);
 
-                    // 1. Calculate Total Portfolio Value at this time step
-                    let totalValueAtT = 0;
+                    // 1. Calculate Total Portfolio Value at this time step (in USD)
+                    let totalValueAtT_USD = 0;
                     const assetValuesAtT: { ticker: string, value: number, price: number }[] = [];
 
                     for (const holding of currentHoldings) {
@@ -355,15 +363,19 @@ export function PortfolioRegretCalculator() {
                             const currentPrice = tickerData.data[i].price;
                             const val = holding.units * currentPrice;
                             assetValuesAtT.push({ ticker: holding.ticker, value: val, price: currentPrice });
-                            totalValueAtT += val;
+                            totalValueAtT_USD += val;
                         }
                     }
 
-                    // 2. Add to chart data
-                    const multiplier = currency === "KRW" ? exchangeRate : 1;
+                    // 2. Add to chart data (convert to selected currency)
+                    let erT = 1;
+                    if (currency === "KRW") {
+                        erT = truncatedData[0].data[i].exchangeRate || currRate; // Use historical exchange rate if available, else current
+                    }
+
                     portfolioChartData.push({
                         name: dateLabel,
-                        value: Math.round(totalValueAtT * multiplier)
+                        value: Math.round(totalValueAtT_USD * erT)
                     });
 
                     // 3. Rebalance Check
@@ -380,14 +392,14 @@ export function PortfolioRegretCalculator() {
                             if (Math.floor(monthsFromStart / targetInterval) > Math.floor(prevMonthsFromStart / targetInterval)) {
                                 rebalanceCount++;
 
-                                // Redistribute totalValueAtT based on target weights
+                                // Redistribute totalValueAtT_USD based on target weights
                                 currentHoldings = currentHoldings.map(holding => {
-                                    const targetVal = totalValueAtT * (holding.weight / 100);
+                                    const targetVal_USD = totalValueAtT_USD * (holding.weight / 100);
                                     const assetVal = assetValuesAtT.find(a => a.ticker === holding.ticker);
                                     if (assetVal) {
                                         return {
                                             ...holding,
-                                            units: targetVal / assetVal.price
+                                            units: targetVal_USD / assetVal.price
                                         };
                                     }
                                     return holding;
@@ -401,10 +413,8 @@ export function PortfolioRegretCalculator() {
             }
 
             // Final Results calculation
-            const multiplier = currency === "KRW" ? exchangeRate : 1;
-            const finalValueUSD = portfolioChartData[portfolioChartData.length - 1].value / multiplier;
-            const finalValue = Math.round(finalValueUSD * multiplier);
-            const initialInvestment = Math.round(amount);
+            const finalValue = portfolioChartData[portfolioChartData.length - 1].value;
+            const initialInvestment = Math.round(amount); // Initial investment in selected currency
 
             // Individual Asset Performance
             const assetResults = assetInvestments.map(inv => {
@@ -416,22 +426,34 @@ export function PortfolioRegretCalculator() {
                 const aligned = truncatedData.find(d => d.ticker === inv.ticker);
                 if (!aligned || aligned.data.length === 0) return null;
 
-                const startPrice = aligned.data[0].price;
-                const endPrice = aligned.data[aligned.data.length - 1].price;
-                const ratio = endPrice / startPrice;
-                const finalVal = inv.initialAmount * ratio * multiplier;
+                const startPrice_USD = aligned.data[0].price;
+                const endPrice_USD = aligned.data[aligned.data.length - 1].price;
+
+                // Calculate initial and final value of this asset in the selected currency
+                const initialAssetVal_SelectedCurrency = inv.initialAmount * pastRate; // inv.initialAmount is in USD
+                const finalAssetVal_SelectedCurrency = (inv.initialAmount / startPrice_USD) * endPrice_USD * currRate;
 
                 return {
                     ticker: inv.ticker,
-                    initialValue: Math.round(inv.initialAmount * multiplier),
-                    finalValue: Math.round(finalVal),
-                    returnRate: (ratio - 1) * 100
+                    initialValue: Math.round(initialAssetVal_SelectedCurrency),
+                    finalValue: Math.round(finalAssetVal_SelectedCurrency),
+                    returnRate: ((finalAssetVal_SelectedCurrency / initialAssetVal_SelectedCurrency) - 1) * 100,
+                    profit: Math.round(finalAssetVal_SelectedCurrency - initialAssetVal_SelectedCurrency)
                 };
             }).filter(Boolean) as PortfolioResult['assets'];
 
+            // Calculate contribution share for each asset
+            const totalPortfolioProfit = finalValue - initialInvestment;
+            const assetsWithContribution = assetResults.map(asset => {
+                const contributionShare = totalPortfolioProfit !== 0
+                    ? (asset.profit / Math.abs(totalPortfolioProfit)) * 100
+                    : 0;
+                return { ...asset, contributionShare: contributionShare };
+            });
+
 
             // Calculate CAGR
-            const yearsPassed = minLength / 12;
+            const yearsPassed = minLength / 12; // Approximation for years
             const cagr = yearsPassed > 0
                 ? (Math.pow(finalValue / initialInvestment, 1 / yearsPassed) - 1) * 100
                 : 0;
@@ -518,28 +540,9 @@ export function PortfolioRegretCalculator() {
                 },
                 rebalanceCount,
                 rebalancePeriodUsed: rebalancePeriod,
-                assets: currentHoldings.map(holding => {
-                    const tickerData = truncatedData.find(d => d.ticker === holding.ticker);
-                    const lastPrice = tickerData!.data[tickerData!.data.length - 1].price;
-                    const initialAssetInv = assetInvestments.find(a => a.ticker === holding.ticker)!;
-                    const finalAssetVal = holding.units * lastPrice * multiplier;
-                    const initialAssetVal = initialAssetInv.initialAmount * multiplier;
-
-                    const assetProfit = Math.round(finalAssetVal - initialAssetVal);
-                    const totalPortfolioProfit = finalValue - initialInvestment;
-                    const contributionShare = totalPortfolioProfit !== 0
-                        ? (assetProfit / Math.abs(totalPortfolioProfit)) * 100
-                        : 0;
-
-                    return {
-                        ticker: holding.ticker,
-                        initialValue: Math.round(initialAssetVal),
-                        finalValue: Math.round(finalAssetVal),
-                        returnRate: ((finalAssetVal / initialAssetVal) - 1) * 100,
-                        profit: assetProfit,
-                        contributionShare: contributionShare
-                    };
-                })
+                pastExchangeRate: currency === "KRW" ? pastExchangeRate : undefined,
+                currentExchangeRate: currency === "KRW" ? currentExchangeRate : undefined,
+                assets: assetsWithContribution
             });
 
             setIsCalculated(true);

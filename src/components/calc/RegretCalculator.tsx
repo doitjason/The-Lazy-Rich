@@ -35,6 +35,8 @@ interface RegretResult {
         start: string;
         end: string;
     };
+    pastExchangeRate?: number;
+    currentExchangeRate?: number;
 }
 
 export function RegretCalculator() {
@@ -90,11 +92,11 @@ export function RegretCalculator() {
             valueStr += "원";
         }
 
-        const timeStr = result.actualPeriod ? `${result.actualPeriod}년` : result.period.replace("Y", "년 전");
+        const timeStr = result.period.replace("Y", "년 전");
         const cleanTicker = result.ticker.replace(".KS", "");
 
         let shareText = "";
-        const formattedReturnRate = result.returnRate.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        const formattedReturnRate = result.returnRate.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
         if (result.returnRate >= 0) {
             shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사자고 했제~? 그때 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${formattedReturnRate}%🔥🔥🔥`;
@@ -206,26 +208,33 @@ export function RegretCalculator() {
                 return;
             }
 
-            const { pastPrice, currentPrice, chartData, name, actualStartDate } = data;
+            const { pastPrice, currentPrice, pastExchangeRate, currentExchangeRate, chartData, name, actualStartDate } = data;
 
-            // Calculate investment based on currency
-            const investmentUSD = currency === "KRW" ? amount / exchangeRate : amount;
+            // Use fetched historical exchange rates or fallback to current context rate
+            const pastRate = pastExchangeRate || exchangeRate;
+            const currRate = currentExchangeRate || exchangeRate;
+
+            // Calculate true investment based on historical currency state
+            const investmentUSD = currency === "KRW" ? amount / pastRate : amount;
             const shares = investmentUSD / pastPrice;
+
+            // Current value in USD
             const currentValueUSD = shares * currentPrice;
-            const profitUSD = currentValueUSD - investmentUSD;
-            const returnRate = (profitUSD / investmentUSD) * 100;
 
-            // Convert back to display currency
-            const multiplier = currency === "KRW" ? exchangeRate : 1;
+            // Value converted back to display currency with current exact exchange rate
+            const currentValueDisplay = currency === "KRW" ? currentValueUSD * currRate : currentValueUSD;
+            const profitDisplay = currentValueDisplay - amount;
+            const returnRate = (profitDisplay / amount) * 100;
 
-            // Build chart data with investment values and prices
-            const investmentChartData = chartData.map((point: any, idx: number) => {
-                const priceRatio = point.price / pastPrice;
-                const value = investmentUSD * priceRatio * multiplier;
+            // Build chart data using monthly exchange rates if available
+            const investmentChartData = chartData.map((point: any) => {
+                const pointRate = point.exchangeRate || currRate;
+                const multiplier = currency === "KRW" ? pointRate : 1;
+                const valueUSD = shares * point.price;
                 return {
                     name: point.name,
-                    value: Math.round(value),
-                    stockPrice: point.price * multiplier, // Add stock price
+                    value: Math.round(valueUSD * multiplier),
+                    stockPrice: point.price * multiplier,
                 };
             });
 
@@ -257,27 +266,32 @@ export function RegretCalculator() {
             const mdd = maxDrawdown * 100;
             const dropFromAth = ((investmentChartData[investmentChartData.length - 1].stockPrice - athPrice) / athPrice) * 100;
 
-            // Calculate CAGR
+            // Calculate CAGR based on combined return
             const years = parseInt(period.replace("Y", ""));
-            const cagr = ((Math.pow(currentValueUSD / investmentUSD, 1 / years) - 1) * 100);
+            const cagr = ((Math.pow(currentValueDisplay / amount, 1 / years) - 1) * 100);
+
+            const pastRateOutput = pastExchangeRate || exchangeRate;
+            const currRateOutput = currentExchangeRate || exchangeRate;
 
             setResult({
                 ticker: data.ticker,
                 name: name || stockName,
                 initialInvestment: amount,
                 period,
-                pastPrice: pastPrice * multiplier,
-                currentPrice: currentPrice * multiplier,
-                currentValue: currentValueUSD * multiplier,
-                profit: profitUSD * multiplier,
+                pastPrice: pastPrice * (currency === "KRW" ? pastRateOutput : 1),
+                currentPrice: currentPrice * (currency === "KRW" ? currRateOutput : 1),
+                currentValue: currentValueDisplay,
+                profit: profitDisplay,
                 returnRate,
                 cagr,
                 mdd,
                 quantity: shares,
-                avgPrice: pastPrice * multiplier,
+                avgPrice: pastPrice * (currency === "KRW" ? pastRateOutput : 1),
                 dropFromAth,
                 chartData: investmentChartData,
                 actualPeriod: actualStartDate ? `${new Date(actualStartDate).getFullYear()}` : undefined,
+                pastExchangeRate: currency === "KRW" ? pastRateOutput : undefined,
+                currentExchangeRate: currency === "KRW" ? currRateOutput : undefined,
                 mddPeriod: {
                     start: mddStart,
                     end: mddEnd
@@ -453,9 +467,16 @@ export function RegretCalculator() {
                                 </div>
 
                                 {result.actualPeriod && (
-                                    <p className="text-xs text-muted-foreground">
-                                        {result.actualPeriod}년부터 {currency === "KRW" ? `${formatCompactNumber(result.initialInvestment)}원` : `$${formatCompactNumber(result.initialInvestment)}`} 거치식으로 투자
-                                    </p>
+                                    <div className="flex flex-col items-center justify-center gap-1 mb-2">
+                                        <p className="text-xs text-muted-foreground">
+                                            {result.actualPeriod}년부터 {currency === "KRW" ? `${formatCompactNumber(result.initialInvestment)}원` : `$${formatCompactNumber(result.initialInvestment)}`} 거치식으로 투자
+                                        </p>
+                                        {result.pastExchangeRate && result.currentExchangeRate && (
+                                            <p className="text-xs text-muted-foreground">
+                                                (환율 변동 반영: 당시 {Math.round(result.pastExchangeRate).toLocaleString()}원 → 현재 {Math.round(result.currentExchangeRate).toLocaleString()}원)
+                                            </p>
+                                        )}
+                                    </div>
                                 )}
 
                                 <div className="w-full overflow-hidden px-1 mt-6">
@@ -486,8 +507,8 @@ export function RegretCalculator() {
                                 <div className="grid grid-cols-3 gap-1 sm:gap-4 gap-y-8 mt-8 w-full max-w-3xl mx-auto">
                                     {/* 1. Total Profit */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
-                                        <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground">총 수익률</span>
-                                        <span className={`text-xs sm:text-lg font-black flex items-center justify-center gap-0.5 ${result.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
+                                        <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground">총 수익률</span>
+                                        <span className={`text-[13px] sm:text-lg font-black flex items-center justify-center gap-0.5 ${result.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                             {result.returnRate >= 0 ? "+" : ""}
                                             {result.returnRate >= 10000
                                                 ? formatCompactNumber(result.returnRate)
@@ -501,10 +522,10 @@ export function RegretCalculator() {
                                         <PopoverTrigger asChild>
                                             <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-0.5 sm:gap-1 mb-1 whitespace-nowrap">
-                                                    <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">연평균 수익률</span>
+                                                    <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">연평균 수익률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40 shrink-0" />
                                                 </div>
-                                                <span className={`text-xs sm:text-lg font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
+                                                <span className={`text-[13px] sm:text-lg font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
                                                     {result.cagr >= 0 ? "+" : ""}{result.cagr.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -520,10 +541,10 @@ export function RegretCalculator() {
                                         <PopoverTrigger asChild>
                                             <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-0.5 sm:gap-1 mb-1 whitespace-nowrap">
-                                                    <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
+                                                    <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40 shrink-0" />
                                                 </div>
-                                                <span className="text-xs sm:text-lg font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
+                                                <span className="text-[13px] sm:text-lg font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
                                                     -{result.mdd.toFixed(1)}%
                                                 </span>
                                             </div>
@@ -552,16 +573,16 @@ export function RegretCalculator() {
 
                                     {/* 4. Quantity */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
-                                        <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground">보유 수량</span>
-                                        <span className="text-xs sm:text-lg font-black text-slate-500" style={{ whiteSpace: "nowrap" }}>
+                                        <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground">보유 수량</span>
+                                        <span className="text-[13px] sm:text-lg font-black text-slate-500" style={{ whiteSpace: "nowrap" }}>
                                             약 {Math.round(result.quantity).toLocaleString()}주
                                         </span>
                                     </div>
 
                                     {/* 5. Avg Price */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
-                                        <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground whitespace-nowrap">당시 평단가</span>
-                                        <span className="text-xs sm:text-lg font-black text-slate-500" style={{ whiteSpace: "nowrap" }}>
+                                        <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground whitespace-nowrap">당시 평단가</span>
+                                        <span className="text-[13px] sm:text-lg font-black text-slate-500" style={{ whiteSpace: "nowrap" }}>
                                             {(() => {
                                                 const val = Math.round(result.avgPrice);
                                                 if (currency === "KRW") {
@@ -586,10 +607,10 @@ export function RegretCalculator() {
                                         <PopoverTrigger asChild>
                                             <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
                                                 <div className="flex items-center gap-0.5 sm:gap-1 mb-1 whitespace-nowrap">
-                                                    <span className="opacity-70 text-[10px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">고점 대비 하락</span>
+                                                    <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">고점 대비 하락</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40 shrink-0" />
                                                 </div>
-                                                <span className="text-xs sm:text-lg font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
+                                                <span className="text-[13px] sm:text-lg font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
                                                     {result.dropFromAth.toFixed(1)}%
                                                 </span>
                                             </div>
