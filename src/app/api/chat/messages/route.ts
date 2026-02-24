@@ -14,6 +14,30 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createClient();
+
+    // Security: Validate the session belongs to the authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
+    // Verify session ownership
+    const { data: session } = await supabase
+        .from("chat_sessions")
+        .select("user_id")
+        .eq("id", sessionId)
+        .single();
+
+    if (!session || session.user_id !== user.id) {
+        return NextResponse.json(
+            { error: "Unauthorized: Session not found or not owned by user" },
+            { status: 401 }
+        );
+    }
+
     const { data, error } = await supabase
         .from("chat_messages")
         .select("*")
@@ -47,6 +71,30 @@ export async function DELETE(req: NextRequest) {
     }
 
     const supabase = await createClient();
+
+    // Security: Validate the session belongs to the authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
+    // Verify session ownership
+    const { data: session } = await supabase
+        .from("chat_sessions")
+        .select("user_id")
+        .eq("id", sessionId)
+        .single();
+
+    if (!session || session.user_id !== user.id) {
+        return NextResponse.json(
+            { error: "Unauthorized: Session not found or not owned by user" },
+            { status: 401 }
+        );
+    }
+
     const { error } = await supabase
         .from("chat_messages")
         .delete()
@@ -63,3 +111,4 @@ export async function DELETE(req: NextRequest) {
     console.log(`[API] Deleted messages for session ${sessionId}`);
     return NextResponse.json({ success: true });
 }
+

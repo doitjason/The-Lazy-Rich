@@ -18,6 +18,15 @@ export async function POST(req: NextRequest) {
 
         const supabase = await createClient();
 
+        // Security: Validate authenticated user matches requested userId
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || user.id !== userId) {
+            return NextResponse.json(
+                { error: "Unauthorized: Invalid user session" },
+                { status: 401 }
+            );
+        }
+
         // 1. Check if a session already exists for this persona
         const { data: existingSession, error: findError } = await supabase
             .from("chat_sessions")
@@ -72,6 +81,16 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = await createClient();
+
+    // Security: Validate authenticated user matches requested userId
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || user.id !== userId) {
+        return NextResponse.json(
+            { error: "Unauthorized: Invalid user session" },
+            { status: 401 }
+        );
+    }
+
     const { data, error } = await supabase
         .from("chat_sessions")
         .select("*")
