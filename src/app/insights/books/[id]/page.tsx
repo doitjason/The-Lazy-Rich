@@ -67,6 +67,41 @@ export default async function BookDetailPage({ params }: PageProps) {
 
     return (
         <div className="max-w-md mx-auto relative bg-[#0b0c10] min-h-screen pb-[160px] sm:border-x sm:border-white/5 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500">
+            {/* Schema.org Review JSON-LD */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "Review",
+                        itemReviewed: {
+                            "@type": "Book",
+                            name: book.title,
+                            author: {
+                                "@type": "Person",
+                                name: authorName,
+                            },
+                            ...(coverImage ? { image: coverImage } : {}),
+                        },
+                        author: {
+                            "@type": "Organization",
+                            name: "TRIFOLI",
+                            url: "https://trifoli.kr",
+                        },
+                        publisher: {
+                            "@type": "Organization",
+                            name: "TRIFOLI",
+                            url: "https://trifoli.kr",
+                        },
+                        reviewBody: book.description,
+                        mainEntityOfPage: {
+                            "@type": "WebPage",
+                            "@id": `https://trifoli.kr/insights/books/${book.id}`,
+                        },
+                    }),
+                }}
+            />
+
             {/* Ambient Background Glows */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] aspect-square bg-emerald-500/10 rounded-full blur-[100px] opacity-50 pointer-events-none" />
 
@@ -121,24 +156,88 @@ export default async function BookDetailPage({ params }: PageProps) {
                     </div>
                 </div>
 
-                {/* Editor's Review section */}
-                <div className="pt-2">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="relative flex items-center justify-center">
-                            <span className="absolute w-5 h-5 bg-emerald-500/20 rounded-full animate-ping" />
-                            <span className="relative w-2 h-5 bg-emerald-500 rounded-full" />
-                        </div>
-                        <h3 className="font-black text-lg text-white tracking-tight">
-                            에디터 인사이트
-                        </h3>
-                    </div>
-                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-inner relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2" />
-                        <p className="text-[15px] sm:text-[16px] text-white/80 leading-relaxed font-medium break-keep relative z-10 whitespace-pre-line">
-                            {book.longDescription}
-                        </p>
-                    </div>
-                </div>
+                {/* Parse 3줄 요약 and body from longDescription */}
+                {(() => {
+                    const lines = book.longDescription.split("\n");
+                    let summaryEnd = 0;
+                    let foundSummary = false;
+                    for (let i = 0; i < lines.length; i++) {
+                        if (lines[i].startsWith("3줄 요약") || lines[i].startsWith("3줄요약")) {
+                            foundSummary = true;
+                        }
+                        if (foundSummary && lines[i].trim() === "" && i > 3) {
+                            summaryEnd = i;
+                            break;
+                        }
+                    }
+                    const summaryLines = lines.slice(0, summaryEnd)
+                        .filter((line: string) => /^\d\./.test(line.trim()))
+                        .map((line: string) => line.trim());
+                    const bodyContent = lines.slice(summaryEnd).join("\n").trim();
+
+                    return (
+                        <>
+                            {/* 3줄 요약 Card */}
+                            {summaryLines.length > 0 && (
+                                <div className="relative">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="relative flex items-center justify-center">
+                                            <span className="absolute w-5 h-5 bg-emerald-500/20 rounded-full animate-ping" />
+                                            <span className="relative w-2 h-5 bg-emerald-500 rounded-full" />
+                                        </div>
+                                        <h3 className="font-black text-base text-white tracking-tight">3줄 요약</h3>
+                                    </div>
+                                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 space-y-3 relative overflow-hidden border-l-2 border-l-emerald-500/50">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/8 rounded-full blur-[30px] translate-x-6 -translate-y-6" />
+                                        {summaryLines.map((line: string, i: number) => (
+                                            <p key={i} className="text-[13px] sm:text-[14px] text-white/70 leading-relaxed font-medium relative z-10">
+                                                {line}
+                                            </p>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Editor's Review section — body only */}
+                            {bodyContent && (
+                                <div className="pt-2">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="relative flex items-center justify-center">
+                                            <span className="absolute w-5 h-5 bg-emerald-500/20 rounded-full animate-ping" />
+                                            <span className="relative w-2 h-5 bg-emerald-500 rounded-full" />
+                                        </div>
+                                        <h3 className="font-black text-lg text-white tracking-tight">
+                                            에디터 인사이트
+                                        </h3>
+                                    </div>
+                                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-inner relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2" />
+                                        <div className="relative z-10">
+                                            {bodyContent.split("\n\n").filter((p: string) => p.trim()).map((para: string, i: number) => {
+                                                const isHeader = para.length < 40 && !para.includes(".");
+                                                if (isHeader) {
+                                                    return (
+                                                        <h4 key={i} className="flex items-center gap-3 mt-8 first:mt-0 mb-3">
+                                                            <span className="w-1 h-6 bg-emerald-500 rounded-full flex-shrink-0" />
+                                                            <span className="text-[17px] sm:text-lg font-black text-white tracking-tight">
+                                                                {para}
+                                                            </span>
+                                                        </h4>
+                                                    );
+                                                }
+                                                return (
+                                                    <p key={i} className="text-[15px] sm:text-[16px] text-white/75 leading-[1.85] font-medium break-keep mb-5 last:mb-0">
+                                                        {para}
+                                                    </p>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    );
+                })()}
             </main>
 
             {/* Sticky Bottom CTA */}

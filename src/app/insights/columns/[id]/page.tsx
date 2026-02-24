@@ -128,6 +128,37 @@ export default async function ColumnDetailPage({ params }: PageProps) {
 
     return (
         <div className="max-w-md mx-auto relative bg-[#0b0c10] min-h-screen pb-24 sm:border-x sm:border-white/5 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500">
+            {/* Schema.org Article JSON-LD */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "Article",
+                        headline: column.title,
+                        description: column.subtitle,
+                        author: {
+                            "@type": "Organization",
+                            name: "TRIFOLI",
+                            url: "https://trifoli.kr",
+                        },
+                        publisher: {
+                            "@type": "Organization",
+                            name: "TRIFOLI",
+                            url: "https://trifoli.kr",
+                        },
+                        datePublished: column.publishedAt,
+                        dateModified: column.publishedAt,
+                        mainEntityOfPage: {
+                            "@type": "WebPage",
+                            "@id": `https://trifoli.kr/insights/columns/${column.id}`,
+                        },
+                        articleSection: column.categoryLabel,
+                        keywords: column.tags.join(", "),
+                    }),
+                }}
+            />
+
             {/* Ambient Background */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] aspect-square bg-emerald-500/8 rounded-full blur-[100px] opacity-50 pointer-events-none" />
 
@@ -166,7 +197,7 @@ export default async function ColumnDetailPage({ params }: PageProps) {
 
                     {/* Meta */}
                     <div className="flex items-center justify-center gap-2 text-[11px] text-white/35 font-medium">
-                        <span>{column.author}</span>
+                        <Link href="/insights/about" className="hover:text-emerald-400 transition-colors">{column.author}</Link>
                         <span>·</span>
                         <Clock className="w-3 h-3" />
                         <span>{column.readTime}분 읽기</span>
@@ -263,6 +294,13 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                     <span className="text-[11px] text-white/20 font-medium tracking-wide">
                         📢 하단 광고 영역
                     </span>
+                </div>
+
+                {/* Investment Disclaimer */}
+                <div className="border-t border-white/5 pt-5 mt-2">
+                    <p className="text-[11px] text-white/20 leading-relaxed font-medium break-keep">
+                        본 콘텐츠는 정보 제공 목적으로 작성되었으며, 특정 금융 상품에 대한 투자 권유나 매매 추천이 아닙니다. 투자 판단은 본인의 책임하에 이루어져야 하며, 투자 결과에 대한 법적 책임은 투자자 본인에게 있습니다.
+                    </p>
                 </div>
 
                 {/* Prev / Next Navigation */}
