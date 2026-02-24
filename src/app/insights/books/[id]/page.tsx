@@ -112,7 +112,7 @@ export default async function BookDetailPage({ params }: PageProps) {
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2 animate-pulse" />
                             {book.tag}
                         </span>
-                        <h2 className="text-xl sm:text-2xl font-black leading-tight text-white mb-2 decoration-emerald-500/30 underline underline-offset-4">
+                        <h2 className="text-xl sm:text-2xl font-black leading-tight text-white mb-2">
                             {book.title}
                         </h2>
                         <p className="text-sm sm:text-base text-emerald-500/80 font-bold">

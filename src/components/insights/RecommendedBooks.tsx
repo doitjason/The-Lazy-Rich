@@ -6,31 +6,45 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { RECOMMENDED_BOOKS, Book } from "@/data/books";
 
-function BookCardItem({ book, idx }: { book: Book; idx: number }) {
-    const [coverImage, setCoverImage] = useState(book.imgUrl);
-    const [authorName, setAuthorName] = useState(book.author);
+// Cache key for sessionStorage
+const BOOK_COVERS_CACHE_KEY = "bookCoversCache";
+const BOOK_COVERS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
-    useEffect(() => {
-        if (book.naverQuery) {
-            fetch(`/api/books?query=${encodeURIComponent(book.naverQuery)}`)
-                .then((res) => {
-                    if (!res.ok) throw new Error("API error");
-                    return res.json();
-                })
-                .then((data) => {
-                    if (data && data.image) {
-                        setCoverImage(data.image);
-                    }
-                    if (data && data.author) {
-                        // Naver sometimes returns authors separated by commas
-                        setAuthorName(data.author.replace(/\|/g, ", "));
-                    }
-                })
-                .catch((err) => {
-                    console.error("Failed to fetch Naver data:", err);
-                });
+type BookCoverData = Record<string, { image?: string; author?: string } | null>;
+
+function getBookCoversFromCache(): BookCoverData | null {
+    try {
+        const raw = sessionStorage.getItem(BOOK_COVERS_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (Date.now() > parsed.expiry) {
+            sessionStorage.removeItem(BOOK_COVERS_CACHE_KEY);
+            return null;
         }
-    }, [book.naverQuery]);
+        return parsed.data;
+    } catch {
+        return null;
+    }
+}
+
+function setBookCoversToCache(data: BookCoverData) {
+    try {
+        sessionStorage.setItem(BOOK_COVERS_CACHE_KEY, JSON.stringify({
+            data,
+            expiry: Date.now() + BOOK_COVERS_CACHE_TTL,
+        }));
+    } catch { /* sessionStorage full, ignore */ }
+}
+
+interface BookCardItemProps {
+    book: Book;
+    idx: number;
+    coverData?: { image?: string; author?: string } | null;
+}
+
+function BookCardItem({ book, idx, coverData }: BookCardItemProps) {
+    const coverImage = coverData?.image || book.imgUrl;
+    const authorName = coverData?.author?.replace(/\|/g, ", ") || book.author;
 
     return (
         <Link href={`/insights/books/${book.id}`} className="block">
@@ -90,6 +104,7 @@ function BookCardItem({ book, idx }: { book: Book; idx: number }) {
 export function RecommendedBooks() {
     const [filterLevel, setFilterLevel] = useState<"all" | "beginner" | "intermediate" | "advanced">("all");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [bookCovers, setBookCovers] = useState<BookCoverData>({});
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const filteredBooks = RECOMMENDED_BOOKS.filter(book => filterLevel === "all" || book.level === filterLevel);
@@ -102,6 +117,33 @@ export function RecommendedBooks() {
     ];
 
     const currentFilter = filterOptions.find((f) => f.id === filterLevel) || filterOptions[0];
+
+    // Batch fetch all book covers once
+    useEffect(() => {
+        // 1. Check sessionStorage cache first (instant)
+        const cached = getBookCoversFromCache();
+        if (cached) {
+            setBookCovers(cached);
+            return;
+        }
+
+        // 2. Cache miss → single batch request
+        const queries = RECOMMENDED_BOOKS
+            .filter(b => b.naverQuery)
+            .map(b => b.naverQuery!);
+
+        fetch("/api/books/batch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ queries }),
+        })
+            .then(res => res.ok ? res.json() : {})
+            .then((data: BookCoverData) => {
+                setBookCovers(data);
+                setBookCoversToCache(data);
+            })
+            .catch(err => console.error("Batch book fetch failed:", err));
+    }, []);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -158,7 +200,7 @@ export function RecommendedBooks() {
 
             <div className="space-y-4">
                 {filteredBooks.map((book, idx) => (
-                    <BookCardItem key={book.id} book={book} idx={idx} />
+                    <BookCardItem key={book.id} book={book} idx={idx} coverData={book.naverQuery ? bookCovers[book.naverQuery] : null} />
                 ))}
 
                 {filteredBooks.length === 0 && (

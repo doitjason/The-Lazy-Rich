@@ -29,8 +29,33 @@ export function MarketContext() {
     const [selectedDetail, setSelectedDetail] = useState<string | null>(null);
 
     useEffect(() => {
+        // 1. Check sessionStorage cache first (instant render)
+        const CACHE_KEY = "marketContextCache";
+        const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+        try {
+            const raw = sessionStorage.getItem(CACHE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Date.now() < parsed.expiry) {
+                    setData(parsed.data);
+                    setLoading(false);
+                    return;
+                }
+                sessionStorage.removeItem(CACHE_KEY);
+            }
+        } catch { /* ignore */ }
+
+        // 2. Cache miss → fetch from server
         getCommonMarketData().then((res) => {
-            if (res) setData(res);
+            if (res) {
+                setData(res);
+                try {
+                    sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+                        data: res,
+                        expiry: Date.now() + CACHE_TTL,
+                    }));
+                } catch { /* sessionStorage full, ignore */ }
+            }
             setLoading(false);
         });
     }, []);

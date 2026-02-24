@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { QuoteCard } from "@/components/insights/QuoteCard";
 import { MarketContext } from "@/components/insights/MarketContext";
 import { RecommendedBooks } from "@/components/insights/RecommendedBooks";
+import { ColumnList } from "@/components/insights/ColumnList";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -73,8 +74,8 @@ export default function InsightsPage() {
                 )}
 
                 {selectedTab === "blog" && (
-                    <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-2xl bg-muted/20">
-                        <p>✍️ 통찰력 있는 투자 칼럼을 준비 중입니다.</p>
+                    <div className="space-y-4 pt-2">
+                        <ColumnList />
                     </div>
                 )}
 
