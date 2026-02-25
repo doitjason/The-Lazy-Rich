@@ -15,16 +15,16 @@ function FeaturedColumnCard({ column }: { column: Column }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#12141a]/80 via-[#12141a]/60 to-[#12141a]/80 backdrop-blur-xl group cursor-pointer"
+                className="relative overflow-hidden rounded-3xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-gradient-to-br dark:from-[#12141a]/80 dark:via-[#12141a]/60 dark:to-[#12141a]/80 backdrop-blur-xl group cursor-pointer shadow-sm dark:shadow-none"
             >
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-emerald-500/5 opacity-60 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/10 rounded-full blur-[60px] translate-x-10 -translate-y-10 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 dark:from-violet-500/10 via-transparent to-emerald-500/5 opacity-60 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/5 dark:bg-violet-500/10 rounded-full blur-[60px] translate-x-10 -translate-y-10 pointer-events-none" />
 
                 <div className="relative z-10 p-5 sm:p-6">
                     {/* Featured badge */}
                     <div className="flex items-center gap-2 mb-4">
-                        <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/20 inline-flex items-center gap-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1">
                             <span className="text-[8px]">⭐</span> Featured
                         </span>
                         <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${column.categoryBg} ${column.categoryColor} border border-current/20 inline-flex items-center gap-1`}>
@@ -33,18 +33,18 @@ function FeaturedColumnCard({ column }: { column: Column }) {
                     </div>
 
                     {/* Title */}
-                    <h2 className="text-lg sm:text-xl font-black leading-tight text-white/95 mb-2 group-hover:text-white transition-colors line-clamp-2">
+                    <h2 className="text-lg sm:text-xl font-black leading-tight text-gray-900 dark:text-white/95 mb-2 group-hover:text-black dark:group-hover:text-white transition-colors line-clamp-2">
                         {column.title}
                     </h2>
 
                     {/* Subtitle */}
-                    <p className="text-[13px] text-white/50 leading-relaxed line-clamp-2 mb-4 font-medium">
+                    <p className="text-[13px] text-gray-500 dark:text-white/50 leading-relaxed line-clamp-2 mb-4 font-medium">
                         {column.subtitle}
                     </p>
 
                     {/* Meta row */}
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-[11px] text-white/30 font-medium">
+                        <div className="flex items-center gap-2 text-[11px] text-gray-400 dark:text-white/30 font-medium">
                             <span>{column.author}</span>
                             <span>·</span>
                             <Clock className="w-3 h-3" />
@@ -52,7 +52,7 @@ function FeaturedColumnCard({ column }: { column: Column }) {
                             <span>·</span>
                             <span>{column.publishedAt}</span>
                         </div>
-                        <span className="text-xs font-black text-emerald-400 flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                        <span className="text-xs font-black text-emerald-500 dark:text-emerald-400 flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
                             읽기 <ArrowRight className="w-3 h-3" />
                         </span>
                     </div>
@@ -70,13 +70,13 @@ function ColumnCard({ column, idx }: { column: Column; idx: number }) {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.08, duration: 0.5 }}
-                className="bg-[#12141a]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex items-center gap-4 relative overflow-hidden group cursor-pointer hover:bg-[#1a1c24]/80 transition-all shadow-lg hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.1)]"
+                className="bg-white/80 dark:bg-[#12141a]/60 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-3xl p-4 flex items-center gap-4 relative overflow-hidden group cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1a1c24]/80 transition-all shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.1)]"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
                 {/* Emoji thumbnail — square ratio */}
                 <div className="flex-shrink-0 relative z-10">
-                    <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl ${column.categoryBg} border border-white/5 flex items-center justify-center text-2xl sm:text-3xl group-hover:scale-105 transition-transform duration-500`}>
+                    <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl ${column.categoryBg} border border-gray-200 dark:border-white/5 flex items-center justify-center text-2xl sm:text-3xl group-hover:scale-105 transition-transform duration-500`}>
                         {column.thumbnailEmoji}
                     </div>
                 </div>
@@ -89,7 +89,7 @@ function ColumnCard({ column, idx }: { column: Column; idx: number }) {
                             <span className="w-1 h-1 rounded-full bg-current mr-1 opacity-80" />
                             {column.categoryLabel}
                         </span>
-                        <div className="flex items-center gap-1 text-[10px] text-white/25 font-medium flex-shrink-0">
+                        <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-white/25 font-medium flex-shrink-0">
                             <Clock className="w-2.5 h-2.5" />
                             <span>{column.readTime}분</span>
                             <span>·</span>
@@ -97,12 +97,12 @@ function ColumnCard({ column, idx }: { column: Column; idx: number }) {
                         </div>
                     </div>
                     {/* Title — single line, truncated */}
-                    <h3 className="text-[13px] sm:text-[14px] font-bold leading-snug truncate text-white/90 group-hover:text-white transition-colors">
+                    <h3 className="text-[13px] sm:text-[14px] font-bold leading-snug truncate text-gray-800 dark:text-white/90 group-hover:text-black dark:group-hover:text-white transition-colors">
                         {column.title}
                     </h3>
                     {/* Bottom row: 읽어보기 - forced to bottom */}
                     <div className="flex justify-end mt-auto pt-1">
-                        <span className="text-[10px] font-black text-emerald-400 flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-0.5 flex-shrink-0">
+                        <span className="text-[10px] font-black text-emerald-500 dark:text-emerald-400 flex items-center gap-0.5 opacity-50 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-0.5 flex-shrink-0">
                             읽어보기 <ArrowRight className="w-2.5 h-2.5" />
                         </span>
                     </div>
@@ -151,7 +151,7 @@ export function ColumnList() {
             <div className="relative pb-4 pt-1 z-40" ref={dropdownRef}>
                 <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-[14px] sm:text-sm font-bold transition-all border shadow-sm active:scale-95 text-emerald-400 border-emerald-500/30 bg-emerald-500/10 shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)] hover:bg-emerald-500/20"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-[14px] sm:text-sm font-bold transition-all border shadow-sm active:scale-95 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)] hover:bg-emerald-500/20"
                 >
                     <span className="text-base">{currentFilter.emoji}</span>
                     <span>{currentFilter.label}</span>
@@ -165,7 +165,7 @@ export function ColumnList() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
-                            className="absolute top-[52px] left-0 w-[220px] bg-[#12141a]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1.5 z-50"
+                            className="absolute top-[52px] left-0 w-[220px] bg-white/95 dark:bg-[#12141a]/90 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1.5 z-50"
                         >
                             {CATEGORY_OPTIONS.map((f) => (
                                 <button
@@ -175,8 +175,8 @@ export function ColumnList() {
                                         setIsDropdownOpen(false);
                                     }}
                                     className={`w-full flex items-center gap-2.5 px-4 py-3 text-left transition-colors font-medium text-[14px] ${filterCategory === f.id
-                                        ? "text-emerald-400 bg-white/5"
-                                        : "text-white/70 hover:bg-white/5 hover:text-white"
+                                        ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 dark:bg-white/5"
+                                        : "text-gray-600 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
                                         }`}
                                 >
                                     <span className="text-base">{f.emoji}</span>
@@ -207,7 +207,7 @@ export function ColumnList() {
                 ))}
 
                 {filteredColumns.length === 0 && !showFeatured && (
-                    <div className="flex flex-col items-center justify-center py-16 text-white/40 border border-white/5 rounded-3xl bg-white/[0.02]">
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-white/40 border border-gray-200 dark:border-white/5 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02]">
                         <span className="text-4xl mb-3">🔍</span>
                         <p className="text-sm font-medium">해당 카테고리의 칼럼이 준비 중입니다.</p>
                     </div>

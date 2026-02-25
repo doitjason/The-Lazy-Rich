@@ -52,12 +52,12 @@ function BookCardItem({ book, idx, coverData }: BookCardItemProps) {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1, duration: 0.5 }}
-                className="bg-[#12141a]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-4 flex gap-5 relative overflow-hidden group cursor-pointer hover:bg-[#1a1c24]/80 transition-all shadow-lg hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.15)]"
+                className="bg-white/80 dark:bg-[#12141a]/60 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-3xl p-4 flex gap-5 relative overflow-hidden group cursor-pointer hover:bg-gray-50 dark:hover:bg-[#1a1c24]/80 transition-all shadow-sm dark:shadow-lg hover:shadow-md dark:hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.15)]"
             >
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
                 <div className="w-24 sm:w-28 flex-shrink-0 relative z-10">
-                    <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden shadow-xl bg-black/50 border border-white/10 group-hover:border-emerald-500/30 group-hover:shadow-[0_10px_30px_-10px_rgba(16,185,129,0.3)] transition-all duration-500 flex items-center justify-center">
+                    <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden shadow-xl bg-gray-100 dark:bg-black/50 border border-gray-200 dark:border-white/10 group-hover:border-emerald-500/30 group-hover:shadow-[0_10px_30px_-10px_rgba(16,185,129,0.3)] transition-all duration-500 flex items-center justify-center">
                         {coverImage ? (
                             <>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -70,7 +70,7 @@ function BookCardItem({ book, idx, coverData }: BookCardItemProps) {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60 pointer-events-none"></div>
                             </>
                         ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-emerald-900/40 to-gray-900/80 flex items-center justify-center">
+                            <div className="w-full h-full bg-gradient-to-br from-emerald-100 dark:from-emerald-900/40 to-gray-200 dark:to-gray-900/80 flex items-center justify-center">
                                 <span className="text-4xl">📖</span>
                             </div>
                         )}
@@ -79,19 +79,22 @@ function BookCardItem({ book, idx, coverData }: BookCardItemProps) {
 
                 <div className="flex flex-col justify-between flex-grow py-1.5 relative z-10">
                     <div>
-                        <span className={`text-[10px] sm:text-[11px] font-black uppercase tracking-widest mb-2 inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20`}>
-                            <span className="w-1 h-1 rounded-full bg-emerald-400 mr-1.5 opacity-80 group-hover:animate-pulse" />
+                        <span className={`text-[10px] sm:text-[11px] font-black uppercase tracking-widest mb-2 inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20`}>
+                            <span className="w-1 h-1 rounded-full bg-emerald-500 dark:bg-emerald-400 mr-1.5 opacity-80 group-hover:animate-pulse" />
                             {book.tag}
                         </span>
-                        <h2 className="text-base sm:text-lg font-black leading-tight line-clamp-2 text-white/90 mt-1 group-hover:text-white transition-colors">
+                        <h2 className="text-base sm:text-lg font-black leading-tight line-clamp-2 text-gray-800 dark:text-white/90 mt-1 group-hover:text-black dark:group-hover:text-white transition-colors">
                             {book.title}
                         </h2>
-                        <p className="text-[11px] sm:text-xs text-emerald-500/80 mt-1 font-bold">
+                        <p className="text-[11px] sm:text-xs text-emerald-600/80 dark:text-emerald-500/80 mt-1 font-bold">
                             {authorName}
+                        </p>
+                        <p className="text-[10px] sm:text-[11px] text-gray-400 dark:text-white/40 mt-1.5 font-medium leading-snug line-clamp-1">
+                            {book.description.split(/(?<=\.)\s/)[0]}
                         </p>
                     </div>
                     <div className="mt-4 flex justify-end">
-                        <span className="text-xs font-black text-emerald-400 flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity duration-300 transform group-hover:translate-x-1">
+                        <span className="text-xs font-black text-emerald-500 dark:text-emerald-400 flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity duration-300 transform group-hover:translate-x-1">
                             에디터 리뷰 보기 <span className="text-[10px]">&rarr;</span>
                         </span>
                     </div>
@@ -161,7 +164,7 @@ export function RecommendedBooks() {
             <div className="relative pb-4 pt-1 z-40" ref={dropdownRef}>
                 <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-[14px] sm:text-sm font-bold transition-all border shadow-sm active:scale-95 text-emerald-400 border-emerald-500/30 bg-emerald-500/10 shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)] hover:bg-emerald-500/20"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-[14px] sm:text-sm font-bold transition-all border shadow-sm active:scale-95 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10 shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)] hover:bg-emerald-500/20"
                 >
                     <span className="text-base">{currentFilter.emoji}</span>
                     <span>{currentFilter.label}</span>
@@ -175,7 +178,7 @@ export function RecommendedBooks() {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
                             transition={{ duration: 0.2 }}
-                            className="absolute top-[52px] left-0 w-[220px] bg-[#12141a]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1.5"
+                            className="absolute top-[52px] left-0 w-[220px] bg-white/95 dark:bg-[#12141a]/90 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1.5"
                         >
                             {filterOptions.map((f) => (
                                 <button
@@ -185,8 +188,8 @@ export function RecommendedBooks() {
                                         setIsDropdownOpen(false);
                                     }}
                                     className={`w-full flex items-center gap-2.5 px-4 py-3 text-left transition-colors font-medium text-[14px] ${filterLevel === f.id
-                                        ? "text-emerald-400 bg-white/5"
-                                        : "text-white/70 hover:bg-white/5 hover:text-white"
+                                        ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 dark:bg-white/5"
+                                        : "text-gray-600 dark:text-white/70 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
                                         }`}
                                 >
                                     <span className="text-base">{f.emoji}</span>
@@ -204,7 +207,7 @@ export function RecommendedBooks() {
                 ))}
 
                 {filteredBooks.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-16 text-white/40 border border-white/5 rounded-3xl bg-white/[0.02]">
+                    <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-white/40 border border-gray-200 dark:border-white/5 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02]">
                         <span className="text-4xl mb-3">🔍</span>
                         <p className="text-sm font-medium">해당 난이도의 추천 도서가 준비 중입니다.</p>
                     </div>

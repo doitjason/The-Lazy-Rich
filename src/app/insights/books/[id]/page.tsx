@@ -66,7 +66,7 @@ export default async function BookDetailPage({ params }: PageProps) {
     }
 
     return (
-        <div className="max-w-md mx-auto relative bg-[#0b0c10] min-h-screen pb-[160px] sm:border-x sm:border-white/5 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500">
+        <div className="max-w-md mx-auto relative bg-white dark:bg-[#0b0c10] min-h-screen pb-[160px] sm:border-x sm:border-gray-200 dark:sm:border-white/5 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500">
             {/* Schema.org Review JSON-LD */}
             <script
                 type="application/ld+json"
@@ -103,10 +103,10 @@ export default async function BookDetailPage({ params }: PageProps) {
             />
 
             {/* Ambient Background Glows */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] aspect-square bg-emerald-500/10 rounded-full blur-[100px] opacity-50 pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[200%] aspect-square bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-[100px] opacity-50 pointer-events-none" />
 
             {/* Top Navigation */}
-            <header className="sticky top-0 z-40 bg-[#0b0c10]/70 backdrop-blur-2xl border-b border-white/10 px-4 py-3 flex items-center gap-3">
+            <header className="sticky top-0 z-40 bg-white/70 dark:bg-[#0b0c10]/70 backdrop-blur-2xl border-b border-gray-200 dark:border-white/10 px-4 py-3 flex items-center gap-3">
                 <BackButton />
                 <h1 className="text-base font-bold text-foreground flex-1 truncate">
                     {book.title}
@@ -114,7 +114,7 @@ export default async function BookDetailPage({ params }: PageProps) {
             </header>
 
             {/* Affiliate Notice Banner - Anchored to the very top */}
-            <div className="bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-3 flex items-start gap-2 text-sm text-emerald-700 dark:text-emerald-400">
+            <div className="bg-emerald-50 dark:bg-emerald-500/10 border-b border-emerald-200 dark:border-emerald-500/20 px-4 py-3 flex items-start gap-2 text-sm text-emerald-700 dark:text-emerald-400">
                 <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <p className="leading-relaxed opacity-90 break-keep font-medium">
                     이 게시물은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.
@@ -125,7 +125,7 @@ export default async function BookDetailPage({ params }: PageProps) {
             <main className="px-5 py-6 space-y-10 relative z-10">
                 {/* Book Header */}
                 <div className="flex gap-6 items-center">
-                    <div className="w-32 sm:w-36 flex-shrink-0 rounded-xl overflow-hidden shadow-[0_10px_40px_-10px_rgba(16,185,129,0.4)] border border-white/20 relative">
+                    <div className="w-32 sm:w-36 flex-shrink-0 rounded-xl overflow-hidden shadow-[0_10px_40px_-10px_rgba(16,185,129,0.4)] border border-gray-200 dark:border-white/20 relative">
                         <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-50 pointer-events-none z-10" />
                         {coverImage ? (
                             <>
@@ -137,20 +137,20 @@ export default async function BookDetailPage({ params }: PageProps) {
                                 />
                             </>
                         ) : (
-                            <div className="w-full aspect-[2/3] bg-gradient-to-br from-emerald-900/40 to-gray-900/80 flex items-center justify-center">
+                            <div className="w-full aspect-[2/3] bg-gradient-to-br from-emerald-100 dark:from-emerald-900/40 to-gray-200 dark:to-gray-900/80 flex items-center justify-center">
                                 <span className="text-5xl">📖</span>
                             </div>
                         )}
                     </div>
                     <div className="flex flex-col pt-2 pb-1">
-                        <span className={`text-[10px] sm:text-xs font-black uppercase tracking-widest mb-2.5 inline-flex items-center w-max px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]`}>
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2 animate-pulse" />
+                        <span className={`text-[10px] sm:text-xs font-black uppercase tracking-widest mb-2.5 inline-flex items-center w-max px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]`}>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 mr-2 animate-pulse" />
                             {book.tag}
                         </span>
-                        <h2 className="text-xl sm:text-2xl font-black leading-tight text-white mb-2">
+                        <h2 className="text-xl sm:text-2xl font-black leading-tight text-gray-900 dark:text-white mb-2">
                             {book.title}
                         </h2>
-                        <p className="text-sm sm:text-base text-emerald-500/80 font-bold">
+                        <p className="text-sm sm:text-base text-emerald-600/80 dark:text-emerald-500/80 font-bold">
                             {authorName}
                         </p>
                     </div>
@@ -185,12 +185,12 @@ export default async function BookDetailPage({ params }: PageProps) {
                                             <span className="absolute w-5 h-5 bg-emerald-500/20 rounded-full animate-ping" />
                                             <span className="relative w-2 h-5 bg-emerald-500 rounded-full" />
                                         </div>
-                                        <h3 className="font-black text-base text-white tracking-tight">3줄 요약</h3>
+                                        <h3 className="font-black text-base text-gray-900 dark:text-white tracking-tight">3줄 요약</h3>
                                     </div>
-                                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 space-y-3 relative overflow-hidden border-l-2 border-l-emerald-500/50">
-                                        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/8 rounded-full blur-[30px] translate-x-6 -translate-y-6" />
+                                    <div className="bg-gray-50 dark:bg-white/[0.03] backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-5 space-y-3 relative overflow-hidden border-l-2 border-l-emerald-500/50">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 dark:bg-emerald-500/8 rounded-full blur-[30px] translate-x-6 -translate-y-6" />
                                         {summaryLines.map((line: string, i: number) => (
-                                            <p key={i} className="text-[13px] sm:text-[14px] text-white/70 leading-relaxed font-medium relative z-10">
+                                            <p key={i} className="text-[13px] sm:text-[14px] text-gray-600 dark:text-white/70 leading-relaxed font-medium relative z-10">
                                                 {line}
                                             </p>
                                         ))}
@@ -206,12 +206,12 @@ export default async function BookDetailPage({ params }: PageProps) {
                                             <span className="absolute w-5 h-5 bg-emerald-500/20 rounded-full animate-ping" />
                                             <span className="relative w-2 h-5 bg-emerald-500 rounded-full" />
                                         </div>
-                                        <h3 className="font-black text-lg text-white tracking-tight">
+                                        <h3 className="font-black text-lg text-gray-900 dark:text-white tracking-tight">
                                             에디터 인사이트
                                         </h3>
                                     </div>
-                                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-inner relative overflow-hidden">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2" />
+                                    <div className="bg-gray-50 dark:bg-white/[0.03] backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-inner relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 dark:bg-emerald-500/10 rounded-full blur-[40px] -translate-y-1/2 translate-x-1/2" />
                                         <div className="relative z-10">
                                             {bodyContent.split("\n\n").filter((p: string) => p.trim()).map((para: string, i: number) => {
                                                 const isHeader = para.length < 40 && !para.includes(".");
@@ -219,15 +219,54 @@ export default async function BookDetailPage({ params }: PageProps) {
                                                     return (
                                                         <h4 key={i} className="flex items-center gap-3 mt-8 first:mt-0 mb-3">
                                                             <span className="w-1 h-6 bg-emerald-500 rounded-full flex-shrink-0" />
-                                                            <span className="text-[17px] sm:text-lg font-black text-white tracking-tight">
+                                                            <span className="text-[17px] sm:text-lg font-black text-gray-900 dark:text-white tracking-tight">
                                                                 {para}
                                                             </span>
                                                         </h4>
                                                     );
                                                 }
+
+                                                // Handle bullet lists
+                                                const lines = para.split("\n");
+                                                const hasBullets = lines.some((line: string) => line.trim().startsWith("- "));
+
+                                                if (hasBullets) {
+                                                    const introLines: string[] = [];
+                                                    const bulletLines: string[] = [];
+                                                    let inBullets = false;
+                                                    for (const line of lines) {
+                                                        if (line.trim().startsWith("- ")) {
+                                                            inBullets = true;
+                                                            bulletLines.push(line.trim().slice(2));
+                                                        } else if (inBullets) {
+                                                            bulletLines.push(line.trim());
+                                                        } else {
+                                                            introLines.push(line);
+                                                        }
+                                                    }
+                                                    return (
+                                                        <div key={i} className="mb-5 last:mb-0">
+                                                            {introLines.length > 0 && (
+                                                                <p className="text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.85] font-medium break-keep mb-3">
+                                                                    {introLines.join(" ")}
+                                                                </p>
+                                                            )}
+                                                            <ul className="space-y-2 pl-1">
+                                                                {bulletLines.map((item: string, j: number) => (
+                                                                    <li key={j} className="flex items-start gap-2.5 text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.7] font-medium">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60 mt-[10px] flex-shrink-0" />
+                                                                        <span>{item}</span>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    );
+                                                }
+
+                                                const joinedText = lines.join(" ");
                                                 return (
-                                                    <p key={i} className="text-[15px] sm:text-[16px] text-white/75 leading-[1.85] font-medium break-keep mb-5 last:mb-0">
-                                                        {para}
+                                                    <p key={i} className="text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.85] font-medium break-keep mb-5 last:mb-0">
+                                                        {joinedText}
                                                     </p>
                                                 );
                                             })}
@@ -242,7 +281,7 @@ export default async function BookDetailPage({ params }: PageProps) {
 
             {/* Sticky Bottom CTA */}
             {book.link && (
-                <div className="fixed max-w-md mx-auto left-0 right-0 w-full bottom-16 p-4 pb-4 bg-gradient-to-t from-[#0b0c10] via-[#0b0c10]/95 to-transparent z-50">
+                <div className="fixed max-w-md mx-auto left-0 right-0 w-full bottom-16 p-4 pb-4 bg-gradient-to-t from-white dark:from-[#0b0c10] via-white/95 dark:via-[#0b0c10]/95 to-transparent z-50">
                     <a
                         href={book.link}
                         target="_blank"

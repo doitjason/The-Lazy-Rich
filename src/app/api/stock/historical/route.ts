@@ -85,10 +85,18 @@ export async function GET(request: NextRequest) {
         const currentPrice = quote?.regularMarketPrice || historical[historical.length - 1]?.close;
         const currentExchangeRate = erQuote?.regularMarketPrice || Array.from(exchangeRateMap.values()).pop() || 1350;
 
+        // Helper to get safe price: adjClose can be negative for old Korean stocks due to Yahoo Finance capital reduction adjustment bugs
+        const getSafePrice = (item: any) => {
+            if (!item) return 0;
+            let p = item.adjClose !== undefined && item.adjClose !== null ? item.adjClose : item.close;
+            if (p <= 0 && item.close && item.close > 0) p = item.close;
+            return p;
+        };
+
         // First record is the past price
-        const pastPrice = historical[0]?.close || historical[0]?.adjClose;
         const pastDateKey = new Date(historical[0]?.date).toISOString().substring(0, 7);
         const pastExchangeRate = exchangeRateMap.get(pastDateKey) || currentExchangeRate;
+        const pastPrice = getSafePrice(historical[0]);
 
         // Build full chart data (monthly) for accurate calculations
         const chartData = historical.map((item) => {
@@ -97,7 +105,7 @@ export async function GET(request: NextRequest) {
             const er = exchangeRateMap.get(key) || pastExchangeRate; // Use mapped month ER or fallback
             return {
                 name: date.toISOString().split('T')[0], // YYYY-MM-DD
-                price: item.adjClose || item.close, // Use Adjusted Close for dividends/splits if available
+                price: getSafePrice(item), // Use safe price that handles negative adjClose bugs
                 exchangeRate: er
             };
         });
