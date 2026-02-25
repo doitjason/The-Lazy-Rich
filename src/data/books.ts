@@ -55,7 +55,7 @@ export const RECOMMENDED_BOOKS: Book[] = [
 투자에 있어 가장 큰 위험은 시장의 하락 그 자체가 아니라, 투자자 본인이 지불한 가격이 너무 높았다는 사실에서 기인합니다. 그레이엄이 주창한 '안전 마진'은 기업의 내재가치와 매수 가격 사이의 간격을 비워둠으로써, 우리의 분석이 틀렸거나 예기치 못한 악재가 발생했을 때 손실을 흡수해 주는 완충재 역할을 합니다. 철저한 재무제표 분석을 기반으로 이 안전 마진을 확보하는 원칙은, 그 어떤 화려한 성장 테마나 유행하는 지표보다도 장기적으로 포트폴리오의 생존 확률을 비약적으로 높여줍니다. 단기 차익을 노리는 투기자들에게 이 책은 지루할 수 있지만, 복리의 마법을 끝까지 누리고자 하는 장기 투자자에게는 절대 깨지지 않는 기준점을 세워주는 최고의 지침서입니다.
 
 결국 복리의 힘을 끝까지 누리며 승리하고자 하는 장기 투자자는 직관에 의존하는 야성보다, 가격과 기업 가치를 수치로 저울질하는 기계적인 권태로움이 필요합니다. 며칠짜리 차익을 노리며 경제 뉴스 루머를 쫓는 이들에게 이 낡은 고전은 너무나 지겨운 교과서일 수 있습니다. 하지만 어떤 매크로 위기에도 흔들리지 않을 불변의 교리를 몸에 새기고, 시장의 비합리성이 극단에 달할 때마다 기준점을 회복시켜줄 유일한 투자의 성서입니다.`,
-        imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBwou5Dc9ZA2r1Ce8z_j3TZOmvtZngqBrjubHI0OaoF4ly4WfKQ5EtRf9Xf7kY3zh9XzY30h83FmUBJDz6yeP8PNSzWgXD3DFUdRbTYbs3TG_6ezqafUDEkOI8bfHR8vILgyM97pM7i7bGEormOnjl2cYrNTzlQzPekjgYwu0usqv1LQy5vB612-pCWuUn0RqGqY-DQUWcNPecIdksdPwq8GTaux2DYemjP2Fv3OJpWXPFUxPBEzmrWJY8GrvSfRRcWcTsvF3PHG3Y",
+        imgUrl: "",
         link: "https://link.coupang.com/a/dRJW8r",
         naverQuery: "현명한 투자자",
         level: "advanced",
@@ -78,7 +78,7 @@ export const RECOMMENDED_BOOKS: Book[] = [
 투자 시장에 뛰어든 자가 가장 피해야 할 것은 나의 분석 방향성이 언제나 무조건 옳다는 자만심과, 예측이 잔인하게 빗나갔을 때 현실을 부정하는 자기기만입니다. 저자는 자신이 설립한 투자 회사가 어떻게 수없이 많은 오만의 대가로 파산 위기를 딛고 최정상에 섰는지 고백하며, 오직 철저하고 고통스러운 현실 직시 판단만이 장기 투자의 생존을 보장함을 역설합니다. 지수는 결코 개인의 희망이나 두려움이라는 감정을 동정하지 않고 제 갈 길을 가기 때문에, 오차 없는 원칙주의자만이 잔혹한 시장 환경에서 복리의 마법을 지켜냅니다.
 
 결과적으로 이 엄청난 두께의 책은 무엇을 매수할 것인가를 찍어주는 도서가 아니라, 당신이라는 투자자의 판단 알고리즘을 어떻게 제어할 것인가를 심문하는 시스템 매뉴얼입니다. 부서진 고정관념을 치우고 비판적인 냉정함을 지속해서 수용하여 흔들림 없는 자동 방어 결정을 내리는 법은 개인 장기 투자자에게 똑같이 적용됩니다. 감정을 100% 거세하고 완벽하게 숫자적인 기계론적 투자 시스템을 마음속에 영원토록 단조하고 싶은 사람을 위한 최고의 지침서입니다.`,
-        imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuAQ_6JkekyJoXXUrKAoQJE45i5nG2AIeOxnXq83fz6Lvuv4O7SeNh5MwP3x1RxKsEL3yT0G8l-nO679QTafElKyV93eFfzd7zFH18zbZBi3Ubimt0-iddAY6v1orR3G3X8JAKl_7HKiWIcvcCaH98_qpi5s-b5ajAVt1tYDkey6GOlxdsafGSmRfA43bATtnAih7re4_WBTvkeWWn_uITFzeAidculnMf4DML_mhto1RdN8_xNS7lTErnosRRM4L6EZ-Nwr1H0YuDM",
+        imgUrl: "",
         link: "https://link.coupang.com/a/dRJXXO",
         naverQuery: "원칙 레이 달리오",
         level: "advanced",
@@ -101,7 +101,7 @@ export const RECOMMENDED_BOOKS: Book[] = [
 매수와 매도를 반복할수록 증권사만 배를 불릴 뿐 개인의 포트폴리오는 철저하게 파괴된다는 차가운 직설은, 장기투자자의 가장 약한 고리인 시장 타이밍 본능을 억제합니다. 시장이 떨어질 무렵 타이밍을 잡으려던 수많은 시도들이 장기 복리에 치명적인 실책이었음을 알리고, 그저 묵묵히 시장 속에 머무르는 시간을 가장 높은 수익률로 치환하는 지혜의 결정체입니다.
 
 최강의 투자 복리 로직을 극대화하기 위해서 당신이 통제해야 할 유일무이한 사실은 미래의 수익률이 아니라 당장 계좌에서 증발하는 매매 수수료라는 지출 구멍입니다. 온갖 복잡한 파생 모델로 대중을 두려움에 몰아넣어 중개료를 챙기는 산업의 탐욕을 무시하라는 저자의 단호하고 차가운 목소리는 흔들림 없는 등대 빛이 되어 줍니다. 당신의 포트폴리오 창에서 트레이딩의 유혹에 매일 갈등하는 투기자들에게 있어, 이 책 한 권은 즉시 신경 안정제로 처방되어 손가락의 뇌동 매매를 강제 종료시킬 것입니다.`,
-        imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBmfn1kFN6Fc5jzMRHWMlRo_CrHJkZ_r04kg2pUYMGD145l_N5iVBEXvSRw5EJqorRP_9bartQH15LvFx8v9APY-TrgeXkBpje6XU8D63LvCNnKUJj27Gqj8SIOw1RqDaTbagCYM4zefN_RfZj-9FlIVofp1sF8U3fARn-96-SyDgPPlIxnGF7PmUmZioSSRgmnkGiBiGgB1m995Lim0civi1U1ycVy2snUkOO4Y5mPs7Gyo4NDxCwnFhxjHXZgo3-g-l96pwStw0s",
+        imgUrl: "",
         link: "https://link.coupang.com/a/dRJYzK",
         naverQuery: "모든 주식을 소유하라",
         level: "intermediate",
@@ -377,7 +377,7 @@ export const RECOMMENDED_BOOKS: Book[] = [
 당신이 매수한 주식이 기업의 근본 가치가 아닌 단순 수급과 언론의 부추김으로 출렁이는 껍데기일 때 폭락장의 멘탈은 여지없이 바스라지기 마련입니다. 하지만 피셔가 제안하는 15가지 깐깐한 포인트로 스크리닝되어 마침내 찾아낸 절대 우위의 회사를 손에 쥐었다면, 매일 아침 글로벌 선물 지수에 벌벌 떨 이유가 완벽하게 소멸합니다. 주가가 반토막이 나든 언론이 폭락의 침체기를 읊조리든 본업인 비즈니스 매출이 공격적으로 증가하는 기업의 지분은 시장을 따돌린다는 불멸의 진리를 약속합니다.
 
 진정으로 치명적인 투자의 패착은 형편없는 주식을 고르는 것이 아니라, 역사에 남을 위대한 회사의 주식을 발굴해 놓고도 단단한 배짱이 없어 2배 수익률에 성급히 매도 버튼을 누르는 조급함에서 탄생합니다. 올바른 장기 투자자라면 1년 단위의 조정 장세에 기계적으로 반응하여 훌륭한 주식을 버리지 말고 스스로 마법의 복리 궤적을 그리도록 시장 밖에서 조용히 내버려두어야만 합니다. 종목 선택의 완벽함을 기하고 엉덩이로 세월을 짓누르길 갈망하는 투자 전문가에게 바쳐진 클래식 중의 클래식입니다.`,
-        imgUrl: "https://lh3.googleusercontent.com/aida-public/AB6AXuBmfn1kFN6Fc5jzMRHWMlRo_CrHJkZ_r04kg2pUYMGD145l_N5iVBEXvSRw5EJqorRP_9bartQH15LvFx8v9APY-TrgeXkBpje6XU8D63LvCNnKUJj27Gqj8SIOw1RqDaTbagCYM4zefN_RfZj-9FlIVofp1sF8U3fARn-96-SyDgPPlIxnGF7PmUmZioSSRgmnkGiBiGgB1m995Lim0civi1U1ycVy2snUkOO4Y5mPs7Gyo4NDxCwnFhxjHXZgo3-g-l96pwStw0s",
+        imgUrl: "",
         link: "https://link.coupang.com/a/dRKFBu",
         naverQuery: "위대한 기업에 투자하라",
         level: "advanced"

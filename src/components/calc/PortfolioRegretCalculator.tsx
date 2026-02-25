@@ -59,6 +59,7 @@ interface PortfolioResult {
         profit: number;
         contributionShare: number;
     }[];
+    isKrwBased?: boolean;
 }
 
 const PRESETS = [
@@ -219,7 +220,12 @@ export function PortfolioRegretCalculator() {
 
     const handleAssetChange = (index: number, field: keyof PortfolioAsset, value: string | number) => {
         const newAssets = [...assets];
-        newAssets[index] = { ...newAssets[index], [field]: value };
+        let finalValue = value;
+        if (field === "ticker" && typeof value === "string") {
+            // Automatically append .KS for numeric Korean tickers if they are missing it
+            finalValue = /^\d{6}$/.test(value) ? `${value}.KS` : value;
+        }
+        newAssets[index] = { ...newAssets[index], [field]: finalValue };
         setAssets(newAssets);
     };
 
@@ -438,9 +444,10 @@ export function PortfolioRegretCalculator() {
                     initialValue: Math.round(initialAssetVal_SelectedCurrency),
                     finalValue: Math.round(finalAssetVal_SelectedCurrency),
                     returnRate: ((finalAssetVal_SelectedCurrency / initialAssetVal_SelectedCurrency) - 1) * 100,
-                    profit: Math.round(finalAssetVal_SelectedCurrency - initialAssetVal_SelectedCurrency)
+                    profit: Math.round(finalAssetVal_SelectedCurrency - initialAssetVal_SelectedCurrency),
+                    contributionShare: 0 // Placeholder, will be updated below
                 };
-            }).filter(Boolean) as PortfolioResult['assets'];
+            }).filter((a): a is NonNullable<typeof a> => a !== null);
 
             // Calculate contribution share for each asset
             const totalPortfolioProfit = finalValue - initialInvestment;
@@ -542,7 +549,8 @@ export function PortfolioRegretCalculator() {
                 rebalancePeriodUsed: rebalancePeriod,
                 pastExchangeRate: currency === "KRW" ? pastExchangeRate : undefined,
                 currentExchangeRate: currency === "KRW" ? currentExchangeRate : undefined,
-                assets: assetsWithContribution
+                assets: assetsWithContribution,
+                isKrwBased: responses.every(r => r.currency === "KRW")
             });
 
             setIsCalculated(true);
@@ -666,7 +674,7 @@ export function PortfolioRegretCalculator() {
                                 <div key={index} className="flex gap-3 items-center group">
                                     <div className="flex-1">
                                         <StockSearchInput
-                                            value={asset.ticker}
+                                            value={asset.ticker.replace(".KS", "")}
                                             onChange={(ticker, name) => handleAssetChange(index, "ticker", ticker)}
                                             placeholder="티커 검색 (예: SPY)"
                                         />
@@ -1090,7 +1098,7 @@ export function PortfolioRegretCalculator() {
                                                     </div>
                                                     <div className="space-y-0.5 min-w-0">
                                                         <div className="flex items-center gap-1.5 flex-wrap">
-                                                            <p className="font-black text-sm text-foreground tracking-tight truncate">{asset.ticker}</p>
+                                                            <p className="font-black text-sm text-foreground tracking-tight truncate">{asset.ticker.replace(".KS", "")}</p>
                                                             {asset.returnRate > result.returnRate && (
                                                                 <Popover>
                                                                     <PopoverTrigger asChild>

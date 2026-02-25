@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export default function InsightsPage() {
-    const [selectedTab, setSelectedTab] = useState<"market" | "blog" | "community" | "recommended">("market");
+    const [selectedTab, setSelectedTab] = useState<"market" | "blog" | "community" | "recommended">("blog");
 
     // Retrieve the active tab from sessionStorage when component mounts
     useEffect(() => {
@@ -35,10 +35,10 @@ export default function InsightsPage() {
             {/* Navigation Tabs */}
             <div className="flex items-center justify-between w-full gap-1 pb-2">
                 {[
-                    { id: "market", label: "시장 상황" },
                     { id: "blog", label: "블로그" },
                     { id: "community", label: "커뮤니티" },
                     { id: "recommended", label: "추천 도서" },
+                    { id: "market", label: "시장 상황" },
                 ].map((tab) => (
                     <button
                         key={tab.id}

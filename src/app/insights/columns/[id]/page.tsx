@@ -5,6 +5,7 @@ import { Clock, Tag } from "lucide-react";
 import { Metadata } from "next";
 import { BackButton } from "@/components/insights/BackButton";
 import Link from "next/link";
+import { fetchNaverBook } from "@/lib/naver-books";
 
 interface PageProps {
     params: Promise<{
@@ -110,10 +111,23 @@ export default async function ColumnDetailPage({ params }: PageProps) {
 
     const { summary, sections } = parseContentSections(column.content);
 
-    // Get related books
-    const relatedBooks = column.relatedBookIds
+    // Get related books and fetch covers concurrently
+    const baseRelatedBooks = column.relatedBookIds
         ? RECOMMENDED_BOOKS.filter((b) => column.relatedBookIds?.includes(b.id))
         : [];
+
+    const relatedBooks = await Promise.all(
+        baseRelatedBooks.map(async (book) => {
+            let coverUrl = book.imgUrl;
+            if (book.naverQuery && !coverUrl) {
+                const naverData = await fetchNaverBook(book.naverQuery);
+                if (naverData && naverData.image) {
+                    coverUrl = naverData.image;
+                }
+            }
+            return { ...book, coverUrl };
+        })
+    );
 
     // Get prev/next columns
     const currentIndex = COLUMNS.findIndex((c) => c.id === id);
@@ -275,8 +289,13 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                             {relatedBooks.map((book) => (
                                 <Link key={book.id} href={`/insights/books/${book.id}`} className="block">
                                     <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex gap-4 items-center group hover:bg-white/[0.05] transition-colors">
-                                        <div className="w-10 h-14 rounded-lg bg-emerald-500/10 border border-white/10 flex items-center justify-center flex-shrink-0 text-lg">
-                                            📖
+                                        <div className="w-10 h-14 rounded-lg bg-emerald-500/10 border border-white/10 flex items-center justify-center flex-shrink-0 text-lg overflow-hidden relative">
+                                            {book.coverUrl ? (
+                                                /* eslint-disable-next-line @next/next/no-img-element */
+                                                <img src={book.coverUrl} alt={book.title} className="w-full h-full object-cover absolute inset-0" />
+                                            ) : (
+                                                "📖"
+                                            )}
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-sm font-bold text-white/80 truncate group-hover:text-white transition-colors">{book.title}</p>

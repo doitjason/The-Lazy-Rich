@@ -37,6 +37,7 @@ interface RegretResult {
     };
     pastExchangeRate?: number;
     currentExchangeRate?: number;
+    isKrwBased?: boolean;
 }
 
 export function RegretCalculator() {
@@ -185,7 +186,9 @@ export function RegretCalculator() {
     }, [isCalculated, hasInitializedParams, isLoading]);
 
     const handleStockSelect = (selectedTicker: string, name?: string) => {
-        setTicker(selectedTicker);
+        // Automatically append .KS for numeric Korean tickers if they are missing it
+        const finalTicker = /^\d{6}$/.test(selectedTicker) ? `${selectedTicker}.KS` : selectedTicker;
+        setTicker(finalTicker);
         setStockName(name || selectedTicker);
         setIsCalculated(false);
         setResult(null);
@@ -297,7 +300,8 @@ export function RegretCalculator() {
                     end: mddEnd
                 },
                 quoteType: data.quoteType,
-                isEtf: data.isEtf || data.quoteType === "ETF" || ["SPY", "QQQ", "VOO", "IVV", "VTI", "DIA", "IWM", "VEA", "VWO", "XLF", "XLK", "XLE", "XLV", "XLP", "XLU", "XLI", "XLB", "XLY", "XLC", "XLRE"].includes(data.ticker.toUpperCase())
+                isEtf: data.isEtf || data.quoteType === "ETF" || ["SPY", "QQQ", "VOO", "IVV", "VTI", "DIA", "IWM", "VEA", "VWO", "XLF", "XLK", "XLE", "XLV", "XLP", "XLU", "XLI", "XLB", "XLY", "XLC", "XLRE"].includes(data.ticker.toUpperCase()),
+                isKrwBased: data.currency === "KRW"
             });
             setIsCalculated(true);
         } catch (err) {
@@ -335,7 +339,7 @@ export function RegretCalculator() {
                             투자 종목 (티커)
                         </label>
                         <StockSearchInput
-                            value={ticker}
+                            value={ticker.replace(".KS", "")}
                             onChange={handleStockSelect}
                             placeholder="종목 검색 (예: AAPL, samsung)..."
                         />
@@ -458,7 +462,7 @@ export function RegretCalculator() {
                                     )}
                                     <div className="flex items-center justify-center gap-2 w-full px-4 overflow-hidden">
                                         <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/50 px-2 py-0.5 rounded-md whitespace-nowrap shrink-0">
-                                            {result.ticker}
+                                            {result.ticker.replace(".KS", "")}
                                         </span>
                                         <h3 className="text-lg font-black text-foreground tracking-tight truncate whitespace-nowrap">
                                             {result.name}
@@ -471,7 +475,7 @@ export function RegretCalculator() {
                                         <p className="text-xs text-muted-foreground">
                                             {result.actualPeriod}년부터 {currency === "KRW" ? `${formatCompactNumber(result.initialInvestment)}원` : `$${formatCompactNumber(result.initialInvestment)}`} 거치식으로 투자
                                         </p>
-                                        {result.pastExchangeRate && result.currentExchangeRate && (
+                                        {result.pastExchangeRate && result.currentExchangeRate && !(currency === "KRW" && (result as any).isKrwBased) && (
                                             <p className="text-xs text-muted-foreground">
                                                 (환율 변동 반영: 당시 {Math.round(result.pastExchangeRate).toLocaleString()}원 → 현재 {Math.round(result.currentExchangeRate).toLocaleString()}원)
                                             </p>
