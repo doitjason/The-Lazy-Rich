@@ -213,32 +213,72 @@ export function RegretCalculator() {
 
             const { pastPrice, currentPrice, pastExchangeRate, currentExchangeRate, chartData, name, actualStartDate } = data;
 
+            // Detect if the stock's native currency is KRW (Korean stocks like .KS)
+            const isStockKrw = data.currency === "KRW";
+
             // Use fetched historical exchange rates or fallback to current context rate
             const pastRate = pastExchangeRate || exchangeRate;
             const currRate = currentExchangeRate || exchangeRate;
 
-            // Calculate true investment based on historical currency state
-            const investmentUSD = currency === "KRW" ? amount / pastRate : amount;
-            const shares = investmentUSD / pastPrice;
+            // ---- Calculate shares and current value ----
+            // Key insight: Korean stocks (.KS) have prices in KRW from Yahoo Finance,
+            // while US stocks have prices in USD. We must handle both cases properly.
+            let shares: number;
+            let currentValueDisplay: number;
 
-            // Current value in USD
-            const currentValueUSD = shares * currentPrice;
+            if (isStockKrw) {
+                if (currency === "KRW") {
+                    // Both investment and stock prices are in KRW - no conversion needed
+                    shares = amount / pastPrice;
+                    currentValueDisplay = shares * currentPrice;
+                } else {
+                    // Investment in USD, stock in KRW - convert USD investment to KRW first
+                    const investmentKRW = amount * pastRate;
+                    shares = investmentKRW / pastPrice;
+                    const currentValueKRW = shares * currentPrice;
+                    currentValueDisplay = currentValueKRW / currRate;
+                }
+            } else {
+                // Stock prices are in USD (original logic)
+                const investmentUSD = currency === "KRW" ? amount / pastRate : amount;
+                shares = investmentUSD / pastPrice;
+                const currentValueUSD = shares * currentPrice;
+                currentValueDisplay = currency === "KRW" ? currentValueUSD * currRate : currentValueUSD;
+            }
 
-            // Value converted back to display currency with current exact exchange rate
-            const currentValueDisplay = currency === "KRW" ? currentValueUSD * currRate : currentValueUSD;
             const profitDisplay = currentValueDisplay - amount;
             const returnRate = (profitDisplay / amount) * 100;
 
             // Build chart data using monthly exchange rates if available
             const investmentChartData = chartData.map((point: any) => {
-                const pointRate = point.exchangeRate || currRate;
-                const multiplier = currency === "KRW" ? pointRate : 1;
-                const valueUSD = shares * point.price;
-                return {
-                    name: point.name,
-                    value: Math.round(valueUSD * multiplier),
-                    stockPrice: point.price * multiplier,
-                };
+                if (isStockKrw) {
+                    if (currency === "KRW") {
+                        // Stock KRW, display KRW: direct calculation
+                        return {
+                            name: point.name,
+                            value: Math.round(shares * point.price),
+                            stockPrice: point.price,
+                        };
+                    } else {
+                        // Stock KRW, display USD: convert KRW values to USD
+                        const pointRate = point.exchangeRate || currRate;
+                        return {
+                            name: point.name,
+                            value: Math.round((shares * point.price) / pointRate),
+                            stockPrice: point.price / pointRate,
+                        };
+                    }
+                } else {
+                    // Stock USD (original logic)
+                    const pointRate = point.exchangeRate || currRate;
+                    const multiplier = currency === "KRW" ? pointRate : 1;
+                    const valueUSD = shares * point.price;
+                    return {
+                        name: point.name,
+                        value: Math.round(valueUSD * multiplier),
+                        stockPrice: point.price * multiplier,
+                    };
+                }
             });
 
             // Calculate MDD and Drop From ATH
@@ -276,32 +316,54 @@ export function RegretCalculator() {
             const pastRateOutput = pastExchangeRate || exchangeRate;
             const currRateOutput = currentExchangeRate || exchangeRate;
 
+            // Calculate display prices for pastPrice/avgPrice
+            // For KRW stocks: prices are already in KRW, for USD stocks: convert if needed
+            let displayPastPrice: number;
+            let displayCurrentPrice: number;
+            if (isStockKrw) {
+                if (currency === "KRW") {
+                    displayPastPrice = pastPrice;        // Already KRW
+                    displayCurrentPrice = currentPrice;  // Already KRW
+                } else {
+                    displayPastPrice = pastPrice / pastRateOutput;     // Convert KRW to USD
+                    displayCurrentPrice = currentPrice / currRateOutput; // Convert KRW to USD
+                }
+            } else {
+                if (currency === "KRW") {
+                    displayPastPrice = pastPrice * pastRateOutput;     // Convert USD to KRW
+                    displayCurrentPrice = currentPrice * currRateOutput; // Convert USD to KRW
+                } else {
+                    displayPastPrice = pastPrice;        // Already USD
+                    displayCurrentPrice = currentPrice;  // Already USD
+                }
+            }
+
             setResult({
                 ticker: data.ticker,
                 name: name || stockName,
                 initialInvestment: amount,
                 period,
-                pastPrice: pastPrice * (currency === "KRW" ? pastRateOutput : 1),
-                currentPrice: currentPrice * (currency === "KRW" ? currRateOutput : 1),
+                pastPrice: displayPastPrice,
+                currentPrice: displayCurrentPrice,
                 currentValue: currentValueDisplay,
                 profit: profitDisplay,
                 returnRate,
                 cagr,
                 mdd,
                 quantity: shares,
-                avgPrice: pastPrice * (currency === "KRW" ? pastRateOutput : 1),
+                avgPrice: displayPastPrice,
                 dropFromAth,
                 chartData: investmentChartData,
                 actualPeriod: actualStartDate ? `${new Date(actualStartDate).getFullYear()}` : undefined,
-                pastExchangeRate: currency === "KRW" ? pastRateOutput : undefined,
-                currentExchangeRate: currency === "KRW" ? currRateOutput : undefined,
+                pastExchangeRate: (currency === "KRW" && !isStockKrw) ? pastRateOutput : undefined,
+                currentExchangeRate: (currency === "KRW" && !isStockKrw) ? currRateOutput : undefined,
                 mddPeriod: {
                     start: mddStart,
                     end: mddEnd
                 },
                 quoteType: data.quoteType,
                 isEtf: data.isEtf || data.quoteType === "ETF" || ["SPY", "QQQ", "VOO", "IVV", "VTI", "DIA", "IWM", "VEA", "VWO", "XLF", "XLK", "XLE", "XLV", "XLP", "XLU", "XLI", "XLB", "XLY", "XLC", "XLRE"].includes(data.ticker.toUpperCase()),
-                isKrwBased: data.currency === "KRW"
+                isKrwBased: isStockKrw
             });
             setIsCalculated(true);
         } catch (err) {

@@ -304,19 +304,48 @@ export function PortfolioRegretCalculator() {
             }));
 
             // Exchange rates for initial and final conversion
-            const pastExchangeRate = responses[0].pastExchangeRate || exchangeRate;
-            const currentExchangeRate = responses[0].currentExchangeRate || exchangeRate;
+            // Prefer exchange rate from a USD-denominated stock's response (most relevant for conversion)
+            // Fall back to any response, then to aligned data
+            const usdResponse = responses.find(r => r.currency !== "KRW") || responses[0];
+            const fallbackPastER = usdResponse.pastExchangeRate || exchangeRate;
+            // Use the aligned data's first point exchange rate (matches common start date)
+            const alignedPastExchangeRate = truncatedData[0]?.data[0]?.exchangeRate || fallbackPastER;
+            const pastExchangeRate = alignedPastExchangeRate;
+            const currentExchangeRate = usdResponse.currentExchangeRate || exchangeRate;
             const pastRate = currency === "KRW" ? pastExchangeRate : 1;
             const currRate = currency === "KRW" ? currentExchangeRate : 1;
 
+            // Build a map of each asset's native currency from API responses
+            const assetCurrencyMap = new Map<string, string>();
+            for (const r of responses) {
+                assetCurrencyMap.set(r.ticker, r.currency || "USD");
+            }
+
             // 4. Calculate Weighted Portfolio Value Series
-            // Initial Investment per asset (in USD, as stock prices are in USD)
-            const investmentUSD = amount / pastRate;
-            const assetInvestments = validAssets.map(asset => ({
-                ticker: asset.ticker,
-                initialAmount: investmentUSD * (asset.weight / 100),
-                weight: asset.weight
-            }));
+            // Each asset's initial investment amount needs to be in its native currency
+            // For KRW stocks: if user currency is KRW, invest directly; if USD, convert to KRW
+            // For USD stocks: if user currency is KRW, convert to USD; if USD, invest directly
+            const assetInvestments = validAssets.map(asset => {
+                const assetCurrency = assetCurrencyMap.get(asset.ticker) || "USD";
+                const isAssetKrw = assetCurrency === "KRW";
+                const assetAmount = amount * (asset.weight / 100); // Amount in user's currency
+
+                let initialAmountInNative: number;
+                if (isAssetKrw) {
+                    // Stock prices are in KRW
+                    initialAmountInNative = currency === "KRW" ? assetAmount : assetAmount * pastExchangeRate;
+                } else {
+                    // Stock prices are in USD
+                    initialAmountInNative = currency === "KRW" ? assetAmount / pastExchangeRate : assetAmount;
+                }
+
+                return {
+                    ticker: asset.ticker,
+                    initialAmount: initialAmountInNative, // In the stock's native currency
+                    weight: asset.weight,
+                    isKrw: isAssetKrw
+                };
+            });
 
             // Chart data generation
             const portfolioChartData: { name: string; value: number }[] = [];
@@ -327,7 +356,8 @@ export function PortfolioRegretCalculator() {
                 return {
                     ticker: inv.ticker,
                     units: inv.initialAmount / startPrice,
-                    weight: inv.weight
+                    weight: inv.weight,
+                    isKrw: inv.isKrw
                 };
             });
 
@@ -359,29 +389,37 @@ export function PortfolioRegretCalculator() {
                     const dateLabel = truncatedData[0].data[i].name;
                     const currentMonthKey = getMonthKey(dateLabel);
 
-                    // 1. Calculate Total Portfolio Value at this time step (in USD)
-                    let totalValueAtT_USD = 0;
-                    const assetValuesAtT: { ticker: string, value: number, price: number }[] = [];
+                    // Get exchange rate at this time point
+                    const erAtT = truncatedData[0].data[i].exchangeRate || currentExchangeRate;
+
+                    // 1. Calculate Total Portfolio Value at this time step
+                    // Each asset value is calculated in its native currency, then converted to display currency
+                    let totalValueDisplay = 0;
+                    const assetValuesAtT: { ticker: string, valueNative: number, price: number, isKrw: boolean }[] = [];
 
                     for (const holding of currentHoldings) {
                         const tickerData = truncatedData.find(d => d.ticker === holding.ticker);
                         if (tickerData) {
-                            const currentPrice = tickerData.data[i].price;
-                            const val = holding.units * currentPrice;
-                            assetValuesAtT.push({ ticker: holding.ticker, value: val, price: currentPrice });
-                            totalValueAtT_USD += val;
+                            const priceAtT = tickerData.data[i].price;
+                            const valNative = holding.units * priceAtT; // Value in stock's native currency
+
+                            // Convert to display currency
+                            let valDisplay: number;
+                            if (holding.isKrw) {
+                                valDisplay = currency === "KRW" ? valNative : valNative / erAtT;
+                            } else {
+                                valDisplay = currency === "KRW" ? valNative * erAtT : valNative;
+                            }
+
+                            assetValuesAtT.push({ ticker: holding.ticker, valueNative: valNative, price: priceAtT, isKrw: holding.isKrw });
+                            totalValueDisplay += valDisplay;
                         }
                     }
 
-                    // 2. Add to chart data (convert to selected currency)
-                    let erT = 1;
-                    if (currency === "KRW") {
-                        erT = truncatedData[0].data[i].exchangeRate || currRate; // Use historical exchange rate if available, else current
-                    }
-
+                    // 2. Add to chart data (already in display currency)
                     portfolioChartData.push({
                         name: dateLabel,
-                        value: Math.round(totalValueAtT_USD * erT)
+                        value: Math.round(totalValueDisplay)
                     });
 
                     // 3. Rebalance Check
@@ -394,18 +432,25 @@ export function PortfolioRegretCalculator() {
                             const prevMonthsFromStart = lastProcessedMonthKey - startMonthKey;
 
                             // Check boundary crossing (robust against data gaps)
-                            // e.g. Interval 12. Month 11 (floor 0) -> Month 12 (floor 1). Trigger.
                             if (Math.floor(monthsFromStart / targetInterval) > Math.floor(prevMonthsFromStart / targetInterval)) {
                                 rebalanceCount++;
 
-                                // Redistribute totalValueAtT_USD based on target weights
+                                // Calculate total portfolio value in each asset's native currency for redistribution
+                                // We need total in display currency to redistribute by weight
                                 currentHoldings = currentHoldings.map(holding => {
-                                    const targetVal_USD = totalValueAtT_USD * (holding.weight / 100);
+                                    const targetValDisplay = totalValueDisplay * (holding.weight / 100);
                                     const assetVal = assetValuesAtT.find(a => a.ticker === holding.ticker);
                                     if (assetVal) {
+                                        // Convert target display value back to native currency
+                                        let targetValNative: number;
+                                        if (holding.isKrw) {
+                                            targetValNative = currency === "KRW" ? targetValDisplay : targetValDisplay * erAtT;
+                                        } else {
+                                            targetValNative = currency === "KRW" ? targetValDisplay / erAtT : targetValDisplay;
+                                        }
                                         return {
                                             ...holding,
-                                            units: targetVal_USD / assetVal.price
+                                            units: targetValNative / assetVal.price
                                         };
                                     }
                                     return holding;
@@ -428,23 +473,30 @@ export function PortfolioRegretCalculator() {
                 if (!tickerData) return null;
 
                 // Find effective start/end prices for the aligned period
-                // We need to use the aligned data we filtered earlier
                 const aligned = truncatedData.find(d => d.ticker === inv.ticker);
                 if (!aligned || aligned.data.length === 0) return null;
 
-                const startPrice_USD = aligned.data[0].price;
-                const endPrice_USD = aligned.data[aligned.data.length - 1].price;
+                const startPrice = aligned.data[0].price;
+                const endPrice = aligned.data[aligned.data.length - 1].price;
 
-                // Calculate initial and final value of this asset in the selected currency
-                const initialAssetVal_SelectedCurrency = inv.initialAmount * pastRate; // inv.initialAmount is in USD
-                const finalAssetVal_SelectedCurrency = (inv.initialAmount / startPrice_USD) * endPrice_USD * currRate;
+                // Calculate initial and final value of this asset in the display currency
+                const shares = inv.initialAmount / startPrice;
+                const finalValNative = shares * endPrice;
+
+                const initialAssetValDisplay = amount * (inv.weight / 100); // Initial value in display currency
+                let finalAssetValDisplay: number;
+                if (inv.isKrw) {
+                    finalAssetValDisplay = currency === "KRW" ? finalValNative : finalValNative / currentExchangeRate;
+                } else {
+                    finalAssetValDisplay = currency === "KRW" ? finalValNative * currentExchangeRate : finalValNative;
+                }
 
                 return {
                     ticker: inv.ticker,
-                    initialValue: Math.round(initialAssetVal_SelectedCurrency),
-                    finalValue: Math.round(finalAssetVal_SelectedCurrency),
-                    returnRate: ((finalAssetVal_SelectedCurrency / initialAssetVal_SelectedCurrency) - 1) * 100,
-                    profit: Math.round(finalAssetVal_SelectedCurrency - initialAssetVal_SelectedCurrency),
+                    initialValue: Math.round(initialAssetValDisplay),
+                    finalValue: Math.round(finalAssetValDisplay),
+                    returnRate: ((finalAssetValDisplay / initialAssetValDisplay) - 1) * 100,
+                    profit: Math.round(finalAssetValDisplay - initialAssetValDisplay),
                     contributionShare: 0 // Placeholder, will be updated below
                 };
             }).filter((a): a is NonNullable<typeof a> => a !== null);
@@ -854,6 +906,11 @@ export function PortfolioRegretCalculator() {
                                         {result.actualPeriod?.split('-')[0]}년부터 현재까지
                                     </span>
                                 </div>
+                                {result.pastExchangeRate && result.currentExchangeRate && !result.isKrwBased && (
+                                    <p className="text-xs text-muted-foreground">
+                                        (환율 변동 반영: 당시 {Math.round(result.pastExchangeRate).toLocaleString()}원 → 현재 {Math.round(result.currentExchangeRate).toLocaleString()}원)
+                                    </p>
+                                )}
                                 <h2 className="text-lg font-medium text-muted-foreground/80">최종 평가 금액</h2>
                                 <div className="flex items-baseline justify-center gap-1 w-full overflow-hidden">
                                     {(() => {
