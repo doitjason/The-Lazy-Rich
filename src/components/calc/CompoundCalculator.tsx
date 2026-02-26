@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -55,6 +55,8 @@ export function CompoundCalculator() {
 
     const [data, setData] = useState<CompoundResult[]>([]);
     const [isCalculated, setIsCalculated] = useState(false);
+    const resultRef = useRef<HTMLDivElement>(null);
+    const prevParams = useRef({ initial, monthly, rate, years, inflation });
 
     // Auto-calculate if params are present
     useEffect(() => {
@@ -68,6 +70,15 @@ export function CompoundCalculator() {
             const results = calculateCompoundInterest(initial, monthly, rate, years, inflation);
             setData(results);
             setIsCalculated(true);
+
+            setTimeout(() => {
+                if (resultRef.current) {
+                    const yOffset = -80; // offset for sticky header if any
+                    const element = resultRef.current;
+                    const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
+                    window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+            }, 300);
         }
     }, []); // Only on mount
 
@@ -92,9 +103,19 @@ export function CompoundCalculator() {
         }
     }, [currency]);
 
-    // Reset results when any input changes
+    // Reset results when any input actually changes (avoids strict mode double-firing false positives)
     useEffect(() => {
-        setIsCalculated(false);
+        const curr = { initial, monthly, rate, years, inflation };
+        if (
+            curr.initial !== prevParams.current.initial ||
+            curr.monthly !== prevParams.current.monthly ||
+            curr.rate !== prevParams.current.rate ||
+            curr.years !== prevParams.current.years ||
+            curr.inflation !== prevParams.current.inflation
+        ) {
+            setIsCalculated(false);
+            prevParams.current = curr;
+        }
     }, [initial, monthly, rate, years, inflation]);
 
     const onCalculate = () => {
@@ -409,7 +430,7 @@ export function CompoundCalculator() {
             </Card>
 
             {isCalculated && finalResult && (
-                <Card className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <Card ref={resultRef} className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <CardContent className="pt-6 text-center space-y-6">
                         <div className="space-y-1">
                             <p className="text-sm font-medium text-muted-foreground">{years}년 후 예상 최종 자산 (명목)</p>
