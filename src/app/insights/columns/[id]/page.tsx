@@ -77,6 +77,30 @@ function parseContentSections(content: string): { summary: string; sections: str
     return { summary, sections: sections.filter(s => s.trim().length > 0) };
 }
 
+// Helper to render text with Markdown-style links [text](url)
+function renderTextWithLinks(text: string) {
+    const parts = text.split(/(\[.*?\]\(.*?\))/g);
+    return parts.map((part, i) => {
+        const match = part.match(/\[(.*?)\]\((.*?)\)/);
+        if (match) {
+            const [, label, url] = match;
+            const isExternal = url.startsWith("http");
+            return (
+                <Link
+                    key={i}
+                    href={url}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="text-emerald-500 dark:text-emerald-400 font-bold underline underline-offset-4 decoration-emerald-500/30 hover:decoration-emerald-500 transition-all hover:bg-emerald-500/5 px-0.5 rounded"
+                >
+                    {label}
+                </Link>
+            );
+        }
+        return part;
+    });
+}
+
 // Format body text with section headers, lists, and proper line breaks
 function FormattedContent({ text }: { text: string }) {
     const paragraphs = text.split("\n\n").filter((p) => p.trim());
@@ -92,7 +116,7 @@ function FormattedContent({ text }: { text: string }) {
                         <h3 key={i} className="flex items-center gap-3 mt-8 mb-3">
                             <span className="w-1 h-6 bg-emerald-500 rounded-full flex-shrink-0" />
                             <span className="text-[17px] sm:text-lg font-black text-gray-900 dark:text-white tracking-tight">
-                                {para}
+                                {renderTextWithLinks(para)}
                             </span>
                         </h3>
                     );
@@ -113,7 +137,6 @@ function FormattedContent({ text }: { text: string }) {
                             inBullets = true;
                             bulletLines.push(line.trim().slice(2));
                         } else if (inBullets) {
-                            // continuation line after bullets started — treat as intro if before bullets
                             bulletLines.push(line.trim());
                         } else {
                             introLines.push(line);
@@ -124,14 +147,14 @@ function FormattedContent({ text }: { text: string }) {
                         <div key={i} className="mb-5">
                             {introLines.length > 0 && (
                                 <p className="text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.85] font-medium break-keep mb-3">
-                                    {introLines.join(" ")}
+                                    {renderTextWithLinks(introLines.join(" "))}
                                 </p>
                             )}
                             <ul className="space-y-2 pl-1">
                                 {bulletLines.map((item, j) => (
                                     <li key={j} className="flex items-start gap-2.5 text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.7] font-medium">
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60 mt-[10px] flex-shrink-0" />
-                                        <span>{item}</span>
+                                        <span>{renderTextWithLinks(item)}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -144,7 +167,7 @@ function FormattedContent({ text }: { text: string }) {
 
                 return (
                     <p key={i} className="text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.85] font-medium break-keep mb-5">
-                        {joinedText}
+                        {renderTextWithLinks(joinedText)}
                     </p>
                 );
             })}

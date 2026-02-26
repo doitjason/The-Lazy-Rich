@@ -22,6 +22,7 @@ import { TrendingUp, TrendingDown, Minus, Info, Activity, ArrowUpDown, Gauge, Se
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { KostolanyEgg } from "./KostolanyEgg";
+import Link from "next/link";
 
 export function MarketContext() {
     const [data, setData] = useState<CommonMarketData | null>(null);
@@ -103,7 +104,7 @@ export function MarketContext() {
         </span>
     );
 
-    const indicatorDetails: Record<string, { title: string; icon: any; explanation: string; criteria: string[] }> = {
+    const indicatorDetails: Record<string, { title: string; icon: any; explanation: React.ReactNode; criteria: string[] }> = {
         snp500: {
             title: "장기 추세 (Price vs 200MA)",
             icon: TrendingUp,
@@ -137,7 +138,11 @@ export function MarketContext() {
         vix: {
             title: "시장 공포 (불안 지수)",
             icon: Gauge,
-            explanation: "VIX 지수는 향후 30일간 지수의 기대 변동성을 수치화한 것입니다. 수치가 높게 형성될수록 시장 참여자들의 불안감이 확산되어 있음을 시사할 수 있습니다.",
+            explanation: (
+                <>
+                    투자자들이 가장 두려워하는 지표, 일명 <Link href="/insights/columns/vix-fear-index" className="text-emerald-500 font-bold underline underline-offset-4 hover:text-emerald-600 transition-colors">'변동성 지수(Volatility Index)', 일명 VIX입니다.</Link> 향후 30일간 지수의 기대 변동성을 수치화한 것으로, 수치가 높을수록 시장의 공포가 극에 달했음을 시사합니다.
+                </>
+            ),
             criteria: [
                 "안정(Stable): VIX 20 미만으로 상대적인 안도감이 형성된 구간",
                 "변동성 확대(Volatile): VIX 20 ~ 30 사이로 불확실성이 존재하는 구간",

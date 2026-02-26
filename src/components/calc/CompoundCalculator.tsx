@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,16 +19,57 @@ import {
 import { useCurrency } from "@/contexts/CurrencyContext";
 
 export function CompoundCalculator() {
+    const searchParams = useSearchParams();
     const { currency, formatCurrency, formatCompactNumber } = useCurrency();
 
     // Default values based on currency
-    const [initial, setInitial] = useState(100000000);
-    const [monthly, setMonthly] = useState(1000000);
-    const [rate, setRate] = useState(10);
-    const [years, setYears] = useState(10);
-    const [inflation, setInflation] = useState(3);
+    const [initial, setInitial] = useState(() => {
+        const param = searchParams.get("initial");
+        if (param !== null) return Number(param);
+        return currency === "KRW" ? 100000000 : 10000;
+    });
+
+    const [monthly, setMonthly] = useState(() => {
+        const param = searchParams.get("monthly");
+        if (param !== null) return Number(param);
+        return currency === "KRW" ? 1000000 : 500;
+    });
+
+    const [rate, setRate] = useState(() => {
+        const param = searchParams.get("rate");
+        if (param !== null) return Number(param);
+        return 10;
+    });
+
+    const [years, setYears] = useState(() => {
+        const param = searchParams.get("years");
+        if (param !== null) return Number(param);
+        return 10;
+    });
+
+    const [inflation, setInflation] = useState(() => {
+        const param = searchParams.get("inflation");
+        if (param !== null) return Number(param);
+        return 3;
+    });
+
     const [data, setData] = useState<CompoundResult[]>([]);
     const [isCalculated, setIsCalculated] = useState(false);
+
+    // Auto-calculate if params are present
+    useEffect(() => {
+        const hasParams = searchParams.get("initial") !== null ||
+            searchParams.get("monthly") !== null ||
+            searchParams.get("rate") !== null ||
+            searchParams.get("years") !== null ||
+            searchParams.get("inflation") !== null;
+
+        if (hasParams) {
+            const results = calculateCompoundInterest(initial, monthly, rate, years, inflation);
+            setData(results);
+            setIsCalculated(true);
+        }
+    }, []); // Only on mount
 
 
 
@@ -36,14 +78,18 @@ export function CompoundCalculator() {
     // Let's just listen to currency change to switch defaults if user hasn't typed? 
     // Actually, simple way: Just use a useEffect to switch values when currency changes
     useEffect(() => {
-        if (currency === "KRW") {
-            setInitial(100000000);
-            setMonthly(1000000);
-        } else {
-            setInitial(10000);
-            setMonthly(500);
+        // Only reset if NOT coming from a URL link with specific params
+        const hasParams = searchParams.get("initial") !== null || searchParams.get("monthly") !== null;
+        if (!hasParams) {
+            if (currency === "KRW") {
+                setInitial(100000000);
+                setMonthly(1000000);
+            } else {
+                setInitial(10000);
+                setMonthly(500);
+            }
+            setIsCalculated(false);
         }
-        setIsCalculated(false);
     }, [currency]);
 
     // Reset results when any input changes

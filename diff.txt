@@ -1,0 +1,399 @@
+﻿diff --git a/src/components/calc/CompoundCalculator.tsx b/src/components/calc/CompoundCalculator.tsx
+index 3081765..4d12f4b 100644
+--- a/src/components/calc/CompoundCalculator.tsx
++++ b/src/components/calc/CompoundCalculator.tsx
+@@ -1,6 +1,7 @@
+ "use client";
+ 
+ import { useState, useEffect } from "react";
++import { useSearchParams } from "next/navigation";
+ import { Button } from "@/components/ui/button";
+ import { Card, CardContent, CardHeader } from "@/components/ui/card";
+ import { Input } from "@/components/ui/input";
+@@ -19,23 +20,82 @@ import { useCurrency } from "@/contexts/CurrencyContext";
+ 
+ export function CompoundCalculator() {
+     const { currency, formatCurrency, formatCompactNumber } = useCurrency();
++    const searchParams = useSearchParams();
+ 
+-    // Default values based on currency
+-    const [initial, setInitial] = useState(100000000);
+-    const [monthly, setMonthly] = useState(1000000);
++    // Core States
++    const [initial, setInitial] = useState(0);
++    const [monthly, setMonthly] = useState(0);
+     const [rate, setRate] = useState(10);
++    const [rate2, setRate2] = useState<number | null>(null);
+     const [years, setYears] = useState(10);
+     const [inflation, setInflation] = useState(3);
++
+     const [data, setData] = useState<CompoundResult[]>([]);
++    const [data2, setData2] = useState<CompoundResult[] | null>(null);
+     const [isCalculated, setIsCalculated] = useState(false);
++    const [hasInitializedParams, setHasInitializedParams] = useState(false);
++    const [isAmountManuallySet, setIsAmountManuallySet] = useState(false);
++    const [shouldAutoCalculate, setShouldAutoCalculate] = useState(false);
++
++    // Initialize from URL parameters
++    useEffect(() => {
++        if (!searchParams || hasInitializedParams) return;
++
++        const pInitial = searchParams.get('initial');
++        const pMonthly = searchParams.get('monthly');
++        const pRate = searchParams.get('rate');
++        const pRate2 = searchParams.get('rate2');
++        const pYears = searchParams.get('years');
++        const pInflation = searchParams.get('inflation');
++
++        let hasAnyParam = false;
+ 
++        if (pInitial) {
++            setInitial(Number(pInitial));
++            hasAnyParam = true;
++        }
++        if (pMonthly) {
++            setMonthly(Number(pMonthly));
++            hasAnyParam = true;
++        }
++        if (pRate) {
++            setRate(Number(pRate));
++            hasAnyParam = true;
++        }
++        if (pRate2) {
++            setRate2(Number(pRate2));
++            hasAnyParam = true;
++        }
++        if (pYears) {
++            setYears(Number(pYears));
++            hasAnyParam = true;
++        }
++        if (pInflation) {
++            setInflation(Number(pInflation));
++            hasAnyParam = true;
++        }
+ 
++        if (hasAnyParam) {
++            setIsAmountManuallySet(true);
++            setShouldAutoCalculate(true);
++        } else {
++            // Default values based on currency if no params
++            if (currency === "KRW") {
++                setInitial(100000000);
++                setMonthly(1000000);
++            } else {
++                setInitial(10000);
++                setMonthly(500);
++            }
++        }
++        setHasInitializedParams(true);
++    }, [searchParams, hasInitializedParams, currency]);
+ 
+-    // Effect to handle currency switching for existing state if needed, 
+-    // but for now simple reset/defaulting on mount or manual change is fine.
+-    // Let's just listen to currency change to switch defaults if user hasn't typed? 
+-    // Actually, simple way: Just use a useEffect to switch values when currency changes
++    // Update default amount when currency changes - ONLY if not already set by URL/Manual
+     useEffect(() => {
++        if (!hasInitializedParams) return;
++        if (isAmountManuallySet || shouldAutoCalculate) return;
++
+         if (currency === "KRW") {
+             setInitial(100000000);
+             setMonthly(1000000);
+@@ -44,16 +104,35 @@ export function CompoundCalculator() {
+             setMonthly(500);
+         }
+         setIsCalculated(false);
+-    }, [currency]);
++        setData([]);
++        setData2(null);
++    }, [currency, hasInitializedParams, isAmountManuallySet, shouldAutoCalculate]);
+ 
+-    // Reset results when any input changes
++    // Auto calculate trigger
+     useEffect(() => {
++        if (shouldAutoCalculate) {
++            setShouldAutoCalculate(false);
++            onCalculate();
++        }
++    }, [shouldAutoCalculate]);
++
++    // Reset results when any input changes (but not during initialization)
++    useEffect(() => {
++        if (!hasInitializedParams || shouldAutoCalculate) return;
+         setIsCalculated(false);
+-    }, [initial, monthly, rate, years, inflation]);
++    }, [initial, monthly, rate, rate2, years, inflation]);
+ 
+     const onCalculate = () => {
+         const results = calculateCompoundInterest(initial, monthly, rate, years, inflation);
+         setData(results);
++
++        if (rate2 !== null) {
++            const results2 = calculateCompoundInterest(initial, monthly, rate2, years, inflation);
++            setData2(results2);
++        } else {
++            setData2(null);
++        }
++
+         setIsCalculated(true);
+     };
+ 
+@@ -96,7 +175,7 @@ export function CompoundCalculator() {
+     })();
+ 
+     // Create Nominal Chart Data
+-    const chartData = data.map((item) => {
++    const chartData = data.map((item, idx) => {
+         const year = item.year;
+         const nominalAsset = Math.round(item.totalAmount * Math.pow(1 + inflation / 100, year));
+ 
+@@ -110,9 +189,15 @@ export function CompoundCalculator() {
+             }
+         }
+ 
++        let nominalAsset2 = null;
++        if (data2 && data2[idx]) {
++            nominalAsset2 = Math.round(data2[idx].totalAmount * Math.pow(1 + inflation / 100, year));
++        }
++
+         return {
+             ...item,
+             totalAmount: nominalAsset,
++            totalAmount2: nominalAsset2,
+             totalInvested: Math.round(nominalInvested),
+             interest: nominalAsset - Math.round(nominalInvested)
+         };
+@@ -150,6 +235,7 @@ export function CompoundCalculator() {
+                             onChange={(e) => {
+                                 const val = Number(e.target.value.replace(/[^0-9]/g, ""));
+                                 setInitial(val);
++                                setIsAmountManuallySet(true);
+                             }}
+                             className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl text-lg font-medium"
+                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
+@@ -161,7 +247,10 @@ export function CompoundCalculator() {
+                             ).map((amt) => (
+                                 <button
+                                     key={amt}
+-                                    onClick={() => setInitial(amt)}
++                                    onClick={() => {
++                                        setInitial(amt);
++                                        setIsAmountManuallySet(true);
++                                    }}
+                                     className={cn(
+                                         "px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all duration-300 whitespace-nowrap shrink-0",
+                                         initial === amt
+@@ -207,6 +296,7 @@ export function CompoundCalculator() {
+                             onChange={(e) => {
+                                 const val = Number(e.target.value.replace(/[^0-9]/g, ""));
+                                 setMonthly(val);
++                                setIsAmountManuallySet(true);
+                             }}
+                             className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl text-lg font-medium"
+                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
+@@ -218,7 +308,10 @@ export function CompoundCalculator() {
+                             ).map((amt) => (
+                                 <button
+                                     key={amt}
+-                                    onClick={() => setMonthly(amt)}
++                                    onClick={() => {
++                                        setMonthly(amt);
++                                        setIsAmountManuallySet(true);
++                                    }}
+                                     className={cn(
+                                         "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
+                                         monthly === amt
+@@ -253,7 +346,10 @@ export function CompoundCalculator() {
+                             max={30}
+                             min={0}
+                             step={0.5}
+-                            onValueChange={(vals) => setRate(vals[0])}
++                            onValueChange={(vals) => {
++                                setRate(vals[0]);
++                                setIsAmountManuallySet(true);
++                            }}
+                             className="py-2 [&_[data-slot=slider-range]]:bg-emerald-500 [&_[data-slot=slider-thumb]]:border-emerald-500"
+                         />
+                         <div className="flex flex-wrap gap-2">
+@@ -264,7 +360,10 @@ export function CompoundCalculator() {
+                             ].map((item) => (
+                                 <button
+                                     key={item.val}
+-                                    onClick={() => setRate(item.val)}
++                                    onClick={() => {
++                                        setRate(item.val);
++                                        setIsAmountManuallySet(true);
++                                    }}
+                                     className={cn(
+                                         "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
+                                         rate === item.val
+@@ -278,6 +377,40 @@ export function CompoundCalculator() {
+                         </div>
+                     </div>
+ 
++                    {/* 3-2. Comparison Rate (Conditional) */}
++                    {(rate2 !== null || isAmountManuallySet) && (
++                        <div className="space-y-4 pt-4 border-t border-white/[0.03]">
++                            <div className="flex justify-between items-end">
++                                <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
++                                    <TrendingUp className="w-3.5 h-3.5 text-blue-500/70" />
++                                    δ╣äΩ╡É δ¬⌐φæ£ ∞êÿ∞¥╡δÑá (%)
++                                </label>
++                                <div className="flex items-center gap-2">
++                                    {rate2 !== null && (
++                                        <button
++                                            onClick={() => setRate2(null)}
++                                            className="text-[10px] font-bold text-muted-foreground hover:text-red-400 transition-colors uppercase tracking-tight"
++                                        >
++                                            ∞á£Ω▒░
++                                        </button>
++                                    )}
++                                    <span className="text-sm font-bold text-blue-500">{rate2 !== null ? `${rate2}%` : "∞äáφâ¥ ∞òêφò¿"}</span>
++                                </div>
++                            </div>
++                            <Slider
++                                value={[rate2 ?? 0]}
++                                max={30}
++                                min={0}
++                                step={0.5}
++                                onValueChange={(vals) => {
++                                    setRate2(vals[0]);
++                                    setIsAmountManuallySet(true);
++                                }}
++                                className="py-2 [&_[data-slot=slider-range]]:bg-blue-500 [&_[data-slot=slider-thumb]]:border-blue-500"
++                            />
++                        </div>
++                    )}
++
+                     {/* Section Divider */}
+                     <div className="border-t border-white/[0.06]" />
+ 
+@@ -295,14 +428,20 @@ export function CompoundCalculator() {
+                             max={50}
+                             min={1}
+                             step={1}
+-                            onValueChange={(vals) => setYears(vals[0])}
++                            onValueChange={(vals) => {
++                                setYears(vals[0]);
++                                setIsAmountManuallySet(true);
++                            }}
+                             className="py-2 [&_[data-slot=slider-range]]:bg-emerald-500 [&_[data-slot=slider-thumb]]:border-emerald-500"
+                         />
+                         <div className="flex flex-wrap gap-2">
+                             {[1, 5, 10, 20, 30].map((y) => (
+                                 <button
+                                     key={y}
+-                                    onClick={() => setYears(y)}
++                                    onClick={() => {
++                                        setYears(y);
++                                        setIsAmountManuallySet(true);
++                                    }}
+                                     className={cn(
+                                         "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
+                                         years === y
+@@ -328,7 +467,10 @@ export function CompoundCalculator() {
+                         <Input
+                             type="number"
+                             value={inflation}
+-                            onChange={(e) => setInflation(Number(e.target.value))}
++                            onChange={(e) => {
++                                setInflation(Number(e.target.value));
++                                setIsAmountManuallySet(true);
++                            }}
+                             className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl text-lg font-medium"
+                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
+                         />
+@@ -336,7 +478,10 @@ export function CompoundCalculator() {
+                             {[2, 3, 4, 5].map((val) => (
+                                 <button
+                                     key={val}
+-                                    onClick={() => setInflation(val)}
++                                    onClick={() => {
++                                        setInflation(val);
++                                        setIsAmountManuallySet(true);
++                                    }}
+                                     className={cn(
+                                         "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
+                                         inflation === val
+@@ -554,8 +699,8 @@ export function CompoundCalculator() {
+                                             const { active, payload, label } = props;
+                                             if (active && payload && payload.length) {
+                                                 const nominalAsset = payload.find((p: any) => p.dataKey === "totalAmount")?.value || 0;
++                                                const nominalAsset2 = payload.find((p: any) => p.dataKey === "totalAmount2")?.value || null;
+                                                 const nominalInvested = payload.find((p: any) => p.dataKey === "totalInvested")?.value || 0;
+-                                                const nominalProfit = nominalAsset - nominalInvested;
+                                                 const year = Number(label);
+ 
+                                                 const formatVal = (v: number) => currency === "KRW"
+@@ -565,29 +710,31 @@ export function CompoundCalculator() {
+                                                 return (
+                                                     <div className="bg-white/90 dark:bg-black/90 p-3 rounded-xl shadow-xl border border-black/5 dark:border-white/10 text-xs sm:text-sm backdrop-blur-md">
+                                                         <p className="mb-2 ml-1 font-bold">{year}δàä φ¢ä</p>
+-                                                        <div className="space-y-1.5 min-w-[180px]">
++                                                        <div className="space-y-1.5 min-w-[200px]">
+                                                             <div className="flex justify-between gap-4 items-center">
+                                                                 <div className="flex items-center gap-1.5">
+                                                                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+-                                                                    <span className="text-muted-foreground">δêä∞áü δ¬àδ¬⌐ ∞₧É∞é░</span>
++                                                                    <span className="text-muted-foreground whitespace-nowrap">∞₧É∞é░ ({rate}%)</span>
+                                                                 </div>
+                                                                 <span className="font-bold text-emerald-500 tabular-nums">
+                                                                     {formatVal(nominalAsset)}
+                                                                 </span>
+                                                             </div>
+-                                                            <div className="flex justify-between gap-4 items-center">
+-                                                                <div className="flex items-center gap-1.5">
+-                                                                    <div className={`w-1.5 h-1.5 rounded-full ${nominalProfit >= 0 ? "bg-red-500" : "bg-blue-500"}`} />
+-                                                                    <span className="text-muted-foreground">δêä∞áü δ¬àδ¬⌐ ∞êÿ∞¥╡</span>
++                                                            {nominalAsset2 !== null && (
++                                                                <div className="flex justify-between gap-4 items-center">
++                                                                    <div className="flex items-center gap-1.5">
++                                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
++                                                                        <span className="text-muted-foreground whitespace-nowrap">∞₧É∞é░ ({rate2}%)</span>
++                                                                    </div>
++                                                                    <span className="font-bold text-blue-500 tabular-nums">
++                                                                        {formatVal(nominalAsset2)}
++                                                                    </span>
+                                                                 </div>
+-                                                                <span className={cn("font-medium tabular-nums", nominalProfit >= 0 ? "text-red-500" : "text-blue-500")}>
+-                                                                    {nominalProfit > 0 ? "+" : ""}{formatVal(nominalProfit)}
+-                                                                </span>
+-                                                            </div>
+-                                                            <div className="flex justify-between gap-4 items-center">
++                                                            )}
++                                                            <div className="flex justify-between gap-4 items-center border-t border-black/5 dark:border-white/5 pt-1.5 mt-1.5">
+                                                                 <div className="flex items-center gap-1.5">
+                                                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+-                                                                    <span className="text-muted-foreground">δêä∞áü δé⌐∞₧à ∞¢ÉΩ╕ê</span>
++                                                                    <span className="text-muted-foreground uppercase text-[10px] font-bold tracking-wider">δêä∞áü ∞¢ÉΩ╕ê</span>
+                                                                 </div>
+                                                                 <span className="font-medium text-muted-foreground tabular-nums">
+                                                                     {formatVal(nominalInvested)}
+@@ -606,7 +753,18 @@ export function CompoundCalculator() {
+                                         stroke="#10B981"
+                                         fill="url(#colorTotal)"
+                                         strokeWidth={2}
++                                        isAnimationActive={false}
+                                     />
++                                    {data2 && (
++                                        <Area
++                                            type="monotone"
++                                            dataKey="totalAmount2"
++                                            stroke="#3b82f6"
++                                            fill="none"
++                                            strokeWidth={2}
++                                            isAnimationActive={false}
++                                        />
++                                    )}
+                                     <Area
+                                         type="monotone"
+                                         dataKey="totalInvested"
+@@ -614,6 +772,7 @@ export function CompoundCalculator() {
+                                         fill="url(#colorInvested)"
+                                         strokeWidth={1}
+                                         strokeDasharray="4 4"
++                                        isAnimationActive={false}
+                                     />
+                                 </AreaChart>
+                             </ResponsiveContainer>

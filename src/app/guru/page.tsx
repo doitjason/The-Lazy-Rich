@@ -46,15 +46,25 @@ function GuruPageContent() {
     useEffect(() => {
         const action = searchParams.get("action");
         const personaId = searchParams.get("persona");
+        const queryMessage = searchParams.get("q");
 
-        if (action === "analyze_portfolio" && personaId) {
+        if (personaId) {
             const autoGuru = getGuruById(personaId);
             if (autoGuru && !selectedGuru) {  // only auto-select if a guru isn't already active
                 // Clean the URL so refreshing doesn't keep triggering it
                 router.replace("/guru", { scroll: false });
 
-                setInitialMessage("내 포트폴리오를 기반으로 현재 자산 상태를 상세히 분석해줘");
-                handleGuruSelect(autoGuru);
+                let msg = "";
+                if (action === "analyze_portfolio") {
+                    msg = "내 포트폴리오 분석해줘";
+                } else if (queryMessage) {
+                    msg = queryMessage;
+                }
+
+                if (msg) {
+                    setInitialMessage(msg);
+                    handleGuruSelect(autoGuru);
+                }
             }
         }
     }, [searchParams, selectedGuru, router]);

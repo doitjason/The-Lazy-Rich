@@ -417,31 +417,26 @@ export function PortfolioRegretCalculator() {
                     }
 
                     // 2. Add to chart data (already in display currency)
-                    portfolioChartData.push({
-                        name: dateLabel,
-                        value: Math.round(totalValueDisplay)
-                    });
+                    if (totalValueDisplay > 0 && !isNaN(totalValueDisplay)) {
+                        portfolioChartData.push({
+                            name: dateLabel,
+                            value: Math.round(totalValueDisplay)
+                        });
+                    }
 
                     // 3. Rebalance Check
-                    // Check if month changed
                     if (i > 0 && currentMonthKey > lastProcessedMonthKey) {
-
-                        // Only calculate rebalancing if interval is set
                         if (targetInterval > 0) {
                             const monthsFromStart = currentMonthKey - startMonthKey;
                             const prevMonthsFromStart = lastProcessedMonthKey - startMonthKey;
 
-                            // Check boundary crossing (robust against data gaps)
                             if (Math.floor(monthsFromStart / targetInterval) > Math.floor(prevMonthsFromStart / targetInterval)) {
                                 rebalanceCount++;
 
-                                // Calculate total portfolio value in each asset's native currency for redistribution
-                                // We need total in display currency to redistribute by weight
                                 currentHoldings = currentHoldings.map(holding => {
                                     const targetValDisplay = totalValueDisplay * (holding.weight / 100);
                                     const assetVal = assetValuesAtT.find(a => a.ticker === holding.ticker);
                                     if (assetVal) {
-                                        // Convert target display value back to native currency
                                         let targetValNative: number;
                                         if (holding.isKrw) {
                                             targetValNative = currency === "KRW" ? targetValDisplay : targetValDisplay * erAtT;
@@ -457,7 +452,6 @@ export function PortfolioRegretCalculator() {
                                 });
                             }
                         }
-
                         lastProcessedMonthKey = currentMonthKey;
                     }
                 }
@@ -511,10 +505,13 @@ export function PortfolioRegretCalculator() {
             });
 
 
-            // Calculate CAGR
-            const yearsPassed = minLength / 12; // Approximation for years
-            const cagr = yearsPassed > 0
-                ? (Math.pow(finalValue / initialInvestment, 1 / yearsPassed) - 1) * 100
+            // Calculate CAGR based on actual time difference
+            const firstDate = new Date(portfolioChartData[0].name);
+            const lastDate = new Date(portfolioChartData[portfolioChartData.length - 1].name);
+            const diffYears = (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+
+            const cagr = diffYears > 0.1
+                ? (Math.pow(finalValue / initialInvestment, 1 / diffYears) - 1) * 100
                 : 0;
 
             // MDD

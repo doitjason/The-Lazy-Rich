@@ -134,7 +134,10 @@ export function RegretCalculator() {
         }
     }, [result, amount, period]);
 
-    // Initialize from URL parameters
+    // State to track if the current amount was set by URL or manual interaction
+    const [isAmountManuallySet, setIsAmountManuallySet] = useState(false);
+
+    // Update amount from URL
     useEffect(() => {
         if (!searchParams || hasInitializedParams) return;
 
@@ -146,17 +149,25 @@ export function RegretCalculator() {
         if (pTicker) {
             setTicker(pTicker);
             if (pName) setStockName(pName);
-            if (pAmount) setAmount(Number(pAmount));
+            if (pAmount) {
+                const numAmount = Number(pAmount);
+                if (!isNaN(numAmount)) {
+                    setAmount(numAmount);
+                    setIsAmountManuallySet(true); // Persist this!
+                }
+            }
             if (pPeriod) setPeriod(pPeriod as any);
             setShouldAutoCalculate(true);
         }
         setHasInitializedParams(true);
     }, [searchParams, hasInitializedParams]);
 
-    // Update default amount when currency changes
+    // Update default amount when currency changes - ONLY if not already set by URL/Manual
     useEffect(() => {
         if (!hasInitializedParams) return;
-        if (shouldAutoCalculate) return;
+
+        // If we are in the middle of auto-calculating from URL, or if it's already manually set, don't overwrite
+        if (isAmountManuallySet || shouldAutoCalculate) return;
 
         if (currency === "KRW") {
             setAmount(1000000);
@@ -165,7 +176,7 @@ export function RegretCalculator() {
         }
         setIsCalculated(false);
         setResult(null);
-    }, [currency, hasInitializedParams, shouldAutoCalculate]);
+    }, [currency, hasInitializedParams, isAmountManuallySet, shouldAutoCalculate]);
 
     // Auto calculate trigger
     useEffect(() => {
@@ -279,7 +290,7 @@ export function RegretCalculator() {
                         stockPrice: point.price * multiplier,
                     };
                 }
-            });
+            }).filter((p: any) => p.value > 0 && !isNaN(p.value)); // Safety filter
 
             // Calculate MDD and Drop From ATH
             let peakValue = investmentChartData[0].value;
@@ -309,9 +320,14 @@ export function RegretCalculator() {
             const mdd = maxDrawdown * 100;
             const dropFromAth = ((investmentChartData[investmentChartData.length - 1].stockPrice - athPrice) / athPrice) * 100;
 
-            // Calculate CAGR based on combined return
-            const years = parseInt(period.replace("Y", ""));
-            const cagr = ((Math.pow(currentValueDisplay / amount, 1 / years) - 1) * 100);
+            // Calculate CAGR based on actual time difference between data points
+            const firstDate = new Date(investmentChartData[0].name);
+            const lastDate = new Date(investmentChartData[investmentChartData.length - 1].name);
+            const diffYears = (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+
+            const cagr = diffYears > 0.1
+                ? ((Math.pow(currentValueDisplay / amount, 1 / diffYears) - 1) * 100)
+                : 0;
 
             const pastRateOutput = pastExchangeRate || exchangeRate;
             const currRateOutput = currentExchangeRate || exchangeRate;
@@ -423,7 +439,10 @@ export function RegretCalculator() {
                             ).map((amt) => (
                                 <button
                                     key={amt}
-                                    onClick={() => setAmount(amt)}
+                                    onClick={() => {
+                                        setAmount(amt);
+                                        setIsAmountManuallySet(true);
+                                    }}
                                     className={cn(
                                         "relative h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                         amount === amt
@@ -454,7 +473,10 @@ export function RegretCalculator() {
                             {(["1Y", "3Y", "5Y", "10Y", "20Y", "30Y"] as const).map((p) => (
                                 <button
                                     key={p}
-                                    onClick={() => setPeriod(p)}
+                                    onClick={() => {
+                                        setPeriod(p);
+                                        setIsAmountManuallySet(true);
+                                    }}
                                     className={cn(
                                         "h-11 rounded-xl text-sm font-semibold transition-all duration-300",
                                         period === p

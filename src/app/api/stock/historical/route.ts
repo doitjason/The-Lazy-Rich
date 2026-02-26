@@ -49,31 +49,38 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: "No historical data available" }, { status: 404 });
         }
 
-        // Fetch USD/KRW exchange rate historical data
+        // Fetch USD/KRW exchange rate historical data - Prioritize KRW=X for better historical accuracy
         let exchangeRateHistorical: HistoricalResult[] = [];
-        try {
-            exchangeRateHistorical = await yahooFinance.historical("KRW=X", {
-                period1: startDate,
-                period2: endDate,
-                interval: "1mo"
-            }) as HistoricalResult[];
-        } catch (e) {
-            console.log("Could not fetch KRW=X historical, trying USDKRW=X", e);
+        const erTickers = ["KRW=X", "USDKRW=X"];
+
+        for (const erTicker of erTickers) {
             try {
-                exchangeRateHistorical = await yahooFinance.historical("USDKRW=X", {
+                exchangeRateHistorical = await yahooFinance.historical(erTicker, {
                     period1: startDate,
                     period2: endDate,
                     interval: "1mo"
                 }) as HistoricalResult[];
-            } catch (err) {
-                console.log("Failed both KRW=X and USDKRW=X", err);
+                if (exchangeRateHistorical && exchangeRateHistorical.length > 0) {
+                    console.log(`[Historical] Successfully fetched exchange rate using ${erTicker}`);
+                    break;
+                }
+            } catch (e) {
+                console.log(`Could not fetch ${erTicker} historical`, e);
             }
         }
 
         const exchangeRateMap = new Map<string, number>();
+
+        // KRW exchange rates typically range between 700 and 1600 since the 90s.
+        // Values like 0.11 or 894 repeated for years are data errors.
         for (const er of exchangeRateHistorical) {
             const key = new Date(er.date).toISOString().substring(0, 7); // YYYY-MM
-            if (er.adjClose || er.close) exchangeRateMap.set(key, er.adjClose || er.close);
+            const rate = er.adjClose || er.close;
+            // Filter out extreme outliers (Yahoo Finance bugs like 0.11 or 1.1)
+            // Anything below 500 KRW/USD is definitely an error in a 20-30 year context.
+            if (rate && rate > 500) {
+                exchangeRateMap.set(key, rate);
+            }
         }
 
         // Get current quotes
@@ -82,30 +89,54 @@ export async function GET(request: NextRequest) {
             yahooFinance.quote("KRW=X").catch(() => null) as any
         ]);
 
-        const currentPrice = quote?.regularMarketPrice || historical[historical.length - 1]?.close;
-        const currentExchangeRate = erQuote?.regularMarketPrice || Array.from(exchangeRateMap.values()).pop() || 1350;
-
-        // Helper to get safe price: adjClose can be negative for old Korean stocks due to Yahoo Finance capital reduction adjustment bugs
+        // Helper to get safe price: handles negative adjClose bugs and zero values
         const getSafePrice = (item: any) => {
             if (!item) return 0;
             let p = item.adjClose !== undefined && item.adjClose !== null ? item.adjClose : item.close;
+            // Yahoo Finance bugs: adjClose can be negative or 0 while close is correct
             if (p <= 0 && item.close && item.close > 0) p = item.close;
-            return p;
+            return p > 0 ? p : 0;
         };
 
-        // First record is the past price
-        const pastDateKey = new Date(historical[0]?.date).toISOString().substring(0, 7);
-        const pastExchangeRate = exchangeRateMap.get(pastDateKey) || currentExchangeRate;
-        const pastPrice = getSafePrice(historical[0]);
+        // Filter out records where price is effectively 0 to prevent MDD -100% bugs
+        const validHistorical = historical.filter(h => getSafePrice(h) > 0);
+
+        if (validHistorical.length === 0) {
+            return NextResponse.json({ error: "No valid historical price data available" }, { status: 404 });
+        }
+
+        const currentPrice = quote?.regularMarketPrice || validHistorical[validHistorical.length - 1]?.close;
+        const currentExchangeRate = erQuote?.regularMarketPrice || Array.from(exchangeRateMap.values()).pop() || 1350;
+
+        // Better fallback for past rate: 
+        // If data for specific month is missing, find the CLOSEST available PREVIOUS month in the map
+        const getClosestExchangeRate = (targetKey: string) => {
+            if (exchangeRateMap.has(targetKey)) return exchangeRateMap.get(targetKey)!;
+
+            const sortedKeys = Array.from(exchangeRateMap.keys()).sort();
+            if (sortedKeys.length === 0) return currentExchangeRate;
+
+            // Find closest available date (preferably before or exactly the targetKey)
+            let closest = sortedKeys[0];
+            for (const k of sortedKeys) {
+                if (k <= targetKey) closest = k;
+                else break;
+            }
+            return exchangeRateMap.get(closest) || currentExchangeRate;
+        };
+
+        const pastDateKey = new Date(validHistorical[0]?.date).toISOString().substring(0, 7);
+        const pastExchangeRate = getClosestExchangeRate(pastDateKey);
+        const pastPrice = getSafePrice(validHistorical[0]);
 
         // Build full chart data (monthly) for accurate calculations
-        const chartData = historical.map((item) => {
+        const chartData = validHistorical.map((item) => {
             const date = new Date(item.date);
             const key = date.toISOString().substring(0, 7);
-            const er = exchangeRateMap.get(key) || pastExchangeRate; // Use mapped month ER or fallback
+            const er = getClosestExchangeRate(key);
             return {
                 name: date.toISOString().split('T')[0], // YYYY-MM-DD
-                price: getSafePrice(item), // Use safe price that handles negative adjClose bugs
+                price: getSafePrice(item),
                 exchangeRate: er
             };
         });

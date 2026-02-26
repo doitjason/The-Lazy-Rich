@@ -1,14 +1,27 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { RegretCalculator } from "@/components/calc/RegretCalculator";
 import { CompoundCalculator } from "@/components/calc/CompoundCalculator";
 import { PortfolioRegretCalculator } from "@/components/calc/PortfolioRegretCalculator";
 import { motion } from "framer-motion";
+import { useSearchParams } from "next/navigation";
 
-export default function CalcPage() {
-    const [activeTab, setActiveTab] = useState<"regret" | "regret-v2" | "compound">("regret");
+function CalcContent() {
+    const searchParams = useSearchParams();
+    const initialTab = searchParams.get("tab") as any;
+    const [activeTab, setActiveTab] = useState<"regret" | "regret-v2" | "compound">(
+        ["regret", "regret-v2", "compound"].includes(initialTab) ? initialTab : "regret"
+    );
+
+    // Sync tab with query param if it changes
+    useEffect(() => {
+        const tab = searchParams.get("tab");
+        if (tab && ["regret", "regret-v2", "compound"].includes(tab)) {
+            setActiveTab(tab as any);
+        }
+    }, [searchParams]);
 
     return (
         <div className="flex min-h-screen flex-col p-4 space-y-6 max-w-md mx-auto">
@@ -50,12 +63,18 @@ export default function CalcPage() {
 
             {/* Content Area */}
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <Suspense fallback={<div className="text-center py-10 opacity-50">Loading...</div>}>
-                    {activeTab === "regret" && <RegretCalculator />}
-                    {activeTab === "regret-v2" && <PortfolioRegretCalculator />}
-                    {activeTab === "compound" && <CompoundCalculator />}
-                </Suspense>
+                {activeTab === "regret" && <RegretCalculator />}
+                {activeTab === "regret-v2" && <PortfolioRegretCalculator />}
+                {activeTab === "compound" && <CompoundCalculator />}
             </div>
         </div>
+    );
+}
+
+export default function CalcPage() {
+    return (
+        <Suspense fallback={<div className="text-center py-20 opacity-50">Loading...</div>}>
+            <CalcContent />
+        </Suspense>
     );
 }
