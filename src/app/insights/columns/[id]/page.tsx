@@ -60,14 +60,21 @@ function parseContentSections(content: string): { summary: string; sections: str
     // Split body into sections by double newline (paragraph breaks)
     const rawSections = bodyContent.split(/\n\n+/).filter((s) => s.trim());
 
-    // Group into ~2-3 sections for ad placement
-    const midpoint = Math.ceil(rawSections.length / 2);
-    const sections = [
-        rawSections.slice(0, midpoint).join("\n\n"),
-        rawSections.slice(midpoint).join("\n\n"),
-    ];
+    // Group into sections for ad placement based on length
+    // If the content is long (e.g. >= 15 paragraphs), split into 3 sections for 2 in-article ads
+    const sections: string[] = [];
+    if (rawSections.length >= 15) {
+        const third = Math.ceil(rawSections.length / 3);
+        sections.push(rawSections.slice(0, third).join("\n\n"));
+        sections.push(rawSections.slice(third, third * 2).join("\n\n"));
+        sections.push(rawSections.slice(third * 2).join("\n\n"));
+    } else {
+        const midpoint = Math.ceil(rawSections.length / 2);
+        sections.push(rawSections.slice(0, midpoint).join("\n\n"));
+        sections.push(rawSections.slice(midpoint).join("\n\n"));
+    }
 
-    return { summary, sections };
+    return { summary, sections: sections.filter(s => s.trim().length > 0) };
 }
 
 // Format body text with section headers, lists, and proper line breaks
@@ -295,29 +302,26 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                     </div>
                 )}
 
-                {/* Article Body - Section 1 */}
-                <div>
-                    <FormattedContent text={sections[0]} />
-                </div>
+                {/* Article Body Sections */}
+                {sections.map((section, index) => (
+                    <div key={index}>
+                        <FormattedContent text={section} />
 
-                {/* In-article Ad Slot (between sections) */}
-                {sections.length > 1 && (
-                    <div className="py-2">
-                        {/* AdSlot is client component, imported directly */}
-                        <div className="border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-6 flex items-center justify-center">
-                            <span className="text-[11px] text-gray-400 dark:text-white/20 font-medium tracking-wide">
-                                📢 본문 내 광고 영역
-                            </span>
-                        </div>
+                        {/* In-article Ad Slot */}
+                        {index < sections.length - 1 && (
+                            <div className="py-4">
+                                <div className="border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-6 flex items-center justify-center bg-transparent relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gray-50 dark:bg-white/[0.02] bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] opacity-70" />
+                                    <span className="text-[11px] text-gray-400 dark:text-white/30 font-medium tracking-wide relative z-10 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+                                        본문 내 광고 영역 {sections.length > 2 ? index + 1 : ""}
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
-
-                {/* Article Body - Section 2 */}
-                {sections.length > 1 && (
-                    <div>
-                        <FormattedContent text={sections[1]} />
-                    </div>
-                )}
+                ))}
 
                 {/* Related Books */}
                 {relatedBooks.length > 0 && (
@@ -353,9 +357,12 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                 )}
 
                 {/* Bottom Ad Slot */}
-                <div className="border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-6 flex items-center justify-center">
-                    <span className="text-[11px] text-gray-400 dark:text-white/20 font-medium tracking-wide">
-                        📢 하단 광고 영역
+                <div className="border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-6 flex items-center justify-center bg-transparent relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gray-50 dark:bg-white/[0.02] bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] opacity-70" />
+                    <span className="text-[11px] text-gray-400 dark:text-white/30 font-medium tracking-wide relative z-10 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50" />
+                        하단 광고 영역
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50" />
                     </span>
                 </div>
 
