@@ -55,6 +55,7 @@ export function RegretCalculator() {
     const searchParams = useSearchParams();
     const [hasInitializedParams, setHasInitializedParams] = useState(false);
     const [shouldAutoCalculate, setShouldAutoCalculate] = useState(false);
+    const prevUrlParams = useRef({ ticker: "", amount: 0, period: "" });
 
     const handleDownloadImage = useCallback(async () => {
         if (resultRef.current === null) return;
@@ -139,7 +140,7 @@ export function RegretCalculator() {
 
     // Update amount from URL
     useEffect(() => {
-        if (!searchParams || hasInitializedParams) return;
+        if (!searchParams) return;
 
         const pTicker = searchParams.get('ticker');
         const pAmount = searchParams.get('amount');
@@ -147,6 +148,24 @@ export function RegretCalculator() {
         const pName = searchParams.get('name');
 
         if (pTicker) {
+            const currentParams = {
+                ticker: pTicker,
+                amount: pAmount ? Number(pAmount) : 0,
+                period: pPeriod || ""
+            };
+
+            // If the parameters haven't actually changed since the last time we processed them,
+            // return early to prevent React 18 StrictMode duplicate execution from hiding results.
+            if (
+                prevUrlParams.current.ticker === currentParams.ticker &&
+                prevUrlParams.current.amount === currentParams.amount &&
+                prevUrlParams.current.period === currentParams.period
+            ) {
+                return;
+            }
+
+            prevUrlParams.current = currentParams;
+
             setTicker(pTicker);
             if (pName) setStockName(pName);
             if (pAmount) {
@@ -160,7 +179,7 @@ export function RegretCalculator() {
             setShouldAutoCalculate(true);
         }
         setHasInitializedParams(true);
-    }, [searchParams, hasInitializedParams]);
+    }, [searchParams]);
 
     // Update default amount when currency changes - ONLY if not already set by URL/Manual
     useEffect(() => {
