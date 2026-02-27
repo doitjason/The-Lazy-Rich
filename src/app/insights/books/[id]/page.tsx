@@ -122,7 +122,7 @@ export default async function BookDetailPage({ params }: PageProps) {
             </div>
 
             {/* Content */}
-            <main className="px-5 py-6 space-y-10 relative z-10">
+            <main className="px-5 py-6 space-y-8 relative z-10">
                 {/* Book Header */}
                 <div className="flex gap-6 items-center">
                     <div className="w-32 sm:w-36 flex-shrink-0 rounded-xl overflow-hidden shadow-[0_10px_40px_-10px_rgba(16,185,129,0.4)] border border-gray-200 dark:border-white/20 relative">
@@ -156,28 +156,37 @@ export default async function BookDetailPage({ params }: PageProps) {
                     </div>
                 </div>
 
-                {/* Parse 3줄 요약 and body from longDescription */}
+                {/* Content Parsing & UI Rendering */}
                 {(() => {
                     const lines = book.longDescription.split("\n");
+                    let summaryLines: string[] = [];
                     let summaryEnd = 0;
+
                     let foundSummary = false;
+                    let pointsCount = 0;
                     for (let i = 0; i < lines.length; i++) {
-                        if (lines[i].startsWith("3줄 요약") || lines[i].startsWith("3줄요약")) {
+                        const line = lines[i].trim();
+                        if (line.startsWith("3줄 요약") || line.startsWith("3줄요약")) {
                             foundSummary = true;
+                            continue;
                         }
-                        if (foundSummary && lines[i].trim() === "" && i > 3) {
-                            summaryEnd = i;
-                            break;
+                        if (foundSummary) {
+                            if (/^\d\./.test(line)) {
+                                summaryLines.push(line);
+                                pointsCount++;
+                            } else if (line !== "" && pointsCount >= 1) {
+                                summaryEnd = i;
+                                break;
+                            }
                         }
                     }
-                    const summaryLines = lines.slice(0, summaryEnd)
-                        .filter((line: string) => /^\d\./.test(line.trim()))
-                        .map((line: string) => line.trim());
+                    if (summaryEnd === 0) summaryEnd = lines.length;
+
                     const bodyContent = lines.slice(summaryEnd).join("\n").trim();
 
                     return (
                         <>
-                            {/* 3줄 요약 Card */}
+                            {/* 3줄 요약 Card — Now perfectly aligned with Column UI */}
                             {summaryLines.length > 0 && (
                                 <div className="relative">
                                     <div className="flex items-center gap-3 mb-3">

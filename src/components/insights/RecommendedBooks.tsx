@@ -123,29 +123,38 @@ export function RecommendedBooks() {
 
     // Batch fetch all book covers once
     useEffect(() => {
-        // 1. Check sessionStorage cache first (instant)
         const cached = getBookCoversFromCache();
-        if (cached) {
+
+        // Check if all current books are in cache
+        const missingQueries = RECOMMENDED_BOOKS
+            .filter(b => b.naverQuery)
+            .map(b => b.naverQuery!)
+            .filter(q => !cached || !cached[q]);
+
+        if (cached && missingQueries.length === 0) {
             setBookCovers(cached);
             return;
         }
 
-        // 2. Cache miss → single batch request
-        const queries = RECOMMENDED_BOOKS
-            .filter(b => b.naverQuery)
-            .map(b => b.naverQuery!);
+        // If there's a cache but some are missing, merge them
+        const queriesToFetch = cached ? missingQueries : RECOMMENDED_BOOKS.filter(b => b.naverQuery).map(b => b.naverQuery!);
 
-        fetch("/api/books/batch", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ queries }),
-        })
-            .then(res => res.ok ? res.json() : {})
-            .then((data: BookCoverData) => {
-                setBookCovers(data);
-                setBookCoversToCache(data);
+        if (queriesToFetch.length > 0) {
+            fetch("/api/books/batch", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ queries: queriesToFetch }),
             })
-            .catch(err => console.error("Batch book fetch failed:", err));
+                .then(res => res.ok ? res.json() : {})
+                .then((newBatch: BookCoverData) => {
+                    const mergedData = { ...(cached || {}), ...newBatch };
+                    setBookCovers(mergedData);
+                    setBookCoversToCache(mergedData);
+                })
+                .catch(err => console.error("Batch book fetch failed:", err));
+        } else if (cached) {
+            setBookCovers(cached);
+        }
     }, []);
 
     useEffect(() => {

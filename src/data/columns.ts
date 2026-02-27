@@ -232,7 +232,7 @@ UC 데이비스의 바버(Brad Barber)와 오딘(Terrance Odean) 교수의 연�
 본 콘텐츠는 정보 제공 목적으로만 작성되었으며, 특정 종목에 대한 매수 또는 매도 권유를 포함하지 않습니다. 모든 투자의 책임은 투자자 본인에게 있습니다.`,
         tags: ["투자심리", "행동경제학", "DALBAR", "개인투자자"],
         featured: false,
-        relatedBookIds: ["fooled-by-randomness", "thinking-about-investing"],
+        relatedBookIds: ["fooled-by-randomness", "the-most-important-thing"],
     },
     {
         id: "compound-interest-magic",
@@ -1208,7 +1208,7 @@ VOO 단일 투자를 한다면 이 과정조차 필요 없습니다.
 본 콘텐츠는 정보 제공 목적으로만 작성되었으며, 특정 종목에 대한 매수 또는 매도 권유를 포함하지 않습니다. 모든 투자의 책임은 투자자 본인에게 있습니다.`,
         tags: ["워런버핏", "유언장", "인덱스", "S&P500"],
         featured: false,
-        relatedBookIds: ["buffett-bible", "intelligent-investor"],
+        relatedBookIds: ["warren-buffett-bible", "intelligent-investor"],
     },
     {
         id: "etf-index-mutual-difference",
@@ -1385,7 +1385,7 @@ ETF(Exchange-Traded Fund)는 상장지수펀드라고 불리며, 위에서 언�
 본 콘텐츠는 정보 제공 목적으로만 작성되었으며, 특정 종목에 대한 매수 또는 매도 권유를 포함하지 않습니다. 모든 투자의 책임은 투자자 본인에게 있습니다.` ,
         tags: ["72의법칙", "복리", "수익률", "자산증식"],
         featured: false,
-        relatedBookIds: ["compound-effect", "psychology-of-money"],
+        relatedBookIds: ["psychology-of-money"],
     },
     {
         id: "dividend-snowball",
@@ -1443,7 +1443,7 @@ ETF(Exchange-Traded Fund)는 상장지수펀드라고 불리며, 위에서 언�
 본 콘텐츠는 정보 제공 목적으로만 작성되었으며, 특정 종목에 대한 매수 또는 매도 권유를 포함하지 않습니다. 모든 투자의 책임은 투자자 본인에게 있습니다.` ,
         tags: ["배당주", "현금흐름", "경제적자유", "배당재투자"],
         featured: false,
-        relatedBookIds: ["dividend-growth", "psychology-of-money"],
+        relatedBookIds: ["psychology-of-money"],
     },
     {
         id: "k-stock-discount",
