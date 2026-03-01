@@ -311,22 +311,22 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
 function getPersonaInterpretationInstructions(personaId: string, pName: string): string {
     switch (personaId) {
         case "sage":
-            return `- **데이터 기반 분석**: 제시된 **FCF Yield, ROIC, 부채비율, 내부자 거래** 등의 수치를 하나하나 언급하며 내재 가치가 훼손되었는지 진단하세요. 특히 S&P 500의 200일선 이격도를 보고 시장 전체의 거품 유무를 판단하십시오.
-- **철학적 결론**: "가격은 당신이 지불하는 것이고, 가치는 당신이 얻는 것이다"라는 원칙에 따라, 현재가 '안전마진'이 확보된 구간인지 아니면 인내하며 현금을 보유할 때인지 명확한 결론을 내리세요.`;
+            return `데이터 기반 분석: 제시된 FCF Yield, ROIC, 부채비율, 내부자 거래 등의 수치를 하나하나 언급하며 내재 가치가 훼손되었는지 진단하세요. 특히 S&P 500의 200일선 이격도를 보고 시장 전체의 거품 유무를 판단하십시오.
+철학적 결론: "가격은 당신이 지불하는 것이고, 가치는 당신이 얻는 것이다"라는 원칙에 따라, 현재가 안전마진이 확보된 구간인지 아니면 인내하며 현금을 보유할 때인지 명확한 결론을 내리세요.`;
         case "hero":
-            return `- **데이터 기반 분석**: **PEG Ratio, 매출/이익 성장률, 공매도 비율, 목표가 괴리율** 수치를 반드시 인용하세요. 지수의 장기 추세(200MA)와 성장주(IVW)의 우위를 비교하여 모멘텀의 지속 가능성을 분석하십시오.
-- **철학적 결론**: 성장 스토리가 숫자로 증명되고 있는지 결론을 내리고, 텐배거(10배주) 후보가 될 만한 '성장 엔진'이 작동 중인지에 대한 당신의 열정적인 견해를 밝히세요.`;
+            return `데이터 기반 분석: PEG Ratio, 매출/이익 성장률, 공매도 비율, 목표가 괴리율 수치를 반드시 인용하세요. 지수의 장기 추세(200MA)와 성장주(IVW)의 우위를 비교하여 모멘텀의 지속 가능성을 분석하십시오.
+철학적 결론: 성장 스토리가 숫자로 증명되고 있는지 결론을 내리고, 텐배거 후보가 될 만한 성장 엔진이 작동 중인지에 대한 당신의 열정적인 견해를 밝히세요.`;
         case "architect":
-            return `- **데이터 기반 분석**: **장단기 금리차(10Y-3M), MOVE 지수, XLY/XLP 비율, 실질금리** 등의 매크로 지표를 근거로 현재 '4계절 사이클'의 위치를 숫자로 증명하세요. VIX와 200일선 추세를 결합하여 리스크 수준을 계측하십시오.
-- **철학적 결론**: "경제는 기계와 같다"는 관점에서, 현재 환경에 최적화된 자산 배분(주식/채권/원자재) 비중 조절안을 철학적이고 논리적인 결론으로 제시하세요.`;
+            return `데이터 기반 분석: 장단기 금리차(10Y-3M), MOVE 지수, XLY/XLP 비율, 실질금리 등의 매크로 지표를 근거로 현재 4계절 사이클의 위치를 숫자로 증명하세요. VIX와 200일선 추세를 결합하여 리스크 수준을 계측하십시오.
+철학적 결론: "경제는 기계와 같다"는 관점에서, 현재 환경에 최적화된 자산 배분 비중 조절안을 철학적이고 논리적인 결론으로 제시하세요.`;
         case "speculator":
-            return `- **데이터 기반 분석**: **RSI, 볼린저 밴드, 거래량 추이(Volume Trend), 코스톨라니의 달걀 국면**을 숫자로 짚어주세요. 지수 이평선과의 괴리율을 보고 '기술적 과열' 혹은 '기술적 반등' 지점을 날카롭게 분석하십시오.
-- **철학적 결론**: 현재가 '부화' 국면인지 '굴절' 국면인지 정의하고, 추세를 탈 것인지 아니면 반대로 움직일(역발상) 것인지에 대한 매매 전략적 결론을 내리세요.`;
+            return `데이터 기반 분석: RSI, 볼린저 밴드, 거래량 추이, 코스톨라니의 달걀 국면을 숫자로 짚어주세요. 지수 이평선과의 괴리율을 보고 기술적 과열 혹은 기술적 반등 지점을 날카롭게 분석하십시오.
+철학적 결론: 현재가 부화 국면인지 굴절 국면인지 정의하고, 추세를 탈 것인지 아니면 반대로 움직일 것인지에 대한 매매 전략적 결론을 내리세요.`;
         case "father":
-            return `- **데이터 기반 분석**: **ETF 보수(Expense Ratio), YTD 수익률, 배당 수익률** 수치를 활용하세요. 지수의 장기 상승 곡선(200MA)을 언급하며 시장의 변동성이 장기 복리에 미치는 영향이 미미함을 수치적으로 안심시키세요.
-- **철학적 결론**: "시장을 이기려 하지 말고 시장 자체가 되어라"는 믿음을 바탕으로, 단기 소음에 흔들리지 말고 자동 적립식(DCA)을 유지하라는 따뜻하지만 단호한 인내의 결론을 제시하세요.`;
+            return `데이터 기반 분석: ETF 보수(Expense Ratio), YTD 수익률, 배당 수익률 수치를 활용하세요. 지수의 장기 상승 곡선(200MA)을 언급하며 시장의 변동성이 장기 복리에 미치는 영향이 미미함을 수치적으로 안심시키세요.
+철학적 결론: "시장을 이기려 하지 말고 시장 자체가 되어라"는 믿음을 바탕으로, 단기 소음에 흔들리지 말고 자동 적립식(DCA)을 유지하라는 따뜻하지만 단호한 인내의 결론을 제시하세요.`;
         default:
-            return `- 종합 분석: 공통 지표와 전문 지표를 교차 분석하여 당신의 투자 철학에 따른 최종 결론을 도출하세요.`;
+            return `종합 분석: 공통 지표와 전문 지표를 교차 분석하여 당신의 투자 철학에 따른 최종 결론을 도출하세요.`;
     }
 }
 
@@ -348,45 +348,45 @@ export function commonDataToPrompt(data: CommonMarketData, personaId: string): s
     };
 
     return `[🌍 공통 시장 대시보드 (Real-time Market Dashboard)]
-이 데이터는 모든 페르소나가 동일하게 참조하는 '팩트' 기반의 공통 지표입니다. 
+이 데이터는 모든 페르소나가 동일하게 참조하는 팩트 기반의 공통 지표입니다. 
 분석 시 아래 지표들을 최우선으로 반영하되, 당신(${pName})의 투자 철학에 맞춰 해석하세요.
 
 1. 📊 [시장 지수] 전체적 흐름 (전일 변동 & 200일 장기 추세)
-   - S&P 500: ${data.indices.snp500.price.toFixed(2)} (${formatChangePercent(data.indices.snp500.changePercent)})${formatTrend(data.indices.snp500)}
-   - 나스닥 (Tech): ${data.indices.nasdaq.price.toFixed(2)} (${formatChangePercent(data.indices.nasdaq.changePercent)})${formatTrend(data.indices.nasdaq)}
-   - 다우존스 (Blue Chip): ${data.indices.dow.price.toFixed(2)} (${formatChangePercent(data.indices.dow.changePercent)})${formatTrend(data.indices.dow)}
-   - 러셀 2000 (Small Cap): ${data.indices.russell2000.price.toFixed(2)} (${formatChangePercent(data.indices.russell2000.changePercent)})${formatTrend(data.indices.russell2000)} → ${data.indices.russell2000.changePercent > 0.5 ? "온기 확산 긍정적" : "대형주 쏠림 주의"}
+   S&P 500: ${data.indices.snp500.price.toFixed(2)} (${formatChangePercent(data.indices.snp500.changePercent)})${formatTrend(data.indices.snp500)}
+   나스닥 (Tech): ${data.indices.nasdaq.price.toFixed(2)} (${formatChangePercent(data.indices.nasdaq.changePercent)})${formatTrend(data.indices.nasdaq)}
+   다우존스 (Blue Chip): ${data.indices.dow.price.toFixed(2)} (${formatChangePercent(data.indices.dow.changePercent)})${formatTrend(data.indices.dow)}
+   러셀 2000 (Small Cap): ${data.indices.russell2000.price.toFixed(2)} (${formatChangePercent(data.indices.russell2000.changePercent)})${formatTrend(data.indices.russell2000)} → ${data.indices.russell2000.changePercent > 0.5 ? "온기 확산 긍정적" : "대형주 쏠림 주의"}
 
 2. 🌏 [거시 경제] 긴 시계열 밸류에이션
-   - 10년물 국채금리: ${data.macro.tenYearBondYield.toFixed(2)}% (52주 최고: ${formatNum(data.macro.tnxHigh52, "%")})${data.macro.tnxDistanceMA200 !== null ? ` | 장기추세: ${data.macro.tnxDistanceMA200 > 0 ? "상승" : "하락"} (200일선 대비 ${data.macro.tnxDistanceMA200 > 0 ? "+" : ""}${data.macro.tnxDistanceMA200.toFixed(1)}%)` : ""}
-   - 달러 인덱스 (DXY): ${data.macro.dollarIndex.toFixed(2)} (기준 100)
-    - 원유 (WTI): $${data.macro.wti.toFixed(2)} | 금: $${data.macro.gold.toFixed(2)}
-    - [경기 침체 경고] 장단기 금리차(10Y-3M): ${data.macro.yieldSpread10Y3M !== null ? data.macro.yieldSpread10Y3M.toFixed(2) + "%p" : "N/A"} (${data.macro.yieldSpread10Y3M !== null && data.macro.yieldSpread10Y3M < 0 ? "🚨 역전됨 (1년 내 침체 확률 80% 이상)" : "정상 구간"})
+   10년물 국채금리: ${data.macro.tenYearBondYield.toFixed(2)}% (52주 최고: ${formatNum(data.macro.tnxHigh52, "%")})${data.macro.tnxDistanceMA200 !== null ? ` | 장기추세: ${data.macro.tnxDistanceMA200 > 0 ? "상승" : "하락"} (200일선 대비 ${data.macro.tnxDistanceMA200 > 0 ? "+" : ""}${data.macro.tnxDistanceMA200.toFixed(1)}%)` : ""}
+   달러 인덱스 (DXY): ${data.macro.dollarIndex.toFixed(2)} (기준 100)
+    원유 (WTI): $${data.macro.wti.toFixed(2)} | 금: $${data.macro.gold.toFixed(2)}
+    [경기 침체 경고] 장단기 금리차(10Y-3M): ${data.macro.yieldSpread10Y3M !== null ? data.macro.yieldSpread10Y3M.toFixed(2) + "%p" : "N/A"} (${data.macro.yieldSpread10Y3M !== null && data.macro.yieldSpread10Y3M < 0 ? "🚨 역전됨 (1년 내 침체 확률 80% 이상)" : "정상 구간"})
 
 3. ⚠️ [위험 신호 & 유동성] 변동성 이력 분석
-   - VIX (공포지수): ${data.macro.vix.toFixed(2)} (52주 최고: ${formatNum(data.macro.vixHigh52)})${data.macro.vixDistanceMA200 !== null ? ` | 변동성 추세: ${data.macro.vixDistanceMA200 > 0 ? "확대" : "축소"} (200일선 대비 ${data.macro.vixDistanceMA200 > 0 ? "+" : ""}${data.macro.vixDistanceMA200.toFixed(1)}%)` : ""}
-   - 하이일드 채권 (HYG): ${formatNum(data.macro.hygPrice)} (기업 부도 위험 측정, 하락 시 위험)
-   - 엔/달러 환율: ${data.macro.jpyRate !== null ? data.macro.jpyRate.toFixed(2) : "N/A"} (엔 캐리 청산 감시)
+   VIX (공포지수): ${data.macro.vix.toFixed(2)} (52주 최고: ${formatNum(data.macro.vixHigh52)})${data.macro.vixDistanceMA200 !== null ? ` | 변동성 추세: ${data.macro.vixDistanceMA200 > 0 ? "확대" : "축소"} (200일선 대비 ${data.macro.vixDistanceMA200 > 0 ? "+" : ""}${data.macro.vixDistanceMA200.toFixed(1)}%)` : ""}
+   하이일드 채권 (HYG): ${formatNum(data.macro.hygPrice)} (기업 부도 위험 측정, 하락 시 위험)
+   엔/달러 환율: ${data.macro.jpyRate !== null ? data.macro.jpyRate.toFixed(2) : "N/A"} (엔 캐리 청산 감시)
 
 4. 🏥 [시장 건전성 & 로테이션] 질적 분석
-   - S&P 500 동일가중 (RSP): ${formatChangePercent(data.macro.rspChangePercent)} (지수 대비 낮으면 대형주 쏠림 심화)
-   - 스타일 전쟁: 성장주(IVW) ${formatChangePercent(data.macro.ivwChangePercent)} vs 가치주(IVE) ${formatChangePercent(data.macro.iveChangePercent)} → ${(data.macro.ivwChangePercent || 0) > (data.macro.iveChangePercent || 0) ? "성장주 우위 (Risk On)" : "가치주 우위 (Risk Off)"}
-   - 반도체 (SOXX): ${formatChangePercent(data.macro.soxxChangePercent)} (AI/기술주 랠리의 선행 카나리아)
+   S&P 500 동일가중 (RSP): ${formatChangePercent(data.macro.rspChangePercent)} (지수 대비 낮으면 대형주 쏠림 심화)
+   스타일 전쟁: 성장주(IVW) ${formatChangePercent(data.macro.ivwChangePercent)} vs 가치주(IVE) ${formatChangePercent(data.macro.iveChangePercent)} → ${(data.macro.ivwChangePercent || 0) > (data.macro.iveChangePercent || 0) ? "성장주 우위 (Risk On)" : "가치주 우위 (Risk Off)"}
+   반도체 (SOXX): ${formatChangePercent(data.macro.soxxChangePercent)} (AI/기술주 랠리의 선행 카나리아)
 
 5. 🏢 [M7 주도주] 시장 견인력
-   - 🍎AAPL ${formatChangePercent(data.m7.aapl.changePercent)} | 🤖NVDA ${formatChangePercent(data.m7.nvda.changePercent)} | 🚗TSLA ${formatChangePercent(data.m7.tsla.changePercent)}
+   🍎AAPL ${formatChangePercent(data.m7.aapl.changePercent)} | 🤖NVDA ${formatChangePercent(data.m7.nvda.changePercent)} | 🚗TSLA ${formatChangePercent(data.m7.tsla.changePercent)}
 
 [⭐️ ${pName}의 시황 프리셋 답변 가이드]
-유저가 "요즘 시황 어때?" 또는 "현재 시장 상황 분석해줘"라고 물으면 다음 **3단계 프로세스**로 답변하세요:
+유저가 "요즘 시황 어때?" 또는 "현재 시장 상황 분석해줘"라고 물으면 다음 3단계 프로세스로 답변하세요:
 
-1단계: **[공통 팩트 요약]**
-위 데이터에서 주요 지수(S&P 500, 나스닥 등)의 현재 수치와 전일 대비 변동성, 그리고 **200일 이동평균선 대비 위치(장기 추세)**를 객관적으로 요약하세요. 10년물 국채금리와 VIX 지수의 현재 수준도 필수적으로 언급해야 합니다.
+1단계: [공통 팩트 요약]
+위 데이터에서 주요 지수(S&P 500, 나스닥 등)의 현재 수치와 전일 대비 변동성, 그리고 200일 이동평균선 대비 위치(장기 추세)를 객관적으로 요약하세요. 10년물 국채금리와 VIX 지수의 현재 수준도 필수적으로 언급해야 합니다.
 
-2단계: **[데이터 기반 심층 분석]**
-당신(${pName})에게 할당된 **전문 지표**(예: 현인-FCF Yield, 원칙가-MOVE 지수 등)와 공통 지표를 결합하여 현재 상황을 숫자로 증명하세요. 단순히 "금리가 높다"가 아니라 "금리가 몇 %이므로 밸류에이션에 이런 영향을 준다"라고 상세히 분석하십시오.
+2단계: [데이터 기반 심층 분석]
+당신(${pName})에게 할당된 전문 지표(예: 현인-FCF Yield, 원칙가-MOVE 지수 등)와 공통 지표를 결합하여 현재 상황을 숫자로 증명하세요. 단순히 "금리가 높다"가 아니라 "금리가 몇 %이므로 밸류에이션에 이런 영향을 준다"라고 상세히 분석하십시오.
 
-3단계: **[${pName}의 철학적 결론]**
-분석 내용을 바탕으로 당신의 투자 철학이 담긴 **최종 판단과 행동 전략**을 제시하세요. 
+3단계: [${pName}의 철학적 결론]
+분석 내용을 바탕으로 당신의 투자 철학이 담긴 최종 판단과 행동 전략을 제시하세요. 
 ${getPersonaInterpretationInstructions(personaId, pName)}
 `;
 }
@@ -1654,34 +1654,52 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
     const { indicators, yieldCurveSpread } = snapshot;
     if (indicators.length === 0) return "";
 
-    // 카테고리별 정렬 & 추가
-    const indexSymbols = ["^GSPC", "^IXIC", "^DJI", "^RUT", "^SOX"];
-    const sectorSymbols = ["XLK", "XLE", "XLF"]; // 기술, 에너지, 금융 (시장 주도 섹터 파악)
-    const rateSymbols = ["^TNX", "^TYX", "^IRX"];
-    const commoditySymbols = ["DX-Y.NYB", "GC=F", "HG=F", "CL=F", "BTC-USD"]; // 구리(HG=F) 추가
+    // 페르소나별 공통 지표 다이어트 (선별)
+    let indexSymbols: string[] = [];
+    let sectorSymbols: string[] = [];
+    let rateSymbols: string[] = [];
+    let commoditySymbols: string[] = [];
+    let showMacroComments = true;
+
+    if (personaId === "sage") {
+        indexSymbols = ["^GSPC", "^DJI", "^VIX"];
+        sectorSymbols = [];
+        rateSymbols = ["^TNX"]; // 가치평가용 10년물 참조
+        commoditySymbols = ["GC=F"]; // 안전자산 금 정도만
+        showMacroComments = false;
+    } else if (personaId === "hero") {
+        indexSymbols = ["^IXIC", "^RUT", "^SOX", "^VIX"]; // 나스닥, 중소형, 반도체 위주
+        sectorSymbols = ["XLK"];
+        rateSymbols = [];
+        commoditySymbols = ["BTC-USD"]; // 위험 선호도 파악용
+        showMacroComments = false;
+    } else if (personaId === "architect") {
+        indexSymbols = ["^GSPC", "^IXIC", "^DJI", "^RUT", "^SOX", "^VIX"];
+        sectorSymbols = ["XLK", "XLE", "XLF"];
+        rateSymbols = ["^TNX", "^TYX", "^IRX"];
+        commoditySymbols = ["DX-Y.NYB", "GC=F", "HG=F", "CL=F", "BTC-USD"];
+        showMacroComments = true;
+    } else if (personaId === "father") {
+        // 아버지는 이미 전문 데이터에 인덱스와 ETF가 꽉 차있음. 거시 지표는 완전 배제.
+        const personaLens = getPersonaMarketLens(personaId);
+        return `[📡 실시간 시장 현황]\n${getPersonaHistoryString(snapshot.sp500History, personaId)}\n${personaLens}\n\n위 데이터를 당신의 투자 철학과 해석 렌즈에 따라 분석하세요.`;
+    }
 
     const formatLine = (i: MarketIndicator) => {
         let details = "";
-
-        // 고점 대비 낙폭 (장기 관점)
         if (i.high52) {
             const drop = ((i.price - i.high52) / i.high52) * 100;
             if (drop < -10) details += ` | 고점대비 ${drop.toFixed(1)}% `;
         }
-
-        // 이평선 괴리 (추세 관점)
         if (i.ma200) {
             const trend = i.price > i.ma200 ? "상승추세" : "하락추세";
             if (Math.abs((i.price - i.ma200) / i.ma200) > 0.05) {
                 details += ` | ${trend} `;
             }
         }
-
-        // VIX 특수 처리
         if (i.symbol === "^VIX") {
             return `  🚨 ${i.name}: ${i.price.toLocaleString()} (${i.price >= 20 ? "불안" : "안정"})`;
         }
-
         return `  ${i.name}: ${i.price.toLocaleString()} (${i.changePercent >= 0 ? "+" : ""}${i.changePercent.toFixed(2)}%)${details} `;
     };
 
@@ -1690,62 +1708,47 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
     const rateLines = indicators.filter((i) => rateSymbols.includes(i.symbol)).map(formatLine);
     const commodityLines = indicators.filter((i) => commoditySymbols.includes(i.symbol)).map(formatLine);
 
-    // 해석 코멘트 생성
+    // 해석 코멘트 생성 (매크로 중시 멘토용)
     const comments: string[] = [];
-
-    // VIX 해석
-    const vix = indicators.find((i) => i.symbol === "^VIX");
-    if (vix) {
-        if (vix.price >= 30) comments.push("🔴 VIX 30+: 시장 극단적 공포");
-        else if (vix.price >= 20) comments.push("🟠 VIX 20+: 시장 불안 심리 감지");
-        else if (vix.price <= 12) comments.push("🟢 VIX 12 이하: 시장 안정/낙관");
+    if (showMacroComments) {
+        const vix = indicators.find((i) => i.symbol === "^VIX");
+        if (vix) {
+            if (vix.price >= 30) comments.push("🔴 VIX 30+: 시장 극단적 공포");
+            else if (vix.price >= 20) comments.push("🟠 VIX 20+: 시장 불안 심리 감지");
+            else if (vix.price <= 12) comments.push("🟢 VIX 12 이하: 시장 안정/낙관");
+        }
+        if (yieldCurveSpread !== null) {
+            if (yieldCurveSpread < 0) comments.push(`🔴 장단기 금리 역전(${yieldCurveSpread} % p): 경기침체 경고 신호`);
+            else if (yieldCurveSpread < 0.5) comments.push(`🟡 장단기 금리차 협소(${yieldCurveSpread} % p): 경기 둔화 우려`);
+            else comments.push(`🟢 장단기 금리차 정상(${yieldCurveSpread} % p): 경기 확장 구간`);
+        }
+        const dxy = indicators.find((i) => i.symbol === "DX-Y.NYB");
+        if (dxy) {
+            if (dxy.price >= 105) comments.push("💪 달러 강세 (DXY 105+): 위험자산 부담");
+            else if (dxy.price <= 95) comments.push("📉 달러 약세 (DXY 95-): 유동성 호재");
+        }
+        const oil = indicators.find((i) => i.symbol === "CL=F");
+        if (oil && oil.price >= 90) comments.push("🔥 유가 급등 ($90+): 인플레 재점화 우려");
     }
-
-    // Put/Call Ratio (VIX로 간접 유추 또는 추후 추가)
-
-    // 장단기 금리차 해석
-    if (yieldCurveSpread !== null) {
-        if (yieldCurveSpread < 0) comments.push(`🔴 장단기 금리 역전(${yieldCurveSpread} % p): 경기침체 경고 신호`);
-        else if (yieldCurveSpread < 0.5) comments.push(`🟡 장단기 금리차 협소(${yieldCurveSpread} % p): 경기 둔화 우려`);
-        else comments.push(`🟢 장단기 금리차 정상(${yieldCurveSpread} % p): 경기 확장 구간`);
+    // Hero 추가 코멘트
+    if (personaId === "hero") {
+        const btc = indicators.find((i) => i.symbol === "BTC-USD");
+        if (btc && btc.changePercent > 5) comments.push("🚀 코인/위험자산 선호 심리 강세 중");
     }
-
-    // 달러 해석
-    const dxy = indicators.find((i) => i.symbol === "DX-Y.NYB");
-    if (dxy) {
-        if (dxy.price >= 105) comments.push("💪 달러 강세 (DXY 105+): 위험자산 부담");
-        else if (dxy.price <= 95) comments.push("📉 달러 약세 (DXY 95-): 유동성 호재");
-    }
-
-    // 원유 해석
-    const oil = indicators.find((i) => i.symbol === "CL=F");
-    if (oil) {
-        if (oil.price >= 90) comments.push("🔥 유가 급등 ($90+): 인플레 재점화 우려");
-    }
-
-    // 비트코인 해석 (유동성 지표)
-    const btc = indicators.find((i) => i.symbol === "BTC-USD");
-    if (btc && btc.changePercent > 5) comments.push("🚀 비트코인 급등: 위험자산 선호 심리 회복 중");
 
     const commentSection = comments.length > 0 ? `\n\n📌 팩트 기반 시장 요약: \n${comments.join("\n")} ` : "";
 
-    // 페르소나별 해석 렌즈
     const personaLens = getPersonaMarketLens(personaId);
+
+    const sections = [];
+    if (indexLines.length > 0) sections.push(`주요 지수:\n${indexLines.join("\n")}`);
+    if (sectorLines.length > 0) sections.push(`섹터 동향:\n${sectorLines.join("\n")}`);
+    if (rateLines.length > 0) sections.push(`금리:\n${rateLines.join("\n")}\n${yieldCurveSpread !== null && personaId === 'architect' ? `  장단기 금리차(10Y - 3M): ${yieldCurveSpread}%p` : ""}`);
+    if (commodityLines.length > 0) sections.push(`원자재·통화·자산:\n${commodityLines.join("\n")}`);
 
     return `[📡 실시간 시장 현황]
 
-주요 지수:
-${indexLines.join("\n")}
-
-섹터 동향:
-${sectorLines.join("\n")}
-
-금리:
-${rateLines.join("\n")}
-  장단기 금리차(10Y - 3M): ${yieldCurveSpread !== null ? `${yieldCurveSpread}%p` : "N/A"}
-
-원자재·통화·디지털자산:
-${commodityLines.join("\n")}
+${sections.join("\n\n")}
 ${commentSection}
 
 ${getPersonaHistoryString(snapshot.sp500History, personaId)}
@@ -1794,26 +1797,30 @@ export async function getPersonaMarketContext(
 
         switch (personaId) {
             case "sage": {
-                if (userTickers.length > 0) {
-                    const results = await Promise.all(
-                        userTickers.slice(0, 5).map((t) => fetchSageData(t))
-                    );
-                    const valid = results.filter((r): r is SageData => r !== null);
-                    if (valid.length > 0) {
-                        specializedPrompt = valid.map(sageDataToPrompt).join("\n\n");
+                const targets = userTickers.length > 0 ? userTickers.slice(0, 5) : ["SPY", "AAPL"];
+                const results = await Promise.all(
+                    targets.map((t) => fetchSageData(t))
+                );
+                const valid = results.filter((r): r is SageData => r !== null);
+                if (valid.length > 0) {
+                    specializedPrompt = valid.map(sageDataToPrompt).join("\n\n");
+                    if (userTickers.length === 0) {
+                        specializedPrompt += "\n\n[💡시스템 안내] 사용자가 특정 종목을 묻지 않고 시황을 물었습니다. 시장 대표격인 SPY와 우량주 AAPL의 내재 가치(PER, PBR, 고점대비 낙폭 등) 데이터를 바탕으로, 현재 전체 시장이 '가치투자 관점'에서 싼지 비싼지를 진단해 주세요. 거시경제(금리/환율) 이야기보다 기업 가치 배수에 집중하세요.";
                     }
                 }
                 break;
             }
 
             case "hero": {
-                if (userTickers.length > 0) {
-                    const results = await Promise.all(
-                        userTickers.slice(0, 5).map((t) => fetchHeroData(t))
-                    );
-                    const valid = results.filter((r): r is HeroData => r !== null);
-                    if (valid.length > 0) {
-                        specializedPrompt = valid.map(heroDataToPrompt).join("\n\n");
+                const targets = userTickers.length > 0 ? userTickers.slice(0, 5) : ["QQQ", "NVDA"];
+                const results = await Promise.all(
+                    targets.map((t) => fetchHeroData(t))
+                );
+                const valid = results.filter((r): r is HeroData => r !== null);
+                if (valid.length > 0) {
+                    specializedPrompt = valid.map(heroDataToPrompt).join("\n\n");
+                    if (userTickers.length === 0) {
+                        specializedPrompt += "\n\n[💡시스템 안내] 사용자가 특정 종목이 아닌 시황을 물었습니다. 혁신 성장주의 상징인 QQQ와 NVDA의 성장률(YoY), PEG Ratio 데이터를 바탕으로, 현재 시장의 '성장 스토리와 모멘텀'이 건재한지 활기차게 진단해 주세요. 금리 같은 딱딱한 지표보다 기업의 실적 성장세에 집중하세요.";
                     }
                 }
                 break;
@@ -1838,13 +1845,15 @@ export async function getPersonaMarketContext(
             }
 
             case "speculator": {
-                if (userTickers.length > 0) {
-                    const results = await Promise.all(
-                        userTickers.slice(0, 5).map((t) => fetchSpeculatorData(t))
-                    );
-                    const valid = results.filter((r): r is SpeculatorData => r !== null);
-                    if (valid.length > 0) {
-                        specializedPrompt = valid.map(speculatorDataToPrompt).join("\n\n");
+                const targets = userTickers.length > 0 ? userTickers.slice(0, 5) : ["QQQ", "TSLA"];
+                const results = await Promise.all(
+                    targets.map((t) => fetchSpeculatorData(t))
+                );
+                const valid = results.filter((r): r is SpeculatorData => r !== null);
+                if (valid.length > 0) {
+                    specializedPrompt = valid.map(speculatorDataToPrompt).join("\n\n");
+                    if (userTickers.length === 0) {
+                        specializedPrompt += "\n\n[💡시스템 안내] 사용자가 특정 종목이 아닌 시황을 물었습니다. 변동성이 큰 QQQ와 TSLA의 기술적 지표(RSI, 이평선, MACD, MFI 등)를 바탕으로, 현재 시장이 '과매수/과매도' 상태인지 차갑게 분석해 주세요. 펀더멘털이나 거시경제 이야기형식은 완전히 배제하고 오직 수급과 가격 추세(모멘텀)만 이야기하세요.";
                     }
                 }
                 break;
