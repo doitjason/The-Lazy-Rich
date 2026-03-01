@@ -58,6 +58,37 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { EmptyPortfolio } from "./EmptyPortfolio";
 
+function PortfolioDashboardSkeleton() {
+    return (
+        <div className="space-y-6 animate-in fade-in duration-500 pb-20 px-2 mt-4">
+            {/* Balance Card Skeleton */}
+            <Skeleton className="h-44 w-full rounded-2xl bg-white/20 dark:bg-white/5" />
+
+            {/* Benchmark Card Skeleton */}
+            <Skeleton className="h-[72px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
+
+            {/* 2-Grid Skeleton */}
+            <div className="grid grid-cols-2 gap-3">
+                <Skeleton className="h-[120px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
+                <Skeleton className="h-[120px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
+                <Skeleton className="h-[120px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
+                <Skeleton className="h-[120px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
+            </div>
+
+            {/* Donut Chart Skeleton */}
+            <Skeleton className="h-[400px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
+
+            {/* List Header Skeleton */}
+            <div className="space-y-4 mt-8">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-24 w-full rounded-xl bg-white/40 dark:bg-white/5" />
+                <Skeleton className="h-24 w-full rounded-xl bg-white/40 dark:bg-white/5" />
+                <Skeleton className="h-24 w-full rounded-xl bg-white/40 dark:bg-white/5" />
+            </div>
+        </div>
+    );
+}
+
 export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
     const { user } = useAuth();
     const { currency, exchangeRate, formatCurrency, formatCompactNumber } = useCurrency();
@@ -68,7 +99,9 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
     const router = useRouter();
     const [enrichedData, setEnrichedData] = useState<Record<string, EnrichedPortfolioItem>>({});
-    const [loading, setLoading] = useState(true);
+
+    // We start as loading to avoid initial flicker
+    const [isEnrichedLoading, setIsEnrichedLoading] = useState(true);
 
     const [showReturnPercent, setShowReturnPercent] = useState(true);
     const [marketReturn, setMarketReturn] = useState(0);
@@ -111,26 +144,29 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
     // Fetch enriched data when items change
     useEffect(() => {
+        let isMounted = true;
         async function loadData() {
+            // When items are empty, no enriched data needed
             if (items.length === 0) {
-                setLoading(false);
+                if (isMounted) setIsEnrichedLoading(false);
                 return;
             }
 
-            setLoading(true);
+            if (isMounted) setIsEnrichedLoading(true);
             try {
                 const tickers = items.map(i => i.ticker);
                 const data = await getPortfolioData(tickers);
                 console.log("[PortfolioDashboard] Enriched Data Received:", data);
-                setEnrichedData(data);
+                if (isMounted) setEnrichedData(data);
             } catch (error) {
                 console.error("Failed to fetch enriched data", error);
             } finally {
-                setLoading(false);
+                if (isMounted) setIsEnrichedLoading(false);
             }
         }
 
         loadData();
+        return () => { isMounted = false; };
     }, [items]);
 
 
@@ -353,7 +389,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
 
 
-    const isLoading = storeLoading || loading;
+    const isLoading = storeLoading || isEnrichedLoading;
 
     // Apply sorting to items
     const sortedItems = useMemo(() => {
@@ -395,6 +431,10 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
 
     if (!storeLoading && items.length === 0) {
         return <EmptyPortfolio onAdd={onAdd} onSelectPreset={setLocalItems} />;
+    }
+
+    if (isLoading) {
+        return <PortfolioDashboardSkeleton />;
     }
 
     return (

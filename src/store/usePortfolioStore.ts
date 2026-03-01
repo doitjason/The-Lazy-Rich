@@ -16,7 +16,7 @@ type PortfolioStore = {
     items: PortfolioItem[];
     loading: boolean;
     error: string | null;
-    fetchPortfolio: (userId: string) => Promise<void>;
+    fetchPortfolio: (userId: string) => Promise<PortfolioItem[]>;
     addItem: (userId: string, ticker: string, quantity: number, avgPrice: number) => Promise<boolean>;
     updateItem: (id: string, quantity: number, avgPrice: number) => Promise<boolean>;
     deleteItem: (id: string) => Promise<boolean>;
@@ -41,10 +41,13 @@ export const usePortfolioStore = create<PortfolioStore>((set, get) => ({
 
         if (error) {
             set({ loading: false, error: error.message });
-            return;
+            return [];
         }
 
-        set({ items: data as PortfolioItem[], loading: false });
+        const items = data as PortfolioItem[];
+        set({ items, loading: false });
+        // Return fetched items for chaining if needed
+        return items;
     },
 
     addItem: async (userId: string, ticker: string, quantity: number, avgPrice: number) => {
