@@ -82,38 +82,27 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
     };
 
     return (
-        <div className="space-y-6">
-            {/* CTA Button moved to top */}
-            <div className="px-10">
-                <Button
-                    onClick={() => onSelect(currentGuru)}
-                    className="w-full h-14 text-sm font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/20 rounded-xl transition-all active:scale-[0.98] gap-1.5"
-                >
-                    <MessageCircle className="h-4 w-4 flex-shrink-0" />
-                    {currentGuru.name}와 대화 시작하기
-                </Button>
-            </div>
-
+        <div className="flex flex-col space-y-4 pb-1">
             {/* Carousel Container */}
             <div className="relative overflow-hidden px-2">
                 {/* Navigation Arrows */}
                 <button
                     onClick={() => paginate(-1)}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/30 flex items-center justify-center text-foreground/60 hover:bg-white/40 hover:text-foreground transition-all active:scale-90"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md border border-black/10 dark:border-white/30 flex items-center justify-center text-foreground/80 dark:text-foreground/60 hover:bg-white dark:hover:bg-white/40 hover:text-foreground transition-all active:scale-90 shadow-sm"
                     aria-label="이전 AI Mentor"
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                     onClick={() => paginate(1)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/20 dark:bg-white/10 backdrop-blur-md border border-white/30 flex items-center justify-center text-foreground/60 hover:bg-white/40 hover:text-foreground transition-all active:scale-90"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md border border-black/10 dark:border-white/30 flex items-center justify-center text-foreground/80 dark:text-foreground/60 hover:bg-white dark:hover:bg-white/40 hover:text-foreground transition-all active:scale-90 shadow-sm"
                     aria-label="다음 AI Mentor"
                 >
                     <ChevronRight className="h-5 w-5" />
                 </button>
 
                 {/* Swipeable Card */}
-                <div className="flex items-center justify-center min-h-[320px] px-8">
+                <div className="flex items-center justify-center min-h-[380px] px-8">
                     <AnimatePresence initial={false} custom={direction} mode="wait">
                         <motion.div
                             key={currentGuru.id}
@@ -129,38 +118,48 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
                             className="w-full cursor-grab active:cursor-grabbing"
                         >
                             <div
-                                className={`relative overflow-hidden rounded-2xl border border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-2xl shadow-2xl ${glowColors[currentGuru.color] || ""} p-6`}
+                                className={`relative overflow-hidden rounded-2xl border border-black/5 dark:border-white/20 bg-white dark:bg-black/40 backdrop-blur-2xl shadow-xl dark:shadow-2xl ${glowColors[currentGuru.color] || ""} p-6`}
                             >
                                 {/* Background Gradient */}
                                 <div className={`absolute inset-0 bg-gradient-to-br ${bgGradients[currentGuru.color] || ""} pointer-events-none`} />
 
-                                <div className="relative z-10 flex flex-col items-center text-center space-y-4">
+                                <div className="relative z-10 flex flex-col items-center text-center space-y-5">
                                     {/* Avatar */}
                                     <motion.div
-                                        className={`h-20 w-20 rounded-full ${currentGuru.color} flex items-center justify-center text-white shadow-lg text-4xl`}
-                                        initial={{ scale: 0.8, rotate: -10 }}
-                                        animate={{ scale: 1, rotate: 0 }}
-                                        transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                                        className={`h-22 w-22 rounded-full ${currentGuru.color} flex items-center justify-center text-white shadow-2xl text-5xl relative`}
+                                        initial={{ scale: 0.8, y: 10 }}
+                                        animate={{
+                                            scale: 1,
+                                            y: [0, -8, 0],
+                                        }}
+                                        transition={{
+                                            scale: { type: "spring", stiffness: 200, damping: 15 },
+                                            y: { repeat: Infinity, duration: 4, ease: "easeInOut" }
+                                        }}
                                     >
-                                        {currentGuru.avatarEmoji}
+                                        <div className="absolute inset-0 rounded-full bg-white/10 animate-pulse" />
+                                        <span className="relative z-10">{currentGuru.avatarEmoji}</span>
                                     </motion.div>
 
                                     {/* Name & Tag */}
                                     <div className="space-y-1.5">
                                         <h3 className="text-xl font-bold text-foreground">{currentGuru.name}</h3>
-                                        <span className="inline-block px-4 py-1.5 rounded-full text-sm font-bold border bg-primary/10 text-primary border-primary/20">
+                                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold border bg-primary/10 text-primary border-primary/20">
                                             {currentGuru.tag}
                                         </span>
                                     </div>
 
                                     {/* Description */}
-                                    <p className="text-sm text-muted-foreground leading-relaxed max-w-[260px]">
+                                    <p className="text-sm text-muted-foreground leading-relaxed max-w-[280px]">
                                         {currentGuru.description}
                                     </p>
 
                                     {/* Intro Quote */}
-                                    <div className="w-full bg-white/30 dark:bg-white/5 rounded-xl p-3 border border-white/20">
-                                        <p className="text-xs text-foreground/80 italic leading-relaxed line-clamp-3">
+                                    <div className="w-full bg-black/[0.03] dark:bg-white/[0.05] rounded-2xl p-4 border border-black/5 dark:border-white/10 relative group">
+                                        <div className="absolute -top-3 left-4 px-2 bg-white dark:bg-black text-[9px] font-bold text-muted-foreground uppercase tracking-widest border border-black/5 dark:border-white/10 rounded-full">
+                                            Mentor Message
+                                        </div>
+                                        <p className="text-[13px] text-foreground/80 italic leading-relaxed line-clamp-4">
                                             &ldquo;{currentGuru.introMessage}&rdquo;
                                         </p>
                                     </div>
@@ -193,17 +192,30 @@ export function GuruSelector({ onSelect }: GuruSelectorProps) {
             </div>
 
             {/* Counter */}
-            <p className="text-center text-xs text-muted-foreground">
+            <p className="text-center text-[10px] text-muted-foreground -mt-1">
                 {currentIndex + 1} / {personas.length}
             </p>
 
+            {/* CTA Button placed at the bottom */}
+            <div className="px-6 relative group">
+                <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full scale-90 group-hover:scale-100 transition-transform duration-500 opacity-0 group-hover:opacity-100" />
+                <Button
+                    onClick={() => onSelect(currentGuru)}
+                    className="relative w-full h-14 text-base font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/30 rounded-2xl transition-all active:scale-[0.98] gap-2 overflow-hidden group/btn"
+                >
+                    <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-1000 skew-x-[-20deg]" />
+                    <MessageCircle className="h-5 w-5 flex-shrink-0 animate-pulse" />
+                    <span>{currentGuru.name}와 대화 시작하기</span>
+                </Button>
+            </div>
+
             {/* Disclaimer Banner restored for legal safety */}
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 flex items-start gap-2 mx-10 mt-4">
-                <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                <p className="text-[10px] text-amber-600 dark:text-amber-400 leading-tight">
-                    AI Mentor는 가상의 캐릭터이며, 제공되는 정보는 투자 권유가 아닙니다. 모든 투자의 책임은 전적으로 본인에게 있습니다.
+            <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg py-2 px-3 flex items-center gap-2 mx-6">
+                <AlertTriangle className="h-3 w-3 text-amber-500 flex-shrink-0" />
+                <p className="text-[9px] text-amber-700 dark:text-amber-400 leading-tight">
+                    AI Mentor는 가상의 캐릭터이며, 투자 권유가 아닙니다. 책임은 전적으로 본인에게 있습니다.
                 </p>
             </div>
-        </div>
+        </div >
     );
 }

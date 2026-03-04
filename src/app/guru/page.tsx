@@ -56,7 +56,7 @@ function GuruPageContent() {
 
                 let msg = "";
                 if (action === "analyze_portfolio") {
-                    msg = "내 포트폴리오 분석해줘";
+                    msg = "내 포트폴리오를 분석해주세요";
                 } else if (queryMessage) {
                     msg = queryMessage;
                 }

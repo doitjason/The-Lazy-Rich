@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Trifoli",
-  description: "Investment Companion",
+  title: "Trifoli | 올바른 장기투자를 위한 AI 투자 컴패니언",
+  description: "TRIFOLI는 데이터 기반 투자 인사이트, 포트폴리오 관리, AI 멘토링을 통해 당신의 단단한 장기투자를 돕습니다.",
   manifest: "/manifest.json",
 };
 
@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",

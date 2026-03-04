@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import { BackButton } from "@/components/insights/BackButton";
 import Link from "next/link";
 import { fetchNaverBook } from "@/lib/naver-books";
+import { SITE_CONFIG } from "@/lib/constants";
 
 interface PageProps {
     params: Promise<{
@@ -228,18 +229,18 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                         author: {
                             "@type": "Organization",
                             name: "TRIFOLI",
-                            url: "https://trifoli.kr",
+                            url: SITE_CONFIG.url,
                         },
                         publisher: {
                             "@type": "Organization",
                             name: "TRIFOLI",
-                            url: "https://trifoli.kr",
+                            url: SITE_CONFIG.url,
                         },
                         datePublished: column.publishedAt,
                         dateModified: column.publishedAt,
                         mainEntityOfPage: {
                             "@type": "WebPage",
-                            "@id": `https://trifoli.kr/insights/columns/${column.id}`,
+                            "@id": `${SITE_CONFIG.url}/insights/columns/${column.id}`,
                         },
                         articleSection: column.categoryLabel,
                         keywords: column.tags.join(", "),

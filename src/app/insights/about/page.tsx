@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { BackButton } from "@/components/insights/BackButton";
 import Link from "next/link";
+import { SITE_CONFIG } from "@/lib/constants";
 
 export const metadata: Metadata = {
     title: "에디터 소개 | TRIFOLI",
@@ -19,7 +20,7 @@ export default function AboutEditorPage() {
                         "@context": "https://schema.org",
                         "@type": "Organization",
                         name: "TRIFOLI",
-                        url: "https://trifoli.kr",
+                        url: SITE_CONFIG.url,
                         description:
                             "올바른 장기투자 문화를 위한 데이터 기반 인사이트 플랫폼",
                         foundingDate: "2026",

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Moon, DollarSign, HelpCircle, Shield, LogOut, ChevronRight, User, Sparkles, Club } from "lucide-react";
+import { Bell, Moon, DollarSign, HelpCircle, Shield, LogOut, ChevronRight, User, Sparkles, Club, FileText } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,42 +12,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { AlertCircle } from "lucide-react";
 
 export function ProfileSettings() {
     const { currency, setCurrency } = useCurrency();
-    const { user, signInWithGoogle, signInWithEmail, signOut } = useAuth();
+    const { user, signInWithGoogle, signOut } = useAuth();
     const { theme, setTheme } = useTheme();
     const router = useRouter();
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState<string | null>(null);
-    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
-
-    const handleEmailLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-        setIsLoggingIn(true);
-        try {
-            const result = await signInWithEmail(email, password);
-            if (!result.success) {
-                setError(result.error || "로그인 정보를 다시 확인해주세요.");
-            } else {
-                router.push("/portfolio");
-            }
-        } catch (err) {
-            setError("로그인 처리 중 오류가 발생했습니다.");
-        } finally {
-            setIsLoggingIn(false);
-        }
-    };
 
     const container = {
         hidden: { opacity: 0 },
@@ -137,44 +113,6 @@ export function ProfileSettings() {
                             </Button>
                         </div>
                     </Card>
-
-                    <Card className="overflow-hidden border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-md p-6">
-                        <form onSubmit={handleEmailLogin} className="space-y-4">
-                            <div className="space-y-2">
-                                <Input
-                                    type="email"
-                                    placeholder="이메일 주소"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="bg-white/50 dark:bg-black/20 border-white/20 h-11"
-                                    required
-                                />
-                                <Input
-                                    type="password"
-                                    placeholder="비밀번호"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="bg-white/50 dark:bg-black/20 border-white/20 h-11"
-                                    required
-                                />
-                            </div>
-
-                            {error && (
-                                <div className="flex items-center gap-2 text-rose-500 text-[11px] bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20">
-                                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                                    {error}
-                                </div>
-                            )}
-
-                            <Button
-                                type="submit"
-                                disabled={isLoggingIn}
-                                className="w-full h-11 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
-                            >
-                                {isLoggingIn ? "로그인 중..." : "이메일로 로그인"}
-                            </Button>
-                        </form>
-                    </Card>
                 </motion.div>
             )}
 
@@ -242,25 +180,29 @@ export function ProfileSettings() {
                             </div>
                         </Link>
 
-                        <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors group">
-                            <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                    <HelpCircle className="h-4 w-4" />
+                        <Link href="/terms" className="block group">
+                            <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                        <FileText className="h-4 w-4" />
+                                    </div>
+                                    <span className="font-semibold text-[13px]">이용약관</span>
                                 </div>
-                                <span className="font-semibold text-[13px]">고객 센터</span>
+                                <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
                             </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-                        </div>
+                        </Link>
 
-                        <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors group">
-                            <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                    <Shield className="h-4 w-4" />
+                        <Link href="/privacy" className="block group">
+                            <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                        <Shield className="h-4 w-4" />
+                                    </div>
+                                    <span className="font-semibold text-[13px]">개인정보 처리방침</span>
                                 </div>
-                                <span className="font-semibold text-[13px]">개인정보 처리방침</span>
+                                <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
                             </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
-                        </div>
+                        </Link>
                     </div>
                 </Card>
             </motion.div>

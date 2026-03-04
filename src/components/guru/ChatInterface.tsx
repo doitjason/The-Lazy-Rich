@@ -28,10 +28,25 @@ import Link from "next/link";
 import { PlusCircle, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-const QUICK_SUGGESTIONS: { [key in SupportedLanguage]: string[] } = {
-    ko: ["내 포트폴리오 분석해줘", "요즘 시황에 대해 의견을 들려줘"],
-    en: ["Analyze my portfolio", "What's your take on the current market?"],
-    vi: ["Phân tích danh mục của tôi", "Ý kiến của bạn về thị trường hiện tại?"],
+const getQuickSuggestions = (guruId: string, language: SupportedLanguage): string[] => {
+    const commonQuestion = language === "ko" ? "내 포트폴리오를 분석해주세요" : "Analyze my portfolio";
+
+    if (language !== "ko") {
+        return ["What's your take on the current market?", commonQuestion];
+    }
+
+    switch (guruId) {
+        case "sage":
+            return ["내재 가치 평가는 어떤 기준으로 하나요?", "기업의 경제적 해자는 어떻게 파악하나요?", commonQuestion];
+        case "hero":
+            return ["일상 속에서 10배 주식(텐배거)을 찾는 비결은?", "PEG 비율로 성장주를 평가하는 방법이 궁금해요", commonQuestion];
+        case "architect":
+            return ["현재 거시 경제는 사계절 중 어떤 계절인가요?", "올웨더 포트폴리오의 핵심 원칙은?", commonQuestion];
+        case "father":
+            return ["인덱스 펀드에 장기 투자해야 하는 명확한 이유는?", "수도 없이 생기는 테마주 투자의 위험성은?", commonQuestion];
+        default:
+            return ["요즘 시황에 대해 의견을 들려줘", commonQuestion];
+    }
 };
 
 export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage }: ChatInterfaceProps) {
@@ -258,20 +273,12 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
         >
-            {/* Info & Disclaimer Banner */}
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-2.5 mb-3 space-y-1">
-                <div className="flex items-center gap-2">
-                    <Bot className="h-3 w-3 text-amber-500/70 flex-shrink-0" />
-                    <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 leading-tight">
-                        AI Mentor는 원활한 대화를 위해 최근 20개의 메시지 맥락을 기억합니다.
-                    </p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-3 w-3 text-amber-500/70 flex-shrink-0" />
-                    <p className="text-[10px] text-amber-600/80 dark:text-amber-400/80 leading-tight font-medium">
-                        AI Mentor는 가상의 캐릭터이며 투자 권유가 아닙니다. 투자 책임은 본인에게 있습니다.
-                    </p>
-                </div>
+            {/* Minimal Legal Disclaimer */}
+            <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg py-1.5 px-3 mb-3 flex items-center justify-center gap-1.5 opacity-90">
+                <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+                <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-tight font-medium text-center">
+                    AI Mentor는 가상의 캐릭터이며 투자 권유가 아닙니다. 모든 투자 책임은 본인에게 있습니다.
+                </p>
             </div>
 
             {/* Header */}
@@ -322,7 +329,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                             <div
                                 className={`max-w-[80%] rounded-2xl p-3 text-sm shadow-sm ${message.role === "user"
                                     ? "bg-gradient-to-tr from-emerald-600 to-emerald-500 text-white shadow-emerald-500/10 rounded-tr-none"
-                                    : "bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/20 rounded-tl-none"
+                                    : "bg-white dark:bg-white/10 backdrop-blur-md border border-black/10 dark:border-white/20 rounded-tl-none shadow-sm"
                                     }`}
                             >
                                 {(() => {
@@ -427,7 +434,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                         <div className="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center border border-white/10 flex-shrink-0">
                             <Bot className="h-3.5 w-3.5 text-muted-foreground" />
                         </div>
-                        <div className="bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl rounded-tl-none p-3 max-w-[80%] text-sm shadow-sm">
+                        <div className="bg-white dark:bg-white/10 backdrop-blur-md border border-black/10 dark:border-white/20 rounded-2xl rounded-tl-none p-3 max-w-[80%] text-sm shadow-sm">
                             {(() => {
                                 // Simple check for streaming: if we have [CHART_DATA] but no closing tag, we might want to hide the raw JSON or show a "Generating chart..." indicator
                                 // For now, we'll just render text, but if a full block exists, render it.
@@ -506,7 +513,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                         <div className="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center border border-white/10 flex-shrink-0">
                             <Bot className="h-3.5 w-3.5 text-muted-foreground" />
                         </div>
-                        <div className="bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl rounded-tl-none p-3 text-sm shadow-sm">
+                        <div className="bg-white dark:bg-white/10 backdrop-blur-md border border-black/10 dark:border-white/20 rounded-2xl rounded-tl-none p-3 text-sm shadow-sm">
                             <div className="flex space-x-1 items-center h-5">
                                 <div className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                                 <div className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -529,7 +536,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
                     >
-                        {QUICK_SUGGESTIONS[language].map((suggestion) => (
+                        {getQuickSuggestions(guru.id, language).map((suggestion) => (
                             <button
                                 key={suggestion}
                                 onClick={() => {
@@ -614,7 +621,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder={`${guru.name}에게 질문하세요...`}
-                        className="pr-12 bg-white/50 dark:bg-black/20 border-white/20 backdrop-blur-md focus:ring-emerald-500/50"
+                        className="pr-12 bg-white dark:bg-black/20 border-black/10 dark:border-white/20 backdrop-blur-md focus:ring-emerald-500/50 shadow-sm"
                         disabled={isLoading || isPreparing}
                     />
                     <Button

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Loader2, HelpCircle, Share2, Download, TrendingUp, Search, DollarSign, CalendarDays } from "lucide-react";
+import { Loader2, HelpCircle, Share2, TrendingUp, Search, DollarSign, CalendarDays } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { toPng } from 'html-to-image';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -16,6 +15,7 @@ interface RegretResult {
     ticker: string;
     name: string;
     initialInvestment: number;
+    originalAmount: number;
     period: string;
     pastPrice: number;
     currentPrice: number;
@@ -28,6 +28,7 @@ interface RegretResult {
     avgPrice: number;
     dropFromAth: number;
     chartData: { name: string; value: number; stockPrice: number }[];
+    investmentType: "LUMP_SUM" | "DCA";
     actualPeriod?: string;
     quoteType?: string;
     isEtf?: boolean;
@@ -46,6 +47,8 @@ export function RegretCalculator() {
     const [stockName, setStockName] = useState("");
     const [amount, setAmount] = useState<number>(1000000);
     const [period, setPeriod] = useState<"1Y" | "3Y" | "5Y" | "10Y" | "20Y" | "30Y">("10Y");
+    const [investmentType, setInvestmentType] = useState<"LUMP_SUM" | "DCA">("LUMP_SUM");
+    const [rawData, setRawData] = useState<any>(null);
     const [result, setResult] = useState<RegretResult | null>(null);
     const [isCalculated, setIsCalculated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -57,37 +60,12 @@ export function RegretCalculator() {
     const [shouldAutoCalculate, setShouldAutoCalculate] = useState(false);
     const prevUrlParams = useRef({ ticker: "", amount: 0, period: "" });
 
-    const handleDownloadImage = useCallback(async () => {
-        if (resultRef.current === null) return;
-
-        try {
-            setIsLoading(true);
-            const isDark = document.documentElement.classList.contains('dark');
-            const dataUrl = await toPng(resultRef.current, {
-                cacheBust: true,
-                backgroundColor: isDark ? '#030712' : '#ffffff',
-                style: {
-                    borderRadius: '0',
-                    fontFamily: 'Pretendard, sans-serif'
-                }
-            });
-            const link = document.createElement('a');
-            link.download = `core-regret-result-${new Date().getTime()}.png`;
-            link.href = dataUrl;
-            link.click();
-        } catch (err) {
-            console.error('Failed to download image', err);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [resultRef]);
-
     const handleShare = useCallback(async () => {
         if (!result) return;
 
         const formattedInitial = currency === "KRW"
-            ? `${formatCompactNumber(result.initialInvestment)}원`
-            : `$${formatCompactNumber(result.initialInvestment)}`;
+            ? `${formatCompactNumber(result.investmentType === "DCA" ? result.originalAmount : result.initialInvestment)}원`
+            : `$${formatCompactNumber(result.investmentType === "DCA" ? result.originalAmount : result.initialInvestment)}`;
 
         let valueStr = formatCurrency(result.currentValue);
         if (currency === "KRW" && !valueStr.includes("원")) {
@@ -99,11 +77,12 @@ export function RegretCalculator() {
 
         let shareText = "";
         const formattedReturnRate = result.returnRate.toLocaleString(undefined, { maximumFractionDigits: 0 });
+        const actionText = result.investmentType === "DCA" ? `매월 꾸준히 ${formattedInitial}씩 모았으면` : `그때 ${formattedInitial} 투자했으면`;
 
         if (result.returnRate >= 0) {
-            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사자고 했제~? 그때 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${formattedReturnRate}%🔥🔥🔥`;
+            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사자고 했제~? ${actionText} 지금 ${valueStr}에 수익률이 ${formattedReturnRate}%🔥🔥🔥`;
         } else {
-            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사지 말자고 했제~? 그때 ${formattedInitial} 투자했으면 지금 ${valueStr}에 수익률이 ${formattedReturnRate}%... 😢😢😢`;
+            shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사지 말자고 했제~? ${actionText} 지금 ${valueStr}에 수익률이 ${formattedReturnRate}%... 😢😢😢`;
         }
 
         shareText += `\n\n지금 했제 계산기에서 다른 종목들도 확인해보세요!`;
@@ -224,18 +203,185 @@ export function RegretCalculator() {
         setResult(null);
     };
 
+    const calculateCore = (data: any, type: "LUMP_SUM" | "DCA", amt: number, per: string): RegretResult => {
+        const { pastPrice, currentPrice, pastExchangeRate, currentExchangeRate, chartData, name, actualStartDate } = data;
+        const isStockKrw = data.currency === "KRW";
+        const pastRate = pastExchangeRate || exchangeRate;
+        const currRate = currentExchangeRate || exchangeRate;
+
+        // Make mathematical inputs safe
+        let accumulatedShares = 0;
+        let accumulatedInvested = 0;
+        let lastMonth = "";
+
+        // Build chart data
+        const investmentChartData = chartData.map((point: any) => {
+            const pointRateMatch = point.exchangeRate || currRate;
+            const pointRate = pointRateMatch > 0 ? pointRateMatch : 1;
+            const safePrice = point.price > 0 ? point.price : 1;
+            const currentMonth = point.name.substring(0, 7);
+
+            if (type === "LUMP_SUM") {
+                if (accumulatedInvested === 0) {
+                    const safeAmount = isNaN(amt) || !isFinite(amt) ? 0 : Math.max(0, amt);
+                    accumulatedInvested = safeAmount;
+                    if (isStockKrw) {
+                        accumulatedShares = currency === "KRW" ? safeAmount / safePrice : (safeAmount * pointRate) / safePrice;
+                    } else {
+                        accumulatedShares = currency === "KRW" ? (safeAmount / pointRate) / safePrice : safeAmount / safePrice;
+                    }
+                }
+            } else {
+                if (currentMonth !== lastMonth) {
+                    lastMonth = currentMonth;
+                    const safeAmount = isNaN(amt) || !isFinite(amt) ? 0 : Math.max(0, amt);
+                    accumulatedInvested += safeAmount;
+                    if (isStockKrw) {
+                        accumulatedShares += currency === "KRW" ? safeAmount / safePrice : (safeAmount * pointRate) / safePrice;
+                    } else {
+                        accumulatedShares += currency === "KRW" ? (safeAmount / pointRate) / safePrice : safeAmount / safePrice;
+                    }
+                }
+            }
+
+            let valueOutput = 0;
+            let stockPriceOutput = 0;
+            if (isStockKrw) {
+                if (currency === "KRW") {
+                    valueOutput = accumulatedShares * point.price;
+                    stockPriceOutput = point.price;
+                } else {
+                    valueOutput = (accumulatedShares * point.price) / pointRate;
+                    stockPriceOutput = point.price / pointRate;
+                }
+            } else {
+                const multiplier = currency === "KRW" ? pointRate : 1;
+                valueOutput = accumulatedShares * point.price * multiplier;
+                stockPriceOutput = point.price * multiplier;
+            }
+
+            return {
+                name: point.name,
+                value: Math.round(valueOutput),
+                stockPrice: stockPriceOutput,
+            };
+        }).filter((p: any) => p.value > 0 && !isNaN(p.value) && isFinite(p.value) && isFinite(p.stockPrice));
+
+        let shares = accumulatedShares;
+        if (!isFinite(shares)) shares = 0;
+
+        // Use the last point's value as current value
+        let currentValueDisplay = investmentChartData.length > 0 ? investmentChartData[investmentChartData.length - 1].value : 0;
+        if (!isFinite(currentValueDisplay)) currentValueDisplay = Number.MAX_SAFE_INTEGER;
+
+        const profitDisplay = currentValueDisplay - accumulatedInvested;
+        let returnRate = accumulatedInvested > 0 ? (profitDisplay / accumulatedInvested) * 100 : 0;
+        if (!isFinite(returnRate) || isNaN(returnRate)) returnRate = 0;
+
+        // Calculate MDD and Drop From ATH
+        let peakValue = investmentChartData[0]?.value || 0;
+        let peakDate = investmentChartData[0]?.name || "";
+        let maxDrawdown = 0;
+        let mddStart = peakDate;
+        let mddEnd = peakDate;
+        let athPrice = investmentChartData[0]?.stockPrice || 0;
+
+        for (const point of investmentChartData) {
+            if (point.value > peakValue) {
+                peakValue = point.value;
+                peakDate = point.name;
+            }
+            const drawdown = peakValue > 0 ? (peakValue - point.value) / peakValue : 0;
+            if (drawdown > maxDrawdown) {
+                maxDrawdown = drawdown;
+                mddStart = peakDate;
+                mddEnd = point.name;
+            }
+            if (point.stockPrice > athPrice) athPrice = point.stockPrice;
+        }
+
+        const mdd = maxDrawdown * 100;
+        const lastStockPrice = investmentChartData.length > 0 ? investmentChartData[investmentChartData.length - 1].stockPrice : 0;
+        const dropFromAth = athPrice > 0 ? ((lastStockPrice - athPrice) / athPrice) * 100 : 0;
+
+        const firstDate = new Date(investmentChartData[0]?.name || actualStartDate || Date.now());
+        const lastDate = new Date(investmentChartData[investmentChartData.length - 1]?.name || Date.now());
+        const diffYears = (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+
+        let cagr = 0;
+        if (type === "LUMP_SUM") {
+            cagr = diffYears > 0.1 && accumulatedInvested > 0 ? ((Math.pow(currentValueDisplay / accumulatedInvested, 1 / diffYears) - 1) * 100) : 0;
+        } else {
+            cagr = diffYears > 0.1 && accumulatedInvested > 0 ? ((Math.pow(currentValueDisplay / accumulatedInvested, 1 / (diffYears / 2)) - 1) * 100) : 0;
+        }
+        if (!isFinite(cagr) || isNaN(cagr)) cagr = 0;
+
+        const pastRateOutput = pastExchangeRate || exchangeRate;
+        const currRateOutput = currentExchangeRate || exchangeRate;
+
+        // Avg price is Total Invested / Total Shares 
+        let displayAvgPrice = shares > 0 ? accumulatedInvested / shares : 0;
+        if (!isFinite(displayAvgPrice) || isNaN(displayAvgPrice)) displayAvgPrice = 0;
+
+        let displayPastPrice: number;
+        let displayCurrentPrice: number;
+        if (isStockKrw) {
+            if (currency === "KRW") {
+                displayPastPrice = pastPrice;
+                displayCurrentPrice = currentPrice;
+                if (type === "LUMP_SUM") displayAvgPrice = pastPrice;
+            } else {
+                displayPastPrice = pastPrice / pastRateOutput;
+                displayCurrentPrice = currentPrice / currRateOutput;
+                if (type === "LUMP_SUM") displayAvgPrice = pastPrice / pastRateOutput;
+            }
+        } else {
+            if (currency === "KRW") {
+                displayPastPrice = pastPrice * pastRateOutput;
+                displayCurrentPrice = currentPrice * currRateOutput;
+                if (type === "LUMP_SUM") displayAvgPrice = pastPrice * pastRateOutput;
+            } else {
+                displayPastPrice = pastPrice;
+                displayCurrentPrice = currentPrice;
+                if (type === "LUMP_SUM") displayAvgPrice = pastPrice;
+            }
+        }
+
+        return {
+            investmentType: type,
+            ticker: data.ticker,
+            name: name || stockName,
+            initialInvestment: accumulatedInvested, // Total invested
+            originalAmount: amt,
+            period: per,
+            pastPrice: displayPastPrice,
+            currentPrice: displayCurrentPrice,
+            currentValue: currentValueDisplay,
+            profit: profitDisplay,
+            returnRate,
+            cagr,
+            mdd,
+            quantity: shares,
+            avgPrice: displayAvgPrice,
+            dropFromAth,
+            chartData: investmentChartData,
+            actualPeriod: actualStartDate ? `${new Date(actualStartDate).getFullYear()}` : undefined,
+            pastExchangeRate: (currency === "KRW" && !isStockKrw) ? pastRateOutput : undefined,
+            currentExchangeRate: (currency === "KRW" && !isStockKrw) ? currRateOutput : undefined,
+            mddPeriod: { start: mddStart, end: mddEnd },
+            quoteType: data.quoteType,
+            isEtf: data.isEtf || data.quoteType === "ETF" || ["SPY", "QQQ", "VOO", "IVV", "VTI", "DIA", "IWM", "VEA", "VWO", "XLF", "XLK", "XLE", "XLV", "XLP", "XLU", "XLI", "XLB", "XLY", "XLC", "XLRE"].includes(data.ticker.toUpperCase()),
+            isKrwBased: isStockKrw
+        };
+    };
+
     const onCalculate = async () => {
         if (!ticker) return;
 
         setIsLoading(true);
         setError(null);
 
-        // Sanitize mathematical inputs to prevent NaN or Infinity propagation
-        const safeAmount = isNaN(amount) || !isFinite(amount) ? 0 : Math.max(0, amount);
-
-
         try {
-            // Fetch historical data from API
             const res = await fetch(`/api/stock/historical?ticker=${encodeURIComponent(ticker)}&period=${period}`);
             const data = await res.json();
 
@@ -245,169 +391,9 @@ export function RegretCalculator() {
                 return;
             }
 
-            const { pastPrice, currentPrice, pastExchangeRate, currentExchangeRate, chartData, name, actualStartDate } = data;
-
-            // Detect if the stock's native currency is KRW (Korean stocks like .KS)
-            const isStockKrw = data.currency === "KRW";
-
-            // Use fetched historical exchange rates or fallback to current context rate
-            const pastRate = pastExchangeRate || exchangeRate;
-            const currRate = currentExchangeRate || exchangeRate;
-
-            // ---- Calculate shares and current value ----
-            // Key insight: Korean stocks (.KS) have prices in KRW from Yahoo Finance,
-            // while US stocks have prices in USD. We must handle both cases properly.
-            let shares: number;
-            let currentValueDisplay: number;
-
-            if (isStockKrw) {
-                if (currency === "KRW") {
-                    // Both investment and stock prices are in KRW - no conversion needed
-                    shares = safeAmount / pastPrice;
-                    currentValueDisplay = shares * currentPrice;
-                } else {
-                    // Investment in USD, stock in KRW - convert USD investment to KRW first
-                    const investmentKRW = safeAmount * pastRate;
-                    shares = investmentKRW / pastPrice;
-                    const currentValueKRW = shares * currentPrice;
-                    currentValueDisplay = currentValueKRW / currRate;
-                }
-            } else {
-                // Stock prices are in USD (original logic)
-                const investmentUSD = currency === "KRW" ? safeAmount / pastRate : safeAmount;
-                shares = investmentUSD / pastPrice;
-                const currentValueUSD = shares * currentPrice;
-                currentValueDisplay = currency === "KRW" ? currentValueUSD * currRate : currentValueUSD;
-            }
-
-            // Cap infinite limits to Number.MAX_SAFE_INTEGER
-            if (!isFinite(currentValueDisplay)) currentValueDisplay = Number.MAX_SAFE_INTEGER;
-            if (!isFinite(shares)) shares = 0;
-
-            const profitDisplay = currentValueDisplay - safeAmount;
-            const returnRate = safeAmount > 0 ? (profitDisplay / safeAmount) * 100 : 0;
-
-            // Build chart data using monthly exchange rates if available
-            const investmentChartData = chartData.map((point: any) => {
-                if (isStockKrw) {
-                    if (currency === "KRW") {
-                        // Stock KRW, display KRW: direct calculation
-                        return {
-                            name: point.name,
-                            value: Math.round(shares * point.price),
-                            stockPrice: point.price,
-                        };
-                    } else {
-                        // Stock KRW, display USD: convert KRW values to USD
-                        const pointRate = point.exchangeRate || currRate;
-                        return {
-                            name: point.name,
-                            value: Math.round((shares * point.price) / pointRate),
-                            stockPrice: point.price / pointRate,
-                        };
-                    }
-                } else {
-                    // Stock USD (original logic)
-                    const pointRate = point.exchangeRate || currRate;
-                    const multiplier = currency === "KRW" ? pointRate : 1;
-                    const valueUSD = shares * point.price;
-                    return {
-                        name: point.name,
-                        value: Math.round(valueUSD * multiplier),
-                        stockPrice: point.price * multiplier,
-                    };
-                }
-            }).filter((p: any) => p.value > 0 && !isNaN(p.value)); // Safety filter
-
-            // Calculate MDD and Drop From ATH
-            let peakValue = investmentChartData[0].value;
-            let peakDate = investmentChartData[0].name;
-            let maxDrawdown = 0;
-            let mddStart = investmentChartData[0].name;
-            let mddEnd = investmentChartData[0].name;
-            let athPrice = investmentChartData[0].stockPrice;
-
-            for (const point of investmentChartData) {
-                // MDD (Portfolio Value)
-                if (point.value > peakValue) {
-                    peakValue = point.value;
-                    peakDate = point.name;
-                }
-                const drawdown = (peakValue - point.value) / peakValue;
-                if (drawdown > maxDrawdown) {
-                    maxDrawdown = drawdown;
-                    mddStart = peakDate;
-                    mddEnd = point.name;
-                }
-
-                // ATH Price
-                if (point.stockPrice > athPrice) athPrice = point.stockPrice;
-            }
-
-            const mdd = maxDrawdown * 100;
-            const dropFromAth = ((investmentChartData[investmentChartData.length - 1].stockPrice - athPrice) / athPrice) * 100;
-
-            // Calculate CAGR based on actual time difference between data points
-            const firstDate = new Date(investmentChartData[0].name);
-            const lastDate = new Date(investmentChartData[investmentChartData.length - 1].name);
-            const diffYears = (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
-
-            const cagr = diffYears > 0.1
-                ? ((Math.pow(currentValueDisplay / amount, 1 / diffYears) - 1) * 100)
-                : 0;
-
-            const pastRateOutput = pastExchangeRate || exchangeRate;
-            const currRateOutput = currentExchangeRate || exchangeRate;
-
-            // Calculate display prices for pastPrice/avgPrice
-            // For KRW stocks: prices are already in KRW, for USD stocks: convert if needed
-            let displayPastPrice: number;
-            let displayCurrentPrice: number;
-            if (isStockKrw) {
-                if (currency === "KRW") {
-                    displayPastPrice = pastPrice;        // Already KRW
-                    displayCurrentPrice = currentPrice;  // Already KRW
-                } else {
-                    displayPastPrice = pastPrice / pastRateOutput;     // Convert KRW to USD
-                    displayCurrentPrice = currentPrice / currRateOutput; // Convert KRW to USD
-                }
-            } else {
-                if (currency === "KRW") {
-                    displayPastPrice = pastPrice * pastRateOutput;     // Convert USD to KRW
-                    displayCurrentPrice = currentPrice * currRateOutput; // Convert USD to KRW
-                } else {
-                    displayPastPrice = pastPrice;        // Already USD
-                    displayCurrentPrice = currentPrice;  // Already USD
-                }
-            }
-
-            setResult({
-                ticker: data.ticker,
-                name: name || stockName,
-                initialInvestment: amount,
-                period,
-                pastPrice: displayPastPrice,
-                currentPrice: displayCurrentPrice,
-                currentValue: currentValueDisplay,
-                profit: profitDisplay,
-                returnRate,
-                cagr,
-                mdd,
-                quantity: shares,
-                avgPrice: displayPastPrice,
-                dropFromAth,
-                chartData: investmentChartData,
-                actualPeriod: actualStartDate ? `${new Date(actualStartDate).getFullYear()}` : undefined,
-                pastExchangeRate: (currency === "KRW" && !isStockKrw) ? pastRateOutput : undefined,
-                currentExchangeRate: (currency === "KRW" && !isStockKrw) ? currRateOutput : undefined,
-                mddPeriod: {
-                    start: mddStart,
-                    end: mddEnd
-                },
-                quoteType: data.quoteType,
-                isEtf: data.isEtf || data.quoteType === "ETF" || ["SPY", "QQQ", "VOO", "IVV", "VTI", "DIA", "IWM", "VEA", "VWO", "XLF", "XLK", "XLE", "XLV", "XLP", "XLU", "XLI", "XLB", "XLY", "XLC", "XLRE"].includes(data.ticker.toUpperCase()),
-                isKrwBased: isStockKrw
-            });
+            setRawData(data); // Cache the raw data
+            const calcedResult = calculateCore(data, investmentType, amount, period);
+            setResult(calcedResult);
             setIsCalculated(true);
         } catch (err) {
             console.error("Calculate error:", err);
@@ -415,6 +401,27 @@ export function RegretCalculator() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSwitchMode = () => {
+        if (!rawData) return;
+        const newType = investmentType === "LUMP_SUM" ? "DCA" : "LUMP_SUM";
+        setInvestmentType(newType);
+
+        // update amount automatically to a sensible default if switching
+        let newAmt = amount;
+        if (newType === "DCA") {
+            newAmt = currency === "KRW" ? 100000 : 100;
+        } else {
+            newAmt = currency === "KRW" ? 1000000 : 1000;
+        }
+        setAmount(newAmt);
+
+        const calcedResult = calculateCore(rawData, newType, newAmt, period);
+        setResult(calcedResult);
+
+        // Let it stay at the bottom, because the user just clicked there, 
+        // they want to see the numbers switch!
     };
 
     return (
@@ -453,16 +460,34 @@ export function RegretCalculator() {
                     {/* Section Divider */}
                     <div className="border-t border-white/[0.06]" />
 
-                    {/* 2. Amount Selection (Modern Chips) */}
-                    <div className="space-y-3">
-                        <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                            <DollarSign className="w-3.5 h-3.5 text-emerald-500/70" />
-                            기준 투자 금액 ({currency === "KRW" ? "원" : "$"})
-                        </label>
+                    {/* 2. Amount Selection & Small Toggle */}
+                    <div className="space-y-3 pt-2">
+                        <div className="flex items-center justify-between ml-1 pr-1">
+                            <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider flex items-center gap-1.5">
+                                <DollarSign className="w-3.5 h-3.5 text-emerald-500/70" />
+                                {investmentType === "LUMP_SUM" ? "일시 투자금액" : "매월 투자금액"} ({currency === "KRW" ? "원" : "$"})
+                            </label>
+
+                            {/* Small Compact Toggle */}
+                            <div className="flex bg-gray-100/80 dark:bg-black/40 p-0.5 rounded-lg border border-black/5 dark:border-white/10 shadow-inner">
+                                <button
+                                    onClick={() => { setInvestmentType("LUMP_SUM"); setIsAmountManuallySet(false); if (currency === "KRW") setAmount(1000000); else setAmount(1000); }}
+                                    className={cn("px-2.5 py-1 text-[11px] font-bold rounded-md transition-all", investmentType === "LUMP_SUM" ? "bg-white dark:bg-white/10 text-emerald-600 dark:text-emerald-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10" : "text-muted-foreground hover:text-foreground")}
+                                >
+                                    거치식
+                                </button>
+                                <button
+                                    onClick={() => { setInvestmentType("DCA"); setIsAmountManuallySet(false); if (currency === "KRW") setAmount(100000); else setAmount(100); }}
+                                    className={cn("px-2.5 py-1 text-[11px] font-bold rounded-md transition-all", investmentType === "DCA" ? "bg-white dark:bg-white/10 text-emerald-600 dark:text-emerald-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10" : "text-muted-foreground hover:text-foreground")}
+                                >
+                                    적립식
+                                </button>
+                            </div>
+                        </div>
                         <div className="grid grid-cols-4 gap-2">
                             {(currency === "KRW"
-                                ? [100000, 500000, 1000000, 10000000]
-                                : [1000, 5000, 10000, 50000]
+                                ? (investmentType === "LUMP_SUM" ? [100000, 500000, 1000000, 10000000] : [100000, 300000, 500000, 1000000])
+                                : (investmentType === "LUMP_SUM" ? [1000, 5000, 10000, 50000] : [100, 300, 500, 1000])
                             ).map((amt) => (
                                 <button
                                     key={amt}
@@ -550,7 +575,7 @@ export function RegretCalculator() {
                 <div className="space-y-6">
                     {result ? (
                         <Card ref={resultRef} className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
-                            <CardContent className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-2 sm:px-6 text-center space-y-2 relative z-10">
+                            <CardContent className="pt-6 sm:pt-8 pb-4 sm:pb-5 px-2 sm:px-6 text-center space-y-2 relative z-10">
                                 {/* Stock Name & Ticker */}
                                 <div className="flex flex-col items-center gap-1 mb-4 w-full">
                                     {/* Conditionally show logo for individual stocks, hide for ETFs */}
@@ -584,7 +609,8 @@ export function RegretCalculator() {
                                 {result.actualPeriod && (
                                     <div className="flex flex-col items-center justify-center gap-1 mb-2">
                                         <p className="text-xs text-muted-foreground">
-                                            {result.actualPeriod}년부터 {currency === "KRW" ? `${formatCompactNumber(result.initialInvestment)}원` : `$${formatCompactNumber(result.initialInvestment)}`} 거치식으로 투자
+                                            {result.actualPeriod}년부터 {currency === "KRW" ? `${formatCompactNumber(result.originalAmount)}원` : `$${formatCompactNumber(result.originalAmount)}`} {result.investmentType === "DCA" ? "매월 적립식으로 투자" : "거치식으로 투자"}
+                                            {result.investmentType === "DCA" && <span className="block mt-0.5 opacity-70">(총 누적 원금: {currency === "KRW" ? `${formatCompactNumber(result.initialInvestment)}원` : `$${formatCompactNumber(result.initialInvestment)}`})</span>}
                                         </p>
                                         {result.pastExchangeRate && result.currentExchangeRate && !(currency === "KRW" && (result as any).isKrwBased) && (
                                             <p className="text-xs text-muted-foreground">
@@ -818,6 +844,21 @@ export function RegretCalculator() {
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
+
+                                {/* Cross-Sell Feature (Mode Switch) Moved inside the card */}
+                                <div className="mt-6 flex justify-center w-full px-1">
+                                    <button
+                                        onClick={handleSwitchMode}
+                                        className="w-full sm:w-auto text-[10px] min-[360px]:text-[11px] sm:text-sm font-bold text-foreground/70 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center gap-1 sm:gap-2 px-1 min-[360px]:px-2 sm:px-6 py-3 sm:py-3.5 rounded-2xl border border-black/5 dark:border-white/10 bg-gray-50/50 hover:bg-gray-100 dark:bg-white/[0.02] dark:hover:bg-white/[0.06] transition-all duration-300 shadow-sm active:scale-95 group"
+                                    >
+                                        <TrendingUp className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-emerald-500 shrink-0 group-hover:animate-bounce" />
+                                        <span className="whitespace-nowrap tracking-tighter sm:tracking-normal">
+                                            {investmentType === "LUMP_SUM"
+                                                ? "만약 적립식으로 투자했다면 수익률은 어땠을까요? 🔄"
+                                                : "만약 거치식으로 투자했다면 수익률은 어땠을까요? 🔄"}
+                                        </span>
+                                    </button>
+                                </div>
                             </CardContent>
                         </Card>
                     ) : (
@@ -827,21 +868,13 @@ export function RegretCalculator() {
                             </CardContent>
                         </Card>
                     )}
-                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-6">
+                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-6 pb-8">
                         <Button
                             onClick={handleShare}
-                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2"
+                            className="w-full sm:flex-1 max-w-sm h-14 text-base font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2"
                         >
                             <Share2 className="w-5 h-5 text-white" />
-                            <span>친구에게 공유하기</span>
-                        </Button>
-                        <Button
-                            onClick={handleDownloadImage}
-                            disabled={isLoading}
-                            className="w-full sm:flex-1 h-12 text-base font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
-                        >
-                            <Download className="w-5 h-5 text-white" />
-                            <span>이미지로 저장하기</span>
+                            <span>친구에게 결과 공유하기</span>
                         </Button>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ import { Info, ExternalLink } from "lucide-react";
 import { Metadata } from "next";
 import { BackButton } from "@/components/insights/BackButton";
 import { fetchNaverBook } from "@/lib/naver-books";
+import { SITE_CONFIG } from "@/lib/constants";
 
 interface PageProps {
     params: Promise<{
@@ -86,17 +87,17 @@ export default async function BookDetailPage({ params }: PageProps) {
                         author: {
                             "@type": "Organization",
                             name: "TRIFOLI",
-                            url: "https://trifoli.kr",
+                            url: SITE_CONFIG.url,
                         },
                         publisher: {
                             "@type": "Organization",
                             name: "TRIFOLI",
-                            url: "https://trifoli.kr",
+                            url: SITE_CONFIG.url,
                         },
                         reviewBody: book.description,
                         mainEntityOfPage: {
                             "@type": "WebPage",
-                            "@id": `https://trifoli.kr/insights/books/${book.id}`,
+                            "@id": `${SITE_CONFIG.url}/insights/books/${book.id}`,
                         },
                     }),
                 }}
