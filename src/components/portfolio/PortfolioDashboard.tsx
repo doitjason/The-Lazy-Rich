@@ -1043,7 +1043,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                     </div>
 
                                     {/* Actions Menu */}
-                                    <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10" onClick={(e) => e.stopPropagation()}>
+                                    <div className="absolute right-2 top-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10" onClick={(e) => e.stopPropagation()}>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="h-6 w-6">
