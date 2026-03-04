@@ -266,6 +266,9 @@ export function PortfolioRegretCalculator() {
         setIsLoading(true);
         setError(null);
 
+        // Sanitize mathematical inputs
+        const safeAmount = isNaN(amount) || !isFinite(amount) ? 0 : Math.max(0, amount);
+
         try {
             // Fetch history for all assets
             const responses = await Promise.all(
@@ -328,7 +331,7 @@ export function PortfolioRegretCalculator() {
             const assetInvestments = validAssets.map(asset => {
                 const assetCurrency = assetCurrencyMap.get(asset.ticker) || "USD";
                 const isAssetKrw = assetCurrency === "KRW";
-                const assetAmount = amount * (asset.weight / 100); // Amount in user's currency
+                const assetAmount = safeAmount * (asset.weight / 100); // Amount in user's currency
 
                 let initialAmountInNative: number;
                 if (isAssetKrw) {
@@ -417,7 +420,7 @@ export function PortfolioRegretCalculator() {
                     }
 
                     // 2. Add to chart data (already in display currency)
-                    if (totalValueDisplay > 0 && !isNaN(totalValueDisplay)) {
+                    if (totalValueDisplay > 0 && !isNaN(totalValueDisplay) && isFinite(totalValueDisplay)) {
                         portfolioChartData.push({
                             name: dateLabel,
                             value: Math.round(totalValueDisplay)
@@ -458,8 +461,9 @@ export function PortfolioRegretCalculator() {
             }
 
             // Final Results calculation
-            const finalValue = portfolioChartData[portfolioChartData.length - 1].value;
-            const initialInvestment = Math.round(amount); // Initial investment in selected currency
+            let finalValue = portfolioChartData[portfolioChartData.length - 1]?.value || 0;
+            if (!isFinite(finalValue)) finalValue = Number.MAX_SAFE_INTEGER;
+            const initialInvestment = Math.round(safeAmount); // Initial investment in selected currency
 
             // Individual Asset Performance
             const assetResults = assetInvestments.map(inv => {
@@ -474,10 +478,11 @@ export function PortfolioRegretCalculator() {
                 const endPrice = aligned.data[aligned.data.length - 1].price;
 
                 // Calculate initial and final value of this asset in the display currency
-                const shares = inv.initialAmount / startPrice;
+                let shares = inv.initialAmount / startPrice;
+                if (!isFinite(shares)) shares = 0;
                 const finalValNative = shares * endPrice;
 
-                const initialAssetValDisplay = amount * (inv.weight / 100); // Initial value in display currency
+                const initialAssetValDisplay = safeAmount * (inv.weight / 100); // Initial value in display currency
                 let finalAssetValDisplay: number;
                 if (inv.isKrw) {
                     finalAssetValDisplay = currency === "KRW" ? finalValNative : finalValNative / currentExchangeRate;

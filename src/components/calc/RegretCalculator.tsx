@@ -230,6 +230,10 @@ export function RegretCalculator() {
         setIsLoading(true);
         setError(null);
 
+        // Sanitize mathematical inputs to prevent NaN or Infinity propagation
+        const safeAmount = isNaN(amount) || !isFinite(amount) ? 0 : Math.max(0, amount);
+
+
         try {
             // Fetch historical data from API
             const res = await fetch(`/api/stock/historical?ticker=${encodeURIComponent(ticker)}&period=${period}`);
@@ -259,25 +263,29 @@ export function RegretCalculator() {
             if (isStockKrw) {
                 if (currency === "KRW") {
                     // Both investment and stock prices are in KRW - no conversion needed
-                    shares = amount / pastPrice;
+                    shares = safeAmount / pastPrice;
                     currentValueDisplay = shares * currentPrice;
                 } else {
                     // Investment in USD, stock in KRW - convert USD investment to KRW first
-                    const investmentKRW = amount * pastRate;
+                    const investmentKRW = safeAmount * pastRate;
                     shares = investmentKRW / pastPrice;
                     const currentValueKRW = shares * currentPrice;
                     currentValueDisplay = currentValueKRW / currRate;
                 }
             } else {
                 // Stock prices are in USD (original logic)
-                const investmentUSD = currency === "KRW" ? amount / pastRate : amount;
+                const investmentUSD = currency === "KRW" ? safeAmount / pastRate : safeAmount;
                 shares = investmentUSD / pastPrice;
                 const currentValueUSD = shares * currentPrice;
                 currentValueDisplay = currency === "KRW" ? currentValueUSD * currRate : currentValueUSD;
             }
 
-            const profitDisplay = currentValueDisplay - amount;
-            const returnRate = (profitDisplay / amount) * 100;
+            // Cap infinite limits to Number.MAX_SAFE_INTEGER
+            if (!isFinite(currentValueDisplay)) currentValueDisplay = Number.MAX_SAFE_INTEGER;
+            if (!isFinite(shares)) shares = 0;
+
+            const profitDisplay = currentValueDisplay - safeAmount;
+            const returnRate = safeAmount > 0 ? (profitDisplay / safeAmount) * 100 : 0;
 
             // Build chart data using monthly exchange rates if available
             const investmentChartData = chartData.map((point: any) => {

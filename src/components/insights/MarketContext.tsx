@@ -291,7 +291,7 @@ export function MarketContext() {
                                                     {(macro.snp500DistanceMA200 ?? 0) >= 0 ? "+" : ""}{macro.snp500DistanceMA200?.toFixed(2) ?? "N/A"}%
                                                 </span>
                                                 <span className="text-[10px] font-bold text-muted-foreground/50 whitespace-nowrap shrink-0">
-                                                    ({indices.snp500.price.toLocaleString()})
+                                                    ({indices?.snp500?.price?.toLocaleString() ?? "N/A"})
                                                 </span>
                                             </div>
                                         </div>
@@ -352,7 +352,7 @@ export function MarketContext() {
                                             <span className={cn("text-[9px] font-black uppercase tracking-widest whitespace-nowrap", realRateTheme.meta)}>Real Rate (Nominal - {macro.expectedInflation}%)</span>
                                             <div className="flex items-baseline gap-2 flex-nowrap">
                                                 <span className={cn("text-xl font-black tracking-tighter tabular-nums whitespace-nowrap", realRateTheme.text)}>
-                                                    {macro.realRate.toFixed(2)}
+                                                    {(macro.realRate ?? 0).toFixed(2)}
                                                     <span className="text-base font-bold ml-0.5">%</span>
                                                 </span>
                                             </div>
@@ -383,7 +383,7 @@ export function MarketContext() {
                                             <span className={cn("text-[9px] font-black uppercase tracking-widest whitespace-nowrap", vixTheme.meta)}>Volatility Index (VIX)</span>
                                             <div className="flex items-baseline gap-1.5 flex-nowrap">
                                                 <span className={cn("text-xl font-black tracking-tighter tabular-nums whitespace-nowrap", vixTheme.text)}>
-                                                    {macro.vix.toFixed(2)}
+                                                    {(macro.vix ?? 0).toFixed(2)}
                                                 </span>
                                                 {macro.vixDistanceMA50 !== null && (
                                                     <span className={cn(
@@ -531,22 +531,22 @@ export function MarketContext() {
                                                     </h4>
                                                     <p className="text-[15px] font-medium text-foreground/90 leading-relaxed break-keep">
                                                         {selectedDetail === "snp500" && (
-                                                            `현재 S&P 500 지수가 200일 이동평균선 대비 ${macro.snp500DistanceMA200?.toFixed(2)}% ${macro.snp500DistanceMA200! >= 0 ? '상단' : '하단'}에 위치한 것으로 관측됩니다. 이는 시장의 장기적인 에너지가 ${marketCondition.snp500Trend === 'Bull' ? '유지되고 있음' : '다소 약화되었음'}을 시사하는 '${statusLabels[marketCondition.snp500Trend]}' 국면으로 해석될 수 있습니다.`
+                                                            `현재 S&P 500 지수가 200일 이동평균선 대비 ${macro.snp500DistanceMA200?.toFixed(2) ?? 'N/A'}% ${(macro.snp500DistanceMA200 ?? 0) >= 0 ? '상단' : '하단'}에 위치한 것으로 관측됩니다. 이는 시장의 장기적인 에너지가 ${marketCondition.snp500Trend === 'Bull' ? '유지되고 있음' : '다소 약화되었음'}을 시사하는 '${statusLabels[marketCondition.snp500Trend] || marketCondition.snp500Trend}' 국면으로 해석될 수 있습니다.`
                                                         )}
                                                         {selectedDetail === "yieldSpread" && (
-                                                            `장단기 금리차(10Y-3M)가 ${macro.yieldSpread10Y3M?.toFixed(2)}%p 수준을 기록하고 있습니다. ${macro.yieldSpread10Y3M! < 0 ? '수치가 마이너스 영역에 머물며 경기에 대한 주의가 필요한' : '스프레드가 양의 값을 유지하며 경기가 완만한 흐름을 보이는'} '${statusLabels[marketCondition.yieldSpreadStatus]}' 상태로 풀이됩니다.`
+                                                            `장단기 금리차(10Y-3M)가 ${macro.yieldSpread10Y3M?.toFixed(2) ?? 'N/A'}%p 수준을 기록하고 있습니다. ${(macro.yieldSpread10Y3M ?? 0) < 0 ? '수치가 마이너스 영역에 머물며 경기에 대한 주의가 필요한' : '스프레드가 양의 값을 유지하며 경기가 완만한 흐름을 보이는'} '${statusLabels[marketCondition.yieldSpreadStatus] || marketCondition.yieldSpreadStatus}' 상태로 풀이됩니다.`
                                                         )}
                                                         {selectedDetail === "realRate" && (
-                                                            `실질 금리가 ${macro.realRate.toFixed(2)}% 수준으로 산출되었습니다. 물가 상승률을 고려한 화폐의 실질 가치가 ${macro.realRate > 2 ? '상당히 높아 유동성 위축 가능성이 존재하는' : '상대적으로 낮아 자산 시장에 우호적일 수 있는'} '${statusLabels[marketCondition.realRateStatus]}' 환경으로 판단됩니다.`
+                                                            `실질 금리가 ${(macro.realRate ?? 0).toFixed(2)}% 수준으로 산출되었습니다. 물가 상승률을 고려한 화폐의 실질 가치가 ${(macro.realRate ?? 0) > 2 ? '상당히 높아 유동성 위축 가능성이 존재하는' : '상대적으로 낮아 자산 시장에 우호적일 수 있는'} '${statusLabels[marketCondition.realRateStatus] || marketCondition.realRateStatus}' 환경으로 판단됩니다.`
                                                         )}
                                                         {selectedDetail === "vix" && (
-                                                            `변동성 지수(VIX)가 ${macro.vix.toFixed(2)} 포인트 부근에서 움직이고 있습니다. 이는 전일 대비 ${Math.abs(macro.vixChangePercent).toFixed(2)}% ${macro.vixChangePercent >= 0 ? '상승하며 공포 심리가 확산되는' : '하락하며 투자 심리가 진정되어가는'} 추세입니다. 특히 50일 평균 대비 ${Math.abs(macro.vixDistanceMA50 ?? 0).toFixed(1)}% ${macro.vixDistanceMA50! >= 0 ? '상회하고 있어, 시장의 변동성 체급 자체가 전반적으로 높아진(High Volatility Regime)' : '하회하고 있어, 여전히 구조적인 안정권에 머물러 있는'} 상태로 해석할 수 있습니다.`
+                                                            `변동성 지수(VIX)가 ${(macro.vix ?? 0).toFixed(2)} 포인트 부근에서 움직이고 있습니다. 이는 전일 대비 ${Math.abs(macro.vixChangePercent ?? 0).toFixed(2)}% ${(macro.vixChangePercent ?? 0) >= 0 ? '상승하며 공포 심리가 확산되는' : '하락하며 투자 심리가 진정되어가는'} 추세입니다. 특히 50일 평균 대비 ${Math.abs(macro.vixDistanceMA50 ?? 0).toFixed(1)}% ${(macro.vixDistanceMA50 ?? 0) >= 0 ? '상회하고 있어, 시장의 변동성 체급 자체가 전반적으로 높아진(High Volatility Regime)' : '하회하고 있어, 여전히 구조적인 안정권에 머물러 있는'} 상태로 해석할 수 있습니다.`
                                                         )}
                                                         {selectedDetail === "credit" && (
-                                                            `하이일드(HYG) 지표가 200일선 대비 ${macro.hygDistanceMA200?.toFixed(2)}% 수준에 위치하며, 기업들의 자금 조달 여건이 '${statusLabels[marketCondition.creditSpreadStatus]}'한 것으로 분석됩니다. 이는 ${marketCondition.creditSpreadStatus === 'Stable' ? '상대적인 부도 위험이 낮아 시장의 하방 경직성이 확보됨' : '잠재적인 신용 경색 위험을 주시할 필요가 있음'}을 시사할 수 있습니다.`
+                                                            `하이일드(HYG) 지표가 200일선 대비 ${macro.hygDistanceMA200?.toFixed(2) ?? 'N/A'}% 수준에 위치하며, 기업들의 자금 조달 여건이 '${statusLabels[marketCondition.creditSpreadStatus] || marketCondition.creditSpreadStatus}'한 것으로 분석됩니다. 이는 ${marketCondition.creditSpreadStatus === 'Stable' ? '상대적인 부도 위험이 낮아 시장의 하방 경직성이 확보됨' : '잠재적인 신용 경색 위험을 주시할 필요가 있음'}을 시사할 수 있습니다.`
                                                         )}
                                                         {selectedDetail === "volume" && (
-                                                            `3개월 평균 대비 현재 거래량이 약 ${((macro.snp500Volume! / macro.snp500AvgVolume!) * 100).toFixed(0)}% 수준을 기록 중인 것으로 파악됩니다. 이는 현재의 가격 흐름에 ${marketCondition.volumeTrend === 'Accumulation' ? '매수세가 유입되며 신뢰도가 더해지는' : '관망세가 짙어져 힘이 분산되는'} '${statusLabels[marketCondition.volumeTrend]}' 단계로 조심스럽게 예측해 볼 수 있습니다.`
+                                                            `3개월 평균 대비 현재 거래량이 약 ${macro.snp500Volume && macro.snp500AvgVolume ? ((macro.snp500Volume / macro.snp500AvgVolume) * 100).toFixed(0) : 'N/A'}% 수준을 기록 중인 것으로 파악됩니다. 이는 현재의 가격 흐름에 ${marketCondition.volumeTrend === 'Accumulation' ? '매수세가 유입되며 신뢰도가 더해지는' : '관망세가 짙어져 힘이 분산되는'} '${statusLabels[marketCondition.volumeTrend] || marketCondition.volumeTrend}' 단계로 조심스럽게 예측해 볼 수 있습니다.`
                                                         )}
                                                     </p>
                                                 </div>

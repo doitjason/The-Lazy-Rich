@@ -59,13 +59,13 @@ export function EmptyPortfolio({ onAdd, onSelectPreset }: EmptyPortfolioProps) {
                 {/* Glowing Icon Container */}
                 <div className="relative">
                     <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
-                    <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-white/10 to-white/5 border border-white/20 backdrop-blur-xl flex items-center justify-center shadow-2xl shadow-emerald-500/10">
-                        <Wallet className="h-8 w-8 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
+                    <div className="relative h-20 w-20 rounded-full bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-white/10 dark:to-white/5 border border-emerald-200/50 dark:border-white/20 backdrop-blur-xl flex items-center justify-center shadow-2xl shadow-emerald-500/10">
+                        <Wallet className="h-8 w-8 text-emerald-600 dark:text-white drop-shadow-sm dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <h2 className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-transparent">
+                    <h2 className="text-2xl font-black tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:via-white/90 dark:to-white/70 bg-clip-text text-transparent">
                         투자를 시작해보세요
                     </h2>
                     <p className="text-muted-foreground text-sm leading-relaxed max-w-[280px] mx-auto">
@@ -88,8 +88,8 @@ export function EmptyPortfolio({ onAdd, onSelectPreset }: EmptyPortfolioProps) {
 
                     {/* Divider */}
                     <div className="relative py-4 w-full max-w-sm flex items-center justify-center">
-                        <div className="h-px bg-white/10 w-full absolute" />
-                        <span className="bg-[#0c0c0e] px-2 text-xs text-muted-foreground relative z-10 font-medium">또는 유명 포트폴리오 체험하기</span>
+                        <div className="h-px bg-black/10 dark:bg-white/10 w-full absolute" />
+                        <span className="bg-background px-2 text-xs text-muted-foreground relative z-10 font-medium">또는 유명 포트폴리오 체험하기</span>
                     </div>
 
                     {/* Preset Cards */}
@@ -140,7 +140,7 @@ export function EmptyPortfolio({ onAdd, onSelectPreset }: EmptyPortfolioProps) {
                     )}
                 </div>
 
-                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60 bg-black/20 px-3 py-1.5 rounded-full border border-white/5">
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground bg-black/5 dark:bg-black/20 px-3 py-1.5 rounded-full border border-black/5 dark:border-white/5">
                     <Info className="h-3 w-3" />
                     <span>체험용 데이터입니다. 내역을 저장하려면 로그인이 필요합니다.</span>
                 </div>

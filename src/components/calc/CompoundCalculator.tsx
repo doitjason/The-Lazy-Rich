@@ -687,8 +687,7 @@ export function CompoundCalculator() {
                         </div>
                     </CardContent>
                 </Card>
-            )
-            }
+            )}
         </div >
     );
 }
