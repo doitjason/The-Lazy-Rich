@@ -4,7 +4,7 @@ import { getGuruById } from "@/lib/guru-personas";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { getPersonaMarketContext, extractTickersFromMessage } from "@/lib/market-data";
-import { CORE_CONSTITUTION } from "@/constants/constitution";
+import { LAZY_RICH_CONSTITUTION } from "@/constants/constitution";
 
 // Mark as dynamic to avoid build-time pre-rendering issues with environment variables
 export const dynamic = "force-dynamic";
@@ -125,7 +125,7 @@ ${holdings}
         }
 
         // Build system message: Constitution > Persona > Portfolio > Market Data
-        const systemMessage = `${CORE_CONSTITUTION}
+        const systemMessage = `${LAZY_RICH_CONSTITUTION}
 
 ═══ 당신의 페르소나 ═══
 ${persona.systemPrompt}

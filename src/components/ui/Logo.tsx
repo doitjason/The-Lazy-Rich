@@ -1,4 +1,4 @@
-import { Club } from "lucide-react";
+import { Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -28,11 +28,11 @@ export function Logo({ className, size = "md", showText = true }: LogoProps) {
                 "flex items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20 ring-1 ring-white/20 backdrop-blur-md",
                 sizeClasses[size]
             )}>
-                <Club className={cn("text-white fill-white/20", iconSizes[size])} />
+                <Landmark className={cn("text-white fill-white/20", iconSizes[size])} />
             </div>
             {showText && (
                 <div className="text-center">
-                    <span className="font-serif font-bold tracking-tight text-foreground">Trifoli</span>
+                    <span className="font-serif font-bold tracking-tight text-foreground">The Lazy Rich</span>
                 </div>
             )}
         </div>

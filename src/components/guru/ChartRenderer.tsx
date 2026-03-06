@@ -33,7 +33,7 @@ interface ChartRendererProps {
     chartData: ChartData;
 }
 
-// Brand Colors (Trifoli Identity)
+// Brand Colors (The Lazy Rich Identity)
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 const GRADIENTS = [
     { id: "colorEmerald", start: "#10b981", end: "#10b981" },

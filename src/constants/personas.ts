@@ -1,7 +1,7 @@
 // src/constants/personas.ts
 
 // The 5 Icons: 5명의 투자 거장 모델링
-export const CORE_PERSONAS = {
+export const LAZY_RICH_PERSONAS = {
     sage: {
         id: "sage",
         name: "오마하의 현인",

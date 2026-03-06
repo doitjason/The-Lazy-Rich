@@ -22,10 +22,10 @@ function FeaturedColumnCard({ column }: { column: Column }) {
                 <div className="absolute top-0 right-0 w-40 h-40 bg-violet-500/5 dark:bg-violet-500/10 rounded-full blur-[60px] translate-x-10 -translate-y-10 pointer-events-none" />
 
                 <div className="relative z-10 p-5 sm:p-6">
-                    {/* Featured badge */}
+                    {/* Editor's Pick badge */}
                     <div className="flex items-center gap-2 mb-4">
                         <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20 inline-flex items-center gap-1">
-                            <span className="text-[8px]">⭐</span> Featured
+                            <span className="text-[8px]">⭐</span> Editor&apos;s Pick
                         </span>
                         <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${column.categoryBg} ${column.categoryColor} border border-current/20 inline-flex items-center gap-1`}>
                             <span className="text-xs">{column.thumbnailEmoji}</span> {column.categoryLabel}
@@ -118,8 +118,19 @@ export function ColumnList() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const featuredColumn = COLUMNS.find((c) => c.featured);
-    const regularColumns = COLUMNS.filter((c) => !c.featured);
+    // ─── Dynamic Featured Rotation (Editor's Pick) ───
+    // Pick a column based on the current week to simulate curation
+    const getWeeklyFeaturedIndex = () => {
+        const now = new Date();
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const pastDaysOfYear = (now.getTime() - startOfYear.getTime()) / 86400000;
+        const weekNum = Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+        return weekNum % COLUMNS.length;
+    };
+
+    const featuredIndex = getWeeklyFeaturedIndex();
+    const featuredColumn = COLUMNS[featuredIndex];
+    const regularColumns = COLUMNS.filter((_, idx) => idx !== featuredIndex);
 
     const filteredColumns =
         filterCategory === "all"
@@ -127,7 +138,7 @@ export function ColumnList() {
             : regularColumns.filter((c) => c.category === filterCategory);
 
     // Show featured card only when viewing all
-    const showFeatured = filterCategory === "all" && featuredColumn;
+    const showFeatured = filterCategory === "all";
 
     const currentFilter = CATEGORY_OPTIONS.find((f) => f.id === filterCategory) || CATEGORY_OPTIONS[0];
 

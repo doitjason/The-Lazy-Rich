@@ -86,12 +86,12 @@ export default async function BookDetailPage({ params }: PageProps) {
                         },
                         author: {
                             "@type": "Organization",
-                            name: "TRIFOLI",
+                            name: "The Lazy Rich",
                             url: SITE_CONFIG.url,
                         },
                         publisher: {
                             "@type": "Organization",
-                            name: "TRIFOLI",
+                            name: "The Lazy Rich",
                             url: SITE_CONFIG.url,
                         },
                         reviewBody: book.description,

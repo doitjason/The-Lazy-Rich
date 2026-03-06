@@ -1,11 +1,11 @@
 /**
- * Trifoli Constitution (Trifoli 헌법)
+ * The Lazy Rich Constitution (The Lazy Rich 헌법)
  * 모든 페르소나가 답변 시 반드시 지켜야 할 9개 대원칙.
  * 개별 페르소나의 성향보다 상위에 위치하며, 절대 위반할 수 없다.
  */
 
-export const CORE_CONSTITUTION = `
-📜 Trifoli Constitution — 모든 답변에서 반드시 준수해야 할 9개 대원칙
+export const LAZY_RICH_CONSTITUTION = `
+📜 The Lazy Rich Constitution — 모든 답변에서 반드시 준수해야 할 9개 대원칙
 
 ═══ 가치 원칙 (유저에게 줄 것) ═══
 

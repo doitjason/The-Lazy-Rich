@@ -4,9 +4,9 @@ import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
 
 export const metadata: Metadata = {
-    title: "에디터 소개 | TRIFOLI",
+    title: "에디터 소개 | The Lazy Rich",
     description:
-        "TRIFOLI 에디터 팀은 올바른 장기투자 문화를 만들기 위해 데이터 기반의 투자 인사이트를 전달합니다.",
+        "The Lazy Rich 에디터 팀은 올바른 장기투자 문화를 만들기 위해 데이터 기반의 투자 인사이트를 전달합니다.",
 };
 
 export default function AboutEditorPage() {
@@ -19,7 +19,7 @@ export default function AboutEditorPage() {
                     __html: JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "Organization",
-                        name: "TRIFOLI",
+                        name: "The Lazy Rich",
                         url: SITE_CONFIG.url,
                         description:
                             "올바른 장기투자 문화를 위한 데이터 기반 인사이트 플랫폼",
@@ -52,7 +52,7 @@ export default function AboutEditorPage() {
 
                     <div>
                         <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
-                            TRIFOLI 에디터
+                            The Lazy Rich 에디터
                         </h2>
                         <p className="text-sm text-emerald-500/70 font-bold mt-1">
                             올바른 장기투자를 위한 인사이트
@@ -74,7 +74,7 @@ export default function AboutEditorPage() {
                     <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 space-y-4 relative overflow-hidden border-l-2 border-l-emerald-500/50">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/8 rounded-full blur-[30px] translate-x-6 -translate-y-6" />
                         <p className="text-[14px] sm:text-[15px] text-white/70 leading-[1.85] font-medium break-keep relative z-10">
-                            TRIFOLI 에디터 팀은 하나의 원칙을 따릅니다.
+                            The Lazy Rich 에디터 팀은 하나의 원칙을 따릅니다.
                             데이터가 뒷받침하지 않는 주장은 싣지 않는다는
                             것입니다.
                         </p>

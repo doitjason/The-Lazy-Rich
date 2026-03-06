@@ -1,7 +1,7 @@
-# [Master PRD] Project: CORE (Stitch & Mobile-First Edition)
+# [Master PRD] Project: The Lazy Rich (Stitch & Mobile-First Edition)
 
 ## 1. 프로젝트 개요 (Overview)
-* **제품명:** CORE (코어) - The Essence of Investment.
+* **제품명:** The Lazy Rich (코어) - The Essence of Investment.
 * **플랫폼:** **Mobile-First Web App** (반응형 필수, 모바일 뷰 최우선).
 * **언어 설정:** **한국어 (Korean) 기본**. (i18n 도입 전까지 모든 UI 텍스트는 한국어로 하드코딩).
 * **개발 전략 (Phasing):**

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Moon, DollarSign, HelpCircle, Shield, LogOut, ChevronRight, User, Sparkles, Club, FileText } from "lucide-react";
+import { Bell, Moon, DollarSign, HelpCircle, Shield, LogOut, ChevronRight, User, Sparkles, Landmark, FileText } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -172,7 +172,7 @@ export function ProfileSettings() {
                             <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/5 dark:hover:bg-white/5 transition-colors">
                                 <div className="flex items-center gap-3">
                                     <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                                        <Club className="h-4 w-4" />
+                                        <Landmark className="h-4 w-4" />
                                     </div>
                                     <span className="font-semibold text-[13px]">서비스 스토리</span>
                                 </div>

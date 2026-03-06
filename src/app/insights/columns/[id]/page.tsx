@@ -1,12 +1,14 @@
-import { COLUMNS, Column } from "@/data/columns";
+import { COLUMNS } from "@/data/columns";
 import { RECOMMENDED_BOOKS } from "@/data/books";
 import { notFound } from "next/navigation";
-import { Clock, Tag } from "lucide-react";
+import { Clock, Tag, ArrowRight } from "lucide-react";
 import { Metadata } from "next";
 import { BackButton } from "@/components/insights/BackButton";
 import Link from "next/link";
 import { fetchNaverBook } from "@/lib/naver-books";
 import { SITE_CONFIG } from "@/lib/constants";
+import { getColumnContent } from "@/lib/mdx";
+import { MDXRemote } from "next-mdx-remote/rsc";
 
 interface PageProps {
     params: Promise<{
@@ -38,47 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
 }
 
-// Parse content into sections for ad insertion
-function parseContentSections(content: string): { summary: string; sections: string[] } {
-    const lines = content.split("\n");
-
-    // First block = 3줄 요약 (up to first empty line after numbered items)
-    let summaryEnd = 0;
-    let foundSummary = false;
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].startsWith("3줄 요약") || lines[i].startsWith("3줄요약")) {
-            foundSummary = true;
-        }
-        if (foundSummary && lines[i].trim() === "" && i > 3) {
-            summaryEnd = i;
-            break;
-        }
-    }
-
-    const summary = lines.slice(0, summaryEnd).join("\n");
-    const bodyContent = lines.slice(summaryEnd).join("\n").trim();
-
-    // Split body into sections by double newline (paragraph breaks)
-    const rawSections = bodyContent.split(/\n\n+/).filter((s) => s.trim());
-
-    // Group into sections for ad placement based on length
-    // If the content is long (e.g. >= 15 paragraphs), split into 3 sections for 2 in-article ads
-    const sections: string[] = [];
-    if (rawSections.length >= 15) {
-        const third = Math.ceil(rawSections.length / 3);
-        sections.push(rawSections.slice(0, third).join("\n\n"));
-        sections.push(rawSections.slice(third, third * 2).join("\n\n"));
-        sections.push(rawSections.slice(third * 2).join("\n\n"));
-    } else {
-        const midpoint = Math.ceil(rawSections.length / 2);
-        sections.push(rawSections.slice(0, midpoint).join("\n\n"));
-        sections.push(rawSections.slice(midpoint).join("\n\n"));
-    }
-
-    return { summary, sections: sections.filter(s => s.trim().length > 0) };
-}
-
-// Helper to render text with Markdown-style links [text](url)
+// Helper to render text with Markdown-style links [text](url) - reused for manual text if needed
 function renderTextWithLinks(text: string) {
     const parts = text.split(/(\[.*?\]\(.*?\))/g);
     return parts.map((part, i) => {
@@ -102,78 +64,152 @@ function renderTextWithLinks(text: string) {
     });
 }
 
-// Format body text with section headers, lists, and proper line breaks
-function FormattedContent({ text }: { text: string }) {
-    const paragraphs = text.split("\n\n").filter((p) => p.trim());
+const getTextContent = (node: any): string => {
+    if (typeof node === 'string' || typeof node === 'number') return String(node);
+    if (Array.isArray(node)) return node.map(getTextContent).join('');
+    if (node && typeof node === 'object' && node.props && node.props.children) return getTextContent(node.props.children);
+    return '';
+};
 
-    return (
-        <>
-            {paragraphs.map((para, i) => {
-                // Detect section headers (short lines without periods that introduce a topic)
-                const isHeader = para.length < 40 && !para.includes(".");
+// MDX Components mapping the same styles as before
+const mdxComponents = {
+    h3: ({ children }: { children?: React.ReactNode }) => (
+        <h3 className="flex items-center gap-2 mt-8 mb-3">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0" />
+            <span className="text-[16.5px] sm:text-[17px] font-black text-gray-900 dark:text-white tracking-tight">
+                {children}
+            </span>
+        </h3>
+    ),
+    p: ({ children }: { children?: React.ReactNode }) => {
+        const textContent = getTextContent(children).trim();
+        // Check if it's a short, unpunctuated line acting as a title (fallback for plain text titles)
+        const isHeading = textContent.length > 0 && 
+                          textContent.length < 50 && 
+                          !textContent.match(/[.?!~]$/) && 
+                          !textContent.includes('3줄 요약') && 
+                          !textContent.includes('결론:'); // Prevent some normal end-paragraphs from catching
 
-                if (isHeader) {
-                    return (
-                        <h3 key={i} className="flex items-center gap-3 mt-8 mb-3">
-                            <span className="w-1 h-6 bg-emerald-500 rounded-full flex-shrink-0" />
-                            <span className="text-[17px] sm:text-lg font-black text-gray-900 dark:text-white tracking-tight">
-                                {renderTextWithLinks(para)}
-                            </span>
-                        </h3>
-                    );
-                }
+        if (isHeading) {
+            return (
+                <div className="flex items-center gap-2 mt-8 mb-3">
+                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0" />
+                    <h3 className="text-[16.5px] sm:text-[17px] font-black text-gray-900 dark:text-white tracking-tight m-0">
+                        {children}
+                    </h3>
+                </div>
+            );
+        }
 
-                // Check if the paragraph contains bullet list items (lines starting with - )
-                const lines = para.split("\n");
-                const hasBullets = lines.some(line => line.trim().startsWith("- "));
+        return (
+            <p className="text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.85] font-medium break-keep mb-5 [&:last-child]:mb-0">
+                {children}
+            </p>
+        );
+    },
+    ul: ({ children }: { children?: React.ReactNode }) => (
+        <ul className="space-y-3 pl-1 mb-10">{children}</ul>
+    ),
+    ol: ({ children }: { children?: React.ReactNode }) => (
+        <ol className="space-y-3 pl-1 mb-10">{children}</ol>
+    ),
+    li: ({ children }: { children?: React.ReactNode }) => (
+        <li className="flex items-start gap-3 text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.7] font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60 mt-[10px] flex-shrink-0" />
+            <span className="flex-1">{children}</span>
+        </li>
+    ),
+    a: ({ href, children }: { href?: string; children?: React.ReactNode }) => {
+        const isExternal = href?.startsWith("http");
+        const isCta = href?.startsWith("/guru") || href?.startsWith("/calc");
+        
+        if (isCta) {
+            const isGuru = href?.startsWith("/guru");
+            return (
+                <Link 
+                    href={href || "#"} 
+                    className="group inline box-decoration-clone px-2 py-0.5 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100/80 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 font-bold rounded-xl transition-colors"
+                >
+                    <span className="inline-block text-[0.9em] translate-y-[-0.5px] opacity-90 mr-1">{isGuru ? "🤖" : "🧮"}</span>
+                    <span>{children}</span>
+                </Link>
+            )
+        }
 
-                if (hasBullets) {
-                    // Split into intro text and list items
-                    const introLines: string[] = [];
-                    const bulletLines: string[] = [];
-                    let inBullets = false;
+        return (
+            <Link
+                href={href || "#"}
+                target={isExternal ? "_blank" : undefined}
+                rel={isExternal ? "noopener noreferrer" : undefined}
+                className="text-emerald-600 dark:text-emerald-400 font-bold underline underline-offset-4 decoration-emerald-500/30 hover:decoration-emerald-500 transition-all hover:bg-emerald-500/5 px-0.5 rounded"
+            >
+                {children}
+            </Link>
+        );
+    },
+    blockquote: ({ children }: { children?: React.ReactNode }) => (
+        <blockquote className="my-6 px-5 py-4 bg-gray-50/80 dark:bg-white/[0.03] rounded-3xl text-[13.5px] sm:text-[14px] text-gray-600 dark:text-white/60 font-medium [&_p]:leading-[1.7] [&_strong]:text-gray-800 dark:[&_strong]:text-white/90 has-[a]:bg-transparent has-[a]:p-0 has-[a]:my-6 has-[a]:text-left">
+            {children}
+        </blockquote>
+    ),
+    strong: ({ children }: { children?: React.ReactNode }) => (
+        <strong className="font-black text-gray-900 dark:text-white underline underline-offset-2 decoration-emerald-500/30">
+            {children}
+        </strong>
+    )
+};
 
-                    for (const line of lines) {
-                        if (line.trim().startsWith("- ")) {
-                            inBullets = true;
-                            bulletLines.push(line.trim().slice(2));
-                        } else if (inBullets) {
-                            bulletLines.push(line.trim());
-                        } else {
-                            introLines.push(line);
-                        }
-                    }
+// Function to split raw content for ad insertion
+function splitContentIntoParts(rawContent: string) {
+    const lines = rawContent.split("\n");
+    let summaryLines: string[] = [];
+    let bodyStartIndex = 0;
+    let foundSummary = false;
 
-                    return (
-                        <div key={i} className="mb-5">
-                            {introLines.length > 0 && (
-                                <p className="text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.85] font-medium break-keep mb-3">
-                                    {renderTextWithLinks(introLines.join(" "))}
-                                </p>
-                            )}
-                            <ul className="space-y-2 pl-1">
-                                {bulletLines.map((item, j) => (
-                                    <li key={j} className="flex items-start gap-2.5 text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.7] font-medium">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/60 mt-[10px] flex-shrink-0" />
-                                        <span>{renderTextWithLinks(item)}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    );
-                }
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.includes("3줄 요약") || line.includes("3줄요약")) {
+            foundSummary = true;
+            continue;
+        }
+        if (foundSummary) {
+            // Check if we hit the end of summary (empty line after numbered items)
+            if (line === "" && summaryLines.length > 0) {
+                bodyStartIndex = i;
+                break;
+            }
+            if (/^\d\./.test(line)) {
+                summaryLines.push(line);
+            }
+        }
+    }
 
-                // Regular paragraph — also handle single newlines by joining them
-                const joinedText = lines.join(" ");
+    // Fallback if structure is slightly different
+    if (bodyStartIndex === 0) {
+        bodyStartIndex = lines.findIndex(l => l.trim() !== "" && !l.includes("3줄")) ;
+    }
 
-                return (
-                    <p key={i} className="text-[15px] sm:text-[16px] text-gray-600 dark:text-white/75 leading-[1.85] font-medium break-keep mb-5">
-                        {renderTextWithLinks(joinedText)}
-                    </p>
-                );
-            })}
-        </>
-    );
+    const bodyContent = lines.slice(bodyStartIndex).join("\n").trim();
+    
+    // Split body into sections for ad placement
+    // We split by double newlines into paragraphs
+    const paragraphs = bodyContent.split(/\n\n+/);
+    const resultParts: string[] = [];
+    
+    if (paragraphs.length >= 12) {
+        const partSize = Math.ceil(paragraphs.length / 3);
+        resultParts.push(paragraphs.slice(0, partSize).join("\n\n"));
+        resultParts.push(paragraphs.slice(partSize, partSize * 2).join("\n\n"));
+        resultParts.push(paragraphs.slice(partSize * 2).join("\n\n"));
+    } else if (paragraphs.length >= 6) {
+        const mid = Math.ceil(paragraphs.length / 2);
+        resultParts.push(paragraphs.slice(0, mid).join("\n\n"));
+        resultParts.push(paragraphs.slice(mid).join("\n\n"));
+    } else {
+        resultParts.push(bodyContent);
+    }
+
+    return { summaryLines, bodyParts: resultParts };
 }
 
 export default async function ColumnDetailPage({ params }: PageProps) {
@@ -184,7 +220,12 @@ export default async function ColumnDetailPage({ params }: PageProps) {
         return notFound();
     }
 
-    const { summary, sections } = parseContentSections(column.content);
+    const contentData = await getColumnContent(id);
+    if (!contentData) {
+        return notFound();
+    }
+
+    const { summaryLines, bodyParts } = splitContentIntoParts(contentData.source);
 
     // Get related books and fetch covers concurrently
     const baseRelatedBooks = column.relatedBookIds
@@ -209,12 +250,6 @@ export default async function ColumnDetailPage({ params }: PageProps) {
     const prevColumn = currentIndex > 0 ? COLUMNS[currentIndex - 1] : null;
     const nextColumn = currentIndex < COLUMNS.length - 1 ? COLUMNS[currentIndex + 1] : null;
 
-    // Parse summary lines
-    const summaryLines = summary
-        .split("\n")
-        .filter((line) => /^\d\./.test(line.trim()))
-        .map((line) => line.trim());
-
     return (
         <div className="max-w-md mx-auto relative bg-white dark:bg-[#0b0c10] min-h-screen pb-24 sm:border-x sm:border-gray-200 dark:sm:border-white/5 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500">
             {/* Schema.org Article JSON-LD */}
@@ -228,12 +263,12 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                         description: column.subtitle,
                         author: {
                             "@type": "Organization",
-                            name: "TRIFOLI",
+                            name: "The Lazy Rich",
                             url: SITE_CONFIG.url,
                         },
                         publisher: {
                             "@type": "Organization",
-                            name: "TRIFOLI",
+                            name: "The Lazy Rich",
                             url: SITE_CONFIG.url,
                         },
                         datePublished: column.publishedAt,
@@ -263,7 +298,6 @@ export default async function ColumnDetailPage({ params }: PageProps) {
             <main className="px-5 py-6 space-y-8 relative z-10">
                 {/* Hero Section */}
                 <div className="text-center space-y-4">
-                    {/* Emoji Hero */}
                     <div className="relative inline-flex items-center justify-center">
                         <div className={`w-20 h-20 rounded-3xl ${column.categoryBg} border border-gray-200 dark:border-white/10 flex items-center justify-center text-4xl shadow-lg`}>
                             {column.thumbnailEmoji}
@@ -271,7 +305,6 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                         <div className={`absolute inset-0 ${column.categoryBg} rounded-3xl blur-xl opacity-40 pointer-events-none`} />
                     </div>
 
-                    {/* Category Tag */}
                     <div className="flex justify-center">
                         <span className={`text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full ${column.categoryBg} ${column.categoryColor} border border-current/20`}>
                             <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5 inline-block" />
@@ -279,12 +312,10 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                         </span>
                     </div>
 
-                    {/* Title */}
                     <h2 className="text-xl sm:text-2xl font-black leading-tight text-gray-900 dark:text-white px-2">
                         {column.title}
                     </h2>
 
-                    {/* Meta */}
                     <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 dark:text-white/35 font-medium">
                         <Link href="/insights/about" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">{column.author}</Link>
                         <span>·</span>
@@ -294,7 +325,6 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                         <span>{column.publishedAt}</span>
                     </div>
 
-                    {/* Tags */}
                     <div className="flex flex-wrap gap-2 justify-center">
                         {column.tags.map((tag) => (
                             <span key={tag} className="inline-flex items-center gap-1 text-[10px] font-bold text-gray-400 dark:text-white/25 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-white/[0.03] border border-gray-200 dark:border-white/5">
@@ -319,26 +349,26 @@ export default async function ColumnDetailPage({ params }: PageProps) {
                             <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 dark:bg-emerald-500/8 rounded-full blur-[30px] translate-x-6 -translate-y-6" />
                             {summaryLines.map((line, i) => (
                                 <p key={i} className="text-[13px] sm:text-[14px] text-gray-600 dark:text-white/70 leading-relaxed font-medium relative z-10">
-                                    {line}
+                                    {renderTextWithLinks(line)}
                                 </p>
                             ))}
                         </div>
                     </div>
                 )}
 
-                {/* Article Body Sections */}
-                {sections.map((section, index) => (
-                    <div key={index}>
-                        <FormattedContent text={section} />
+                {/* Article Body Sections with MDX */}
+                {bodyParts.map((part, index) => (
+                    <div key={index} className="mdx-content">
+                        <MDXRemote source={part} components={mdxComponents} />
 
                         {/* In-article Ad Slot */}
-                        {index < sections.length - 1 && (
+                        {index < bodyParts.length - 1 && (
                             <div className="py-4">
                                 <div className="border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-6 flex items-center justify-center bg-transparent relative overflow-hidden">
                                     <div className="absolute inset-0 bg-gray-50 dark:bg-white/[0.02] bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] opacity-70" />
                                     <span className="text-[11px] text-gray-400 dark:text-white/30 font-medium tracking-wide relative z-10 flex items-center gap-2">
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
-                                        본문 내 광고 영역 {sections.length > 2 ? index + 1 : ""}
+                                        본문 내 광고 영역 {bodyParts.length > 2 ? index + 1 : ""}
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
                                     </span>
                                 </div>

@@ -842,7 +842,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                     <div className="mt-2 p-4 rounded-2xl bg-primary/5 border border-primary/10 shadow-sm">
                                         <div className="text-[10px] font-black text-primary uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                            Trifoli 분석 결과
+                                            The Lazy Rich 분석 결과
                                         </div>
                                         <p className="text-[12px] text-muted-foreground leading-relaxed font-medium">
                                             {allocationView === 'asset' ? (

@@ -36,7 +36,7 @@ export default function TermsPage() {
                         <div className="space-y-3">
                             <h3 className="font-bold text-white/90 text-[13px]">제1조 (목적)</h3>
                             <p>
-                                본 이용약관(이하 '약관')은 TRIFOLI(이하 '회사' 또는 '서비스')가 제공하는 웹사이트 및 애플리케이션 서비스(이하 '서비스')의 이용과 관련하여 회사와 이용자(이하 '회원') 간의 권리, 의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다. 회원은 본 서비스를 이용함으로써 본 약관 및 관련 지침에 동의한 것으로 간주됩니다.
+                                본 이용약관(이하 '약관')은 The Lazy Rich(이하 '회사' 또는 '서비스')가 제공하는 웹사이트 및 애플리케이션 서비스(이하 '서비스')의 이용과 관련하여 회사와 이용자(이하 '회원') 간의 권리, 의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다. 회원은 본 서비스를 이용함으로써 본 약관 및 관련 지침에 동의한 것으로 간주됩니다.
                             </p>
                         </div>
 
@@ -98,7 +98,7 @@ export default function TermsPage() {
 
                     <div className="pt-10 border-t border-white/5 pb-10">
                         <p className="text-[10px] text-white/20 text-center leading-relaxed font-mono">
-                            COPYRIGHT © TRIFOLI ALL RIGHTS RESERVED.
+                            COPYRIGHT © The Lazy Rich ALL RIGHTS RESERVED.
                         </p>
                     </div>
                 </motion.div>

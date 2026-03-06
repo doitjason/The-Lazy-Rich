@@ -36,7 +36,7 @@ export default function PrivacyPage() {
                         <div className="space-y-3">
                             <h3 className="font-bold text-white/90 text-[13px]">제1조 (목적)</h3>
                             <p>
-                                TRIFOLI(이하 '회사' 또는 '서비스')는 이용자의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리방침을 수립·공개합니다. 본 방침은 관계 법령 및 지침에 따라 수립되었으며, 서비스 기획부터 운영 전반에 걸쳐 개인정보보호법 등 관련 법규를 엄격히 준수합니다.
+                                The Lazy Rich(이하 '회사' 또는 '서비스')는 이용자의 개인정보를 보호하고 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리방침을 수립·공개합니다. 본 방침은 관계 법령 및 지침에 따라 수립되었으며, 서비스 기획부터 운영 전반에 걸쳐 개인정보보호법 등 관련 법규를 엄격히 준수합니다.
                             </p>
                         </div>
 
@@ -107,7 +107,7 @@ export default function PrivacyPage() {
 
                     <div className="pt-10 border-t border-white/5 pb-10">
                         <p className="text-[10px] text-white/20 text-center leading-relaxed font-mono">
-                            COPYRIGHT © TRIFOLI ALL RIGHTS RESERVED.
+                            COPYRIGHT © The Lazy Rich ALL RIGHTS RESERVED.
                         </p>
                     </div>
                 </motion.div>

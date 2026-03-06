@@ -575,7 +575,7 @@ export function RegretCalculator() {
                 <div className="space-y-6">
                     {result ? (
                         <Card ref={resultRef} className="border-primary/20 bg-white/80 dark:bg-black/60 backdrop-blur-xl shadow-lg animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
-                            <CardContent className="pt-6 sm:pt-8 pb-4 sm:pb-5 px-2 sm:px-6 text-center space-y-2 relative z-10">
+                            <CardContent className="pt-6 sm:pt-8 pb-0 px-2 sm:px-6 text-center space-y-2 relative z-10">
                                 {/* Stock Name & Ticker */}
                                 <div className="flex flex-col items-center gap-1 mb-4 w-full">
                                     {/* Conditionally show logo for individual stocks, hide for ETFs */}
