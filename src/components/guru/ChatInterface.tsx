@@ -405,20 +405,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                                         </p>
                                     </div>
                                 )}
-                                {message.role === "assistant" && message.content.includes("[ACTION:GO_TO_PROFILE]") && (
-                                    <div className="mt-3">
-                                        <Link href="/profile">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
-                                            >
-                                                <LogIn className="w-4 h-4" />
-                                                내 정보 탭으로 이동하기
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                )}
+
                             </div>
                         </motion.div>
                     ))}
