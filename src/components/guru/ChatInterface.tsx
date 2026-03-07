@@ -374,21 +374,16 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                                 {/* Action Button Renderer */}
                                 {message.role === "assistant" && message.content.includes("[ACTION:CREATE_PORTFOLIO]") && (
                                     <div className="mt-3">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
-                                            onClick={async () => {
-                                                await signInWithGoogle();
-                                            }}
-                                        >
-                                            <PlusCircle className="w-4 h-4" />
-                                            내 포트폴리오 만들러 가기
-                                        </Button>
-                                        <p className="mt-1.5 text-[10px] text-muted-foreground/60 leading-tight text-center px-2">
-                                            안전한 로그인을 위해 보안 인증 서버(supabase.co)로 연결됩니다.<br />
-                                            안심하고 계속하셔도 좋습니다.
-                                        </p>
+                                        <Link href="/portfolio">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
+                                            >
+                                                <PlusCircle className="w-4 h-4" />
+                                                내 포트폴리오 만들러 가기
+                                            </Button>
+                                        </Link>
                                     </div>
                                 )}
                                 {message.role === "assistant" && message.content.includes("[ACTION:LOGIN]") && (
@@ -412,21 +407,16 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                                 )}
                                 {message.role === "assistant" && message.content.includes("[ACTION:GO_TO_PROFILE]") && (
                                     <div className="mt-3">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
-                                            onClick={async () => {
-                                                await signInWithGoogle();
-                                            }}
-                                        >
-                                            <LogIn className="w-4 h-4" />
-                                            로그인하고 포트폴리오 만들기
-                                        </Button>
-                                        <p className="mt-1.5 text-[10px] text-muted-foreground/60 leading-tight text-center px-2">
-                                            안전한 로그인을 위해 보안 인증 서버(supabase.co)로 연결됩니다.<br />
-                                            안심하고 계속하셔도 좋습니다.
-                                        </p>
+                                        <Link href="/profile">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
+                                            >
+                                                <LogIn className="w-4 h-4" />
+                                                내 정보 탭으로 이동하기
+                                            </Button>
+                                        </Link>
                                     </div>
                                 )}
                             </div>
