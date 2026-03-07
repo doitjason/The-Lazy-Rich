@@ -111,6 +111,12 @@ export function ProfileSettings() {
                                 </svg>
                                 Google로 계속하기
                             </Button>
+                            <div className="flex items-start gap-2 px-1 pt-1">
+                                <Shield className="h-3 w-3 text-emerald-500/60 mt-0.5 shrink-0" />
+                                <p className="text-[10px] text-muted-foreground leading-relaxed text-left">
+                                    안전한 구글 표준 인증 시스템을 통해 로그인하며, 귀하의 대화 및 포트폴리오 데이터는 암호화되어 안전하게 보호됩니다.
+                                </p>
+                            </div>
                         </div>
                     </Card>
                 </motion.div>

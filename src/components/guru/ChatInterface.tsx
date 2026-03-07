@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { GuruPersona, getIntroMessage, SupportedLanguage } from "@/lib/guru-personas";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ChartRenderer, ChartData } from "./ChartRenderer";
 
 interface Message {
@@ -32,25 +33,26 @@ const getQuickSuggestions = (guruId: string, language: SupportedLanguage): strin
     const commonQuestion = language === "ko" ? "내 포트폴리오를 분석해주세요" : "Analyze my portfolio";
 
     if (language !== "ko") {
-        return ["What's your take on the current market?", commonQuestion];
+        return [commonQuestion, "What's your take on the current market?"];
     }
 
     switch (guruId) {
         case "sage":
-            return ["내재 가치 평가는 어떤 기준으로 하나요?", "기업의 경제적 해자는 어떻게 파악하나요?", commonQuestion];
+            return [commonQuestion, "내재 가치 평가는 어떤 기준으로 하나요?", "기업의 경제적 해자는 어떻게 파악하나요?"];
         case "hero":
-            return ["일상 속에서 10배 주식(텐배거)을 찾는 비결은?", "PEG 비율로 성장주를 평가하는 방법이 궁금해요", commonQuestion];
+            return [commonQuestion, "일상 속에서 10배 주식(텐배거)을 찾는 비결은?", "PEG 비율로 성장주를 평가하는 방법이 궁금해요"];
         case "architect":
-            return ["현재 거시 경제는 사계절 중 어떤 계절인가요?", "올웨더 포트폴리오의 핵심 원칙은?", commonQuestion];
+            return [commonQuestion, "현재 거시 경제는 사계절 중 어떤 계절인가요?", "올웨더 포트폴리오의 핵심 원칙은?"];
         case "father":
-            return ["인덱스 펀드에 장기 투자해야 하는 명확한 이유는?", "수도 없이 생기는 테마주 투자의 위험성은?", commonQuestion];
+            return [commonQuestion, "인덱스 펀드에 장기 투자해야 하는 명확한 이유는?", "수도 없이 생기는 테마주 투자의 위험성은?"];
         default:
-            return ["요즘 시황에 대해 의견을 들려줘", commonQuestion];
+            return [commonQuestion, "요즘 시황에 대해 의견을 들려줘"];
     }
 };
 
 export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage }: ChatInterfaceProps) {
     const { currency } = useCurrency();
+    const { signInWithGoogle } = useAuth();
 
     // Determine language from currency setting
     const language: SupportedLanguage = useMemo(() => {
@@ -372,16 +374,21 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                                 {/* Action Button Renderer */}
                                 {message.role === "assistant" && message.content.includes("[ACTION:CREATE_PORTFOLIO]") && (
                                     <div className="mt-3">
-                                        <Link href="/portfolio">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
-                                            >
-                                                <PlusCircle className="w-4 h-4" />
-                                                내 포트폴리오 만들러 가기
-                                            </Button>
-                                        </Link>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
+                                            onClick={async () => {
+                                                await signInWithGoogle();
+                                            }}
+                                        >
+                                            <PlusCircle className="w-4 h-4" />
+                                            내 포트폴리오 만들러 가기
+                                        </Button>
+                                        <p className="mt-1.5 text-[10px] text-muted-foreground/60 leading-tight text-center px-2">
+                                            안전한 로그인을 위해 보안 인증 서버(supabase.co)로 연결됩니다.<br />
+                                            안심하고 계속하셔도 좋습니다.
+                                        </p>
                                     </div>
                                 )}
                                 {message.role === "assistant" && message.content.includes("[ACTION:LOGIN]") && (
@@ -391,32 +398,35 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                                             size="sm"
                                             className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
                                             onClick={async () => {
-                                                const supabase = createClient();
-                                                await supabase.auth.signInWithOAuth({
-                                                    provider: 'google',
-                                                    options: {
-                                                        redirectTo: `${window.location.origin}/auth/callback`,
-                                                    },
-                                                });
+                                                await signInWithGoogle();
                                             }}
                                         >
                                             <LogIn className="w-4 h-4" />
                                             간편하게 시작하기 (로그인)
                                         </Button>
+                                        <p className="mt-1.5 text-[10px] text-muted-foreground/60 leading-tight text-center px-2">
+                                            안전한 로그인을 위해 보안 인증 서버(supabase.co)로 연결됩니다.<br />
+                                            안심하고 계속하셔도 좋습니다.
+                                        </p>
                                     </div>
                                 )}
                                 {message.role === "assistant" && message.content.includes("[ACTION:GO_TO_PROFILE]") && (
                                     <div className="mt-3">
-                                        <Link href="/profile">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
-                                            >
-                                                <LogIn className="w-4 h-4" />
-                                                로그인하고 포트폴리오 만들기
-                                            </Button>
-                                        </Link>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
+                                            onClick={async () => {
+                                                await signInWithGoogle();
+                                            }}
+                                        >
+                                            <LogIn className="w-4 h-4" />
+                                            로그인하고 포트폴리오 만들기
+                                        </Button>
+                                        <p className="mt-1.5 text-[10px] text-muted-foreground/60 leading-tight text-center px-2">
+                                            안전한 로그인을 위해 보안 인증 서버(supabase.co)로 연결됩니다.<br />
+                                            안심하고 계속하셔도 좋습니다.
+                                        </p>
                                     </div>
                                 )}
                             </div>
@@ -531,7 +541,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                 {/* Quick Suggestion Tags - Always visible unless busy */}
                 {!(isLoading || isPreparing) && (
                     <motion.div
-                        className="flex flex-wrap gap-2"
+                        className="flex overflow-x-auto gap-2 pb-2 snap-x [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [mask-image:linear-gradient(to_right,white_85%,transparent_100%)] pr-8"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
@@ -604,7 +614,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                                         setIsLoading(false);
                                     });
                                 }}
-                                className="px-3 py-1.5 text-xs rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 transition-colors duration-200"
+                                className="whitespace-nowrap flex-shrink-0 snap-start px-3 py-1.5 text-xs rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500 border border-emerald-500/20 transition-colors duration-200"
                             >
                                 {suggestion}
                             </button>
