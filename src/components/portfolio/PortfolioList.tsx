@@ -459,7 +459,7 @@ export function PortfolioList() {
                                     {editingId === item.id ? (
                                         <div className="space-y-2">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold text-primary min-w-[60px] text-lg">{item.ticker}</span>
+                                                <span className="font-bold text-primary min-w-[60px] text-lg">{item.ticker.replace(".KS", "")}</span>
                                                 <Input
                                                     type="number"
                                                     value={editQuantity}
@@ -498,7 +498,7 @@ export function PortfolioList() {
                                         <div className="flex items-center justify-between">
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-bold text-lg text-foreground">{item.ticker}</span>
+                                                    <span className="font-bold text-lg text-foreground">{item.ticker.replace(".KS", "")}</span>
                                                     {hasData && (
                                                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${profitBg} ${profitColor}`}>
                                                             {isProfit ? '▲' : '▼'} {(Math.floor(Math.abs(pnlPercent) * 100) / 100).toFixed(2)}%

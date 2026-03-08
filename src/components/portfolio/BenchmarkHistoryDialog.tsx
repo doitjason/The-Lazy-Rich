@@ -252,7 +252,7 @@ export function BenchmarkHistoryDialog({ open, onOpenChange, holdings }: Benchma
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-sm font-black text-foreground uppercase tracking-tight">{h.ticker}</span>
+                                                    <span className="text-sm font-black text-foreground uppercase tracking-tight">{h.ticker.replace(".KS", "")}</span>
                                                     <span className="text-[10px] font-medium text-muted-foreground">
                                                         {h.firstPrice.toLocaleString(undefined, { maximumFractionDigits: 1 })} → {h.lastPrice.toLocaleString(undefined, { maximumFractionDigits: 1 })}
                                                     </span>

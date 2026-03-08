@@ -244,7 +244,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div className="font-black text-sm text-foreground uppercase tracking-tight">{item.ticker}</div>
+                                                    <div className="font-black text-sm text-foreground uppercase tracking-tight">{item.ticker.replace(".KS", "")}</div>
                                                     <div className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
                                                         {item.quantity}주 보유 <span className="text-[10px] opacity-30">•</span> 주당 {formatCurrency(item.amount, item.currency)}
                                                     </div>

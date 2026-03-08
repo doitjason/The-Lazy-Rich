@@ -298,7 +298,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                 ? getAssetClass(rawSector)
                 : allocationView === 'sector'
                     ? (SECTOR_MAP[rawSector] || rawSector)
-                    : item.ticker;
+                    : item.ticker.replace(".KS", "");
 
             groups[key] = (groups[key] || 0) + value;
         });
@@ -746,8 +746,8 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                     if (!isStockConcentrated && !isSectorConcentrated) return null;
 
                     const message = isStockConcentrated
-                        ? `"${topStock.ticker}" 종목에 자산의 ${formatPercent((topStockValue / totalValue) * 100)}가 집중되어 있습니다. 혹시 계란을 한 바구니에 너무 많이 담은건 아닌지 확인해보시는 것은 어떨까요? 🥚`
-                        : `"${topSector.name}" ${allocationView === 'asset' ? '자산군' : '섹터'}에 자산의 ${formatPercent((topSector.value / totalValue) * 100)}가 쏠려 있습니다. 해당 ${allocationView === 'asset' ? '자산군' : '산업'} 리스크에 주의하세요! 🏗️`;
+                        ? `"${topStock.ticker.replace(".KS", "")}" 종목에 자산의 ${formatPercent((topStockValue / totalValue) * 100)}가 집중되어 있습니다. 혹시 계란을 한 바구니에 너무 많이 담은건 아닌지 확인해보시는 것은 어떨까요? 🥚`
+                        : `"${topSector.name.replace(".KS", "")}" ${allocationView === 'asset' ? '자산군' : '섹터'}에 자산의 ${formatPercent((topSector.value / totalValue) * 100)}가 쏠려 있습니다. 해당 ${allocationView === 'asset' ? '자산군' : '산업'} 리스크에 주의하세요! 🏗️`;
 
                     return (
                         <motion.div
@@ -1025,7 +1025,7 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
                                             </div>
                                         </div>
                                         <div className="min-w-0">
-                                            <div className="font-bold text-sm truncate">{item.ticker}</div>
+                                            <div className="font-bold text-sm truncate">{item.ticker.replace(".KS", "")}</div>
                                             <div className="text-xs text-muted-foreground flex items-center gap-1">
                                                 <span className="whitespace-nowrap">{item.quantity}주</span>
                                                 <span className="w-0.5 h-0.5 rounded-full bg-gray-500 flex-shrink-0" />

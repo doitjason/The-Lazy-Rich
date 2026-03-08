@@ -29,7 +29,7 @@ export function PortfolioAllocationChart({ items, prices }: PortfolioAllocationC
             const currentPrice = prices[item.ticker]?.price || item.avg_price;
             const value = item.quantity * currentPrice;
             return {
-                name: item.ticker,
+                name: item.ticker.replace(".KS", ""),
                 value: value
             };
         });

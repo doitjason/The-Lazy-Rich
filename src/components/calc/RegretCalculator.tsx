@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { StockSearchInput } from "@/components/ui/StockSearchInput";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
@@ -46,7 +48,7 @@ export function RegretCalculator() {
     const [ticker, setTicker] = useState("");
     const [stockName, setStockName] = useState("");
     const [amount, setAmount] = useState<number>(1000000);
-    const [period, setPeriod] = useState<"1Y" | "3Y" | "5Y" | "10Y" | "20Y" | "30Y">("10Y");
+    const [period, setPeriod] = useState<string>("10Y");
     const [investmentType, setInvestmentType] = useState<"LUMP_SUM" | "DCA">("LUMP_SUM");
     const [rawData, setRawData] = useState<any>(null);
     const [result, setResult] = useState<RegretResult | null>(null);
@@ -516,11 +518,25 @@ export function RegretCalculator() {
                     <div className="border-t border-white/[0.06]" />
 
                     {/* 3. Period Selection (Grid) */}
-                    <div className="space-y-3">
-                        <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
-                            <CalendarDays className="w-3.5 h-3.5 text-emerald-500/70" />
-                            투자 시점 (과거)
-                        </label>
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-end">
+                            <label className="text-[13px] font-bold text-foreground/90 uppercase tracking-wider ml-1 flex items-center gap-1.5">
+                                <CalendarDays className="w-3.5 h-3.5 text-emerald-500/70" />
+                                투자 시점 (과거)
+                            </label>
+                            <span className="text-sm font-bold text-emerald-500">{period.replace("Y", "년 전")}</span>
+                        </div>
+                        <Slider
+                            value={[parseInt(period.replace("Y", "")) || 10]}
+                            max={40}
+                            min={1}
+                            step={1}
+                            onValueChange={(vals) => {
+                                setPeriod(`${vals[0]}Y`);
+                                setIsAmountManuallySet(true);
+                            }}
+                            className="py-2 [&_[data-slot=slider-range]]:bg-emerald-500 [&_[data-slot=slider-thumb]]:border-emerald-500"
+                        />
                         <div className="grid grid-cols-3 gap-2">
                             {(["1Y", "3Y", "5Y", "10Y", "20Y", "30Y"] as const).map((p) => (
                                 <button

@@ -192,16 +192,16 @@ function splitContentIntoParts(rawContent: string) {
     const bodyContent = lines.slice(bodyStartIndex).join("\n").trim();
     
     // Split body into sections for ad placement
-    // We split by double newlines into paragraphs
-    const paragraphs = bodyContent.split(/\n\n+/);
+    // More robust split that handles CRLF and simple newlines
+    const paragraphs = bodyContent.split(/\r?\n\r?\n+/).filter(p => p.trim() !== "");
     const resultParts: string[] = [];
     
-    if (paragraphs.length >= 12) {
+    if (paragraphs.length >= 10) { // Lowered slightly from 12 to ensure 3 ads on most columns
         const partSize = Math.ceil(paragraphs.length / 3);
         resultParts.push(paragraphs.slice(0, partSize).join("\n\n"));
         resultParts.push(paragraphs.slice(partSize, partSize * 2).join("\n\n"));
         resultParts.push(paragraphs.slice(partSize * 2).join("\n\n"));
-    } else if (paragraphs.length >= 6) {
+    } else if (paragraphs.length >= 5) { // Lowered slightly from 6 for better coverage
         const mid = Math.ceil(paragraphs.length / 2);
         resultParts.push(paragraphs.slice(0, mid).join("\n\n"));
         resultParts.push(paragraphs.slice(mid).join("\n\n"));

@@ -103,7 +103,7 @@ export function StockSearchInput({
                     {value ? (
                         <div className="flex items-center gap-2 overflow-hidden">
                             <span className="text-sm font-medium text-emerald-500 bg-emerald-500/10 border border-emerald-500/50 px-2 py-0.5 rounded-md shrink-0">
-                                {value}
+                                {value.replace(".KS", "")}
                             </span>
                             {selectedName && (
                                 <span className="text-sm text-muted-foreground font-normal truncate">
@@ -150,7 +150,7 @@ export function StockSearchInput({
                                         />
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold">{stock.ticker}</span>
+                                                <span className="font-bold">{stock.ticker.replace(".KS", "")}</span>
                                                 <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                                                     {stock.exchange}
                                                 </span>

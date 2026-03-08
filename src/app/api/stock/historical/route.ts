@@ -31,7 +31,13 @@ export async function GET(request: NextRequest) {
 
     try {
         // Calculate date range based on period
-        const years = parseInt(period.replace("Y", ""));
+        let years = 10;
+        if (period === "all") {
+            years = 50; // Fetch as much as possible (50 years should cover most)
+        } else {
+            years = parseInt(period.replace("Y", "")) || 10;
+        }
+        
         const endDate = new Date();
         const startDate = new Date();
         startDate.setFullYear(endDate.getFullYear() - years);

@@ -54,7 +54,7 @@ export function EditStockDialog({ open, onOpenChange, item }: EditStockDialogPro
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px] bg-white dark:bg-slate-900 border-border rounded-2xl">
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-bold">종목 수정: {item?.ticker}</DialogTitle>
+                    <DialogTitle className="text-xl font-bold">종목 수정: {item?.ticker?.replace(".KS", "")}</DialogTitle>
                     <DialogDescription>
                         보유 수량이나 평균 단가를 변경하여 포트폴리오를 관리하세요.
                     </DialogDescription>
