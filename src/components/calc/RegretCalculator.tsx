@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Loader2, HelpCircle, Share2, TrendingUp, Search, DollarSign, CalendarDays } from "lucide-react";
+import { Loader2, HelpCircle, Share2, TrendingUp, Search, DollarSign, CalendarDays, Sparkles } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -861,19 +861,144 @@ export function RegretCalculator() {
                                     </ResponsiveContainer>
                                 </div>
 
-                                {/* Cross-Sell Feature (Mode Switch) Moved inside the card */}
-                                <div className="mt-6 flex justify-center w-full px-1">
-                                    <button
-                                        onClick={handleSwitchMode}
-                                        className="w-full sm:w-auto text-[10px] min-[360px]:text-[11px] sm:text-sm font-bold text-foreground/70 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center gap-1 sm:gap-2 px-1 min-[360px]:px-2 sm:px-6 py-3 sm:py-3.5 rounded-2xl border border-black/5 dark:border-white/10 bg-gray-50/50 hover:bg-gray-100 dark:bg-white/[0.02] dark:hover:bg-white/[0.06] transition-all duration-300 shadow-sm active:scale-95 group"
-                                    >
-                                        <TrendingUp className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-emerald-500 shrink-0 group-hover:animate-bounce" />
-                                        <span className="whitespace-nowrap tracking-tighter sm:tracking-normal">
-                                            {investmentType === "LUMP_SUM"
-                                                ? "만약 적립식으로 투자했다면 수익률은 어땠을까요? 🔄"
-                                                : "만약 거치식으로 투자했다면 수익률은 어땠을까요? 🔄"}
+                                {/* 💡 다음 단계 추천 (Next Steps) */}
+                                <div className="mt-8 pt-6 border-t border-white/5 w-full">
+                                    <h3 className="text-sm font-extrabold flex items-center gap-2 mb-4 px-2 tracking-tight group cursor-default">
+                                        <div className="relative flex items-center justify-center">
+                                            <Sparkles className="w-5 h-5 text-emerald-400 relative z-10 animate-pulse" />
+                                            <div className="absolute inset-0 bg-emerald-500/40 blur-md rounded-full animate-ping opacity-50" />
+                                        </div>
+                                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-emerald-200 to-emerald-400 animate-[pulse_3s_ease-in-out_infinite]">
+                                            결과를 중심으로 다음 단계 추천!
                                         </span>
-                                    </button>
+                                    </h3>
+                                    <div className="flex flex-col gap-3 w-full">
+                                        {/* 1. Switch Mode */}
+                                        <button
+                                            onClick={handleSwitchMode}
+                                            className="group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-500/5 to-transparent hover:from-blue-500/10 border border-blue-500/10 hover:border-blue-500/30 transition-all text-left shadow-sm w-full"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                                                    <TrendingUp className="w-5 h-5 text-blue-500" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[13px] font-bold text-foreground">
+                                                        {investmentType === "LUMP_SUM" ? "적립식으로 투자했다면 어땠을까?" : "거치식으로 투자했다면 어땠을까?"}
+                                                    </div>
+                                                    <div className="text-[11px] text-muted-foreground mt-1">
+                                                        {investmentType === "LUMP_SUM" ? "월 단위로 꾸준히 매수했을 때의 수익률 확인하기" : "한 번에 다 매수했을 때의 수익률 확인하기"}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="text-muted-foreground/50 group-hover:text-foreground/70 transition-colors text-sm ml-2">→</span>
+                                        </button>
+
+                                        {/* 2. AI Mentor */}
+                                        {(() => {
+                                            const ticker = result.ticker;
+                                            const isEtf = result.isEtf || result.quoteType === "ETF";
+                                            const assetAllocationEtfs = ["AOA", "AOR", "AOM", "AOK", "RPAR", "SWAN"];
+                                            const isAssetAllocation = isEtf && assetAllocationEtfs.some(e => ticker.toUpperCase().includes(e));
+
+                                            let personaId = "sage";
+                                            let mentorEmoji = "🧙‍♂️";
+
+                                            if (isAssetAllocation) {
+                                                personaId = "architect";
+                                                mentorEmoji = "👨‍🏫";
+                                            } else if (isEtf) {
+                                                personaId = "father";
+                                                mentorEmoji = "👨‍🌾";
+                                            } else {
+                                                const isGrowth = result.cagr > 20;
+                                                if (isGrowth) {
+                                                    personaId = "hero";
+                                                    mentorEmoji = "🦸";
+                                                }
+                                            }
+
+                                            const cleanTicker = ticker.replace(".KS", "");
+                                            const perfDesc = result.returnRate >= 0
+                                                ? `과거 성과가 좋았는데 (${result.returnRate.toFixed(1)}%)`
+                                                : `과거 성과가 아쉬웠는데 (${result.returnRate.toFixed(1)}%)`;
+                                            const queryText = encodeURIComponent(`${cleanTicker}의 ${perfDesc}, 앞으로의 미래 전망에 대해 진단해 주세요`);
+                                            const guruUrl = `/guru?persona=${personaId}&q=${queryText}`;
+
+                                            return (
+                                                <a
+                                                    href={guruUrl}
+                                                    className="group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-violet-500/5 to-transparent hover:from-violet-500/10 border border-violet-500/10 hover:border-violet-500/30 transition-all text-left shadow-sm w-full"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-violet-500/10 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                                                            <span className="text-xl leading-none">{mentorEmoji}</span>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[13px] font-bold text-foreground">AI 멘토에게 바로 물어보기</div>
+                                                            <div className="text-[11px] text-muted-foreground mt-1">"{cleanTicker}의 미래 전망은 어떨까?" 진단 받기</div>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-muted-foreground/50 group-hover:text-foreground/70 transition-colors text-sm ml-2">→</span>
+                                                </a>
+                                            );
+                                        })()}
+
+                                        {/* 3. Future Projection (Combined) */}
+                                        {result.cagr > 0 && (() => {
+                                            const cleanTicker = result.ticker.replace(".KS", "");
+                                            const cagr = Math.round(result.cagr * 10) / 10;
+                                            const conservativeCagr = Math.round(cagr * 0.5 * 10) / 10;
+
+                                            const isDCA = result.investmentType === "DCA";
+                                            const initialAmount = isDCA ? 0 : amount;
+                                            const monthlyAmount = isDCA ? amount : 0;
+
+                                            const baseParams = `tab=compound&years=10&monthly=${monthlyAmount}&initial=${initialAmount}&from=regret&ticker=${cleanTicker}`;
+
+                                            return (
+                                                <div className="group flex flex-col p-4 rounded-2xl bg-gradient-to-r from-emerald-500/5 via-transparent to-amber-500/5 hover:from-emerald-500/10 hover:to-amber-500/10 border border-white/5 hover:border-white/10 transition-all text-left shadow-sm w-full gap-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                                                            <span className="text-xl leading-none">🚀</span>
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[13px] font-bold text-foreground">앞으로 10년 계속 투자한다면?</div>
+                                                            <div className="text-[11px] text-muted-foreground mt-1">과거 수익률 기반 복리 시뮬레이션 계산하기</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col gap-2 w-full mt-1">
+                                                        <a
+                                                            href={`/calc?${baseParams}&rate=${cagr}`}
+                                                            className="flex items-center justify-between px-4 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 transition-colors"
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[14px]">📈</span>
+                                                                <span className="text-[12px] font-bold">과거 기준처럼 성장한다면</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="text-[11px] font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full">{cagr}% 연장</span>
+                                                                <span className="text-[14px]">→</span>
+                                                            </div>
+                                                        </a>
+                                                        <a
+                                                            href={`/calc?${baseParams}&rate=${conservativeCagr}`}
+                                                            className="flex items-center justify-between px-4 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:border-amber-500/40 transition-colors"
+                                                        >
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[14px]">📉</span>
+                                                                <span className="text-[12px] font-bold">과거보다 보수적으로 본다면</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <span className="text-[11px] font-bold bg-amber-500/10 px-2 py-0.5 rounded-full">{conservativeCagr}% 연장</span>
+                                                                <span className="text-[14px]">→</span>
+                                                            </div>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
@@ -884,7 +1009,7 @@ export function RegretCalculator() {
                             </CardContent>
                         </Card>
                     )}
-                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-6 pb-8">
+                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-6">
                         <Button
                             onClick={handleShare}
                             className="w-full sm:flex-1 max-w-sm h-14 text-base font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2"
@@ -893,6 +1018,8 @@ export function RegretCalculator() {
                             <span>친구에게 결과 공유하기</span>
                         </Button>
                     </div>
+
+                    <div className="pb-8" />
                 </div>
             )}
         </div>

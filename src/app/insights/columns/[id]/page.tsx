@@ -14,6 +14,7 @@ interface PageProps {
     params: Promise<{
         id: string;
     }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 // Generate Static Params for SEO
@@ -212,8 +213,15 @@ function splitContentIntoParts(rawContent: string) {
     return { summaryLines, bodyParts: resultParts };
 }
 
-export default async function ColumnDetailPage({ params }: PageProps) {
+export default async function ColumnDetailPage({ params, searchParams }: PageProps) {
     const { id } = await params;
+    const { from } = await searchParams;
+    
+    // Determine back button props
+    const isFromGuru = from === "guru";
+    const backHref = isFromGuru ? "/guru" : undefined;
+    const backText = isFromGuru ? "AI 멘토" : undefined;
+
     const column = COLUMNS.find((c) => c.id === id);
 
     if (!column) {
@@ -288,7 +296,7 @@ export default async function ColumnDetailPage({ params }: PageProps) {
 
             {/* Sticky Header */}
             <header className="sticky top-0 z-40 bg-white/70 dark:bg-[#0b0c10]/70 backdrop-blur-2xl border-b border-gray-200 dark:border-white/10 px-4 py-3 flex items-center gap-3">
-                <BackButton />
+                <BackButton href={backHref} text={backText} />
                 <h1 className="text-base font-bold text-foreground flex-1 truncate">
                     {column.title}
                 </h1>

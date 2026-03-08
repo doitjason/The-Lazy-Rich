@@ -570,17 +570,30 @@ export function CompoundCalculator() {
                         {/* Summary Insight Statement */}
                         <div className="mt-4 p-6 rounded-2xl bg-slate-500/5 border border-slate-500/10 text-center animate-in fade-in zoom-in duration-1000">
                             <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-slate-400 max-w-3xl mx-auto text-center break-keep">
-                                앞으로 <span className="font-bold text-slate-800 dark:text-slate-200">{years}년</span> 동안 이 계획을 완수한다면, 당신의 자산은 총 원금 <span className="font-bold text-slate-800 dark:text-slate-200">{currency === "KRW" ? `${formatCompactNumber(totalInvestedNominal)}원` : `$${formatCompactNumber(totalInvestedNominal)}`}</span> 대비 약 <span className="font-bold text-slate-800 dark:text-slate-200">{multiplier}배</span>인 <span className="font-bold text-slate-800 dark:text-slate-200">{currency === "KRW" ? `약 ${formatCompactNumber(finalNominalAsset)}원` : `approx. $${formatCompactNumber(finalNominalAsset)}`}</span>이 되어 돌아옵니다. 여기서 물가 상승을 이겨낸 <span className="font-bold text-slate-800 dark:text-slate-200">{currency === "KRW" ? `약 ${formatCompactNumber(realValue)}원` : `$${formatCompactNumber(realValue)}`}</span>의 실질 구매력은 4% 법칙에 따라 매달 약 <span className="font-bold text-slate-800 dark:text-slate-200">
-                                    {(() => {
-                                        const val = Math.round(lifetimeMonthlyIncome);
-                                        if (currency === "KRW") {
-                                            if (val >= 100000000) return `${Math.floor(val / 100000000)}억`;
-                                            if (val >= 10000) return `${Math.floor(val / 10000)}만`;
-                                            return val.toLocaleString();
-                                        } else {
-                                            return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 0 }).format(val);
-                                        }
-                                    })()}{currency === "KRW" ? "원" : ""}</span>이라는 평생 실질 월급이 되어 당신에게 자유로운 삶을 보장합니다.
+                                {(() => {
+                                    const fromRegret = searchParams.get("from") === "regret";
+                                    const tickerParam = searchParams.get("ticker");
+                                    
+                                    const prefix = fromRegret && tickerParam
+                                        ? <><span className="font-bold text-slate-800 dark:text-slate-200">{tickerParam}</span>의 과거 연평균 수익률(CAGR) <span className="font-bold text-slate-800 dark:text-slate-200">{rate}%</span>가 앞으로 지속된다고 가정했을 때, <span className="font-bold text-slate-800 dark:text-slate-200">{years}년</span> 후 당신의 자산은</>
+                                        : <>앞으로 <span className="font-bold text-slate-800 dark:text-slate-200">{years}년</span> 동안 이 계획을 완수한다면, 당신의 자산은</>;
+
+                                    return (
+                                        <>
+                                            {prefix} 총 원금 <span className="font-bold text-slate-800 dark:text-slate-200">{currency === "KRW" ? `${formatCompactNumber(totalInvestedNominal)}원` : `$${formatCompactNumber(totalInvestedNominal)}`}</span> 대비 약 <span className="font-bold text-slate-800 dark:text-slate-200">{multiplier}배</span>인 <span className="font-bold text-slate-800 dark:text-slate-200">{currency === "KRW" ? `약 ${formatCompactNumber(finalNominalAsset)}원` : `approx. $${formatCompactNumber(finalNominalAsset)}`}</span>이 되어 돌아옵니다. 여기서 물가 상승을 이겨낸 <span className="font-bold text-slate-800 dark:text-slate-200">{currency === "KRW" ? `약 ${formatCompactNumber(realValue)}원` : `$${formatCompactNumber(realValue)}`}</span>의 실질 구매력은 4% 법칙에 따라 매달 약 <span className="font-bold text-slate-800 dark:text-slate-200">
+                                            {(() => {
+                                                const val = Math.round(lifetimeMonthlyIncome);
+                                                if (currency === "KRW") {
+                                                    if (val >= 100000000) return `${Math.floor(val / 100000000)}억`;
+                                                    if (val >= 10000) return `${Math.floor(val / 10000)}만`;
+                                                    return val.toLocaleString();
+                                                } else {
+                                                    return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 0 }).format(val);
+                                                }
+                                            })()}{currency === "KRW" ? "원" : ""}</span>이라는 평생 실질 월급이 되어 당신에게 자유로운 삶을 보장합니다.
+                                        </>
+                                    );
+                                })()}
                             </p>
                         </div>
 

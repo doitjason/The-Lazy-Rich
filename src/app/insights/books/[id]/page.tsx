@@ -9,7 +9,8 @@ import { SITE_CONFIG } from "@/lib/constants";
 interface PageProps {
     params: Promise<{
         id: string;
-    }>
+    }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 // Generate Static Params for SEO (App Router)
@@ -47,8 +48,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
 }
 
-export default async function BookDetailPage({ params }: PageProps) {
+export default async function BookDetailPage({ params, searchParams }: PageProps) {
     const { id } = await params;
+    const { from } = await searchParams;
+    
+    // Determine back button props
+    const isFromGuru = from === "guru";
+    const backHref = isFromGuru ? "/guru" : undefined;
+    const backText = isFromGuru ? "AI 멘토" : undefined;
+
     const book = RECOMMENDED_BOOKS.find((b) => b.id === id);
 
     if (!book) {
@@ -108,7 +116,7 @@ export default async function BookDetailPage({ params }: PageProps) {
 
             {/* Top Navigation */}
             <header className="sticky top-0 z-40 bg-white/70 dark:bg-[#0b0c10]/70 backdrop-blur-2xl border-b border-gray-200 dark:border-white/10 px-4 py-3 flex items-center gap-3">
-                <BackButton />
+                <BackButton href={backHref} text={backText} />
                 <h1 className="text-base font-bold text-foreground flex-1 truncate">
                     {book.title}
                 </h1>
