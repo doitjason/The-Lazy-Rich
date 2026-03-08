@@ -101,9 +101,14 @@ export async function GET(request: NextRequest) {
 
                 console.log(`[Stock Search] Raw results:`, JSON.stringify(searchResults, null, 2));
                 quotes = searchResults.quotes || [];
-            } catch (yfError) {
-                console.log(`[Stock Search] Yahoo Finance search failed or timed out for query '${query}':`, yfError instanceof Error ? yfError.message : yfError);
-                // Non-fatal error, we still have local matches
+            } catch (yfError: any) {
+                console.log(`[Stock Search] Yahoo Finance search failed or timed out for query '${query}':`, yfError instanceof Error ? yfError.message : "Unknown error");
+                
+                // If it's a validation error, Yahoo Finance still gives us the raw unvalidated results
+                if (yfError && yfError.name === 'FailedYahooValidationError' && yfError.result && yfError.result.quotes) {
+                    quotes = yfError.result.quotes;
+                    console.log(`[Stock Search] Recovered ${quotes.length} quotes from validation error.`);
+                }
             }
         } else {
             console.log(`[Stock Search] Bypassing Yahoo Finance search for query '${query}' (Korean text detected).`);
