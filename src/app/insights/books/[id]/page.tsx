@@ -54,7 +54,7 @@ export default async function BookDetailPage({ params, searchParams }: PageProps
     
     // Determine back button props
     const isFromGuru = from === "guru";
-    const backHref = isFromGuru ? "/guru" : undefined;
+    const backHref = isFromGuru ? "/" : undefined;
     const backText = isFromGuru ? "AI 멘토" : undefined;
 
     const book = RECOMMENDED_BOOKS.find((b) => b.id === id);

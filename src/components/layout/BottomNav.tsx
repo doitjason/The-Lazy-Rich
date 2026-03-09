@@ -9,7 +9,7 @@ const items = [
     {
         label: "AI 멘토",
         icon: Bot,
-        href: "/guru",
+        href: "/",
     },
     {
         label: "계산기",
@@ -40,7 +40,9 @@ export function BottomNav() {
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/20 bg-white/70 backdrop-blur-md pb-safe dark:border-white/10 dark:bg-black/40">
             <div className="mx-auto flex h-16 max-w-md items-center justify-around px-2">
                 {items.map((item) => {
-                    const isActive = pathname.startsWith(item.href);
+                    const isActive = item.href === "/" 
+                        ? pathname === "/" 
+                        : pathname.startsWith(item.href);
                     return (
                         <Link
                             key={item.href}

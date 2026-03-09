@@ -122,10 +122,10 @@ const mdxComponents = {
     ),
     a: ({ href, children }: { href?: string; children?: React.ReactNode }) => {
         const isExternal = href?.startsWith("http");
-        const isCta = href?.startsWith("/guru") || href?.startsWith("/calc");
+        const isCta = href === "/" || href?.startsWith("/?persona=") || href?.startsWith("/calc");
         
         if (isCta) {
-            const isGuru = href?.startsWith("/guru");
+            const isGuru = href === "/" || href?.startsWith("/?persona=");
             return (
                 <Link 
                     href={href || "#"} 
@@ -219,7 +219,7 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
     
     // Determine back button props
     const isFromGuru = from === "guru";
-    const backHref = isFromGuru ? "/guru" : undefined;
+    const backHref = isFromGuru ? "/" : undefined;
     const backText = isFromGuru ? "AI 멘토" : undefined;
 
     const column = COLUMNS.find((c) => c.id === id);

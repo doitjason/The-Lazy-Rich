@@ -923,7 +923,7 @@ export function RegretCalculator() {
                                                 ? `과거 성과가 좋았는데 (${result.returnRate.toFixed(1)}%)`
                                                 : `과거 성과가 아쉬웠는데 (${result.returnRate.toFixed(1)}%)`;
                                             const queryText = encodeURIComponent(`${cleanTicker}의 ${perfDesc}, 앞으로의 미래 전망에 대해 진단해 주세요`);
-                                            const guruUrl = `/guru?persona=${personaId}&q=${queryText}`;
+                                            const guruUrl = `/?persona=${personaId}&q=${queryText}`;
 
                                             return (
                                                 <a

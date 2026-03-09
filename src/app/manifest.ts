@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: 'The Lazy Rich',
         short_name: 'The Lazy Rich',
         description: 'Your Personal AI Mentor & Portfolio Manager',
-        start_url: '/guru',
+        start_url: '/',
         display: 'standalone',
         background_color: '#000000',
         theme_color: '#0EA5E9',

@@ -39,7 +39,7 @@ export default function PortfolioPage() {
 
     const handleGuruSelect = (guruId: string) => {
         setIsGuruSelectOpen(false);
-        router.push(`/guru?action=analyze_portfolio&persona=${guruId}`);
+        router.push(`/?action=analyze_portfolio&persona=${guruId}`);
     };
 
     return (

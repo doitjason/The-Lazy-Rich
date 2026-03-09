@@ -9,7 +9,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // Static routes
     const routes = [
         '',
-        '/guru',
         '/calc',
         '/portfolio',
         '/insights',
@@ -22,7 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         url: `${baseUrl}${route}`,
         lastModified: new Date(),
         changeFrequency: 'daily' as const,
-        priority: route === '' || route === '/guru' ? 1.0 : 0.8,
+        priority: route === '' ? 1.0 : 0.8,
     }))
 
     // Dynamic routes for Columns
