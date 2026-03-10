@@ -1,14 +1,14 @@
 
 import { NextResponse } from "next/server";
-import { getPersonaMarketContext } from "@/lib/market-data";
+import { getMentorMarketContext } from "@/lib/market-data";
 
 export async function GET() {
     try {
-        const sage = await getPersonaMarketContext("sage", ["AAPL", "KO"]);
-        const hero = await getPersonaMarketContext("hero", ["NVDA", "AMD"]);
-        const speculator = await getPersonaMarketContext("speculator", ["TSLA"]);
-        const father = await getPersonaMarketContext("father", ["SPY"]);
-        const architect = await getPersonaMarketContext("architect", []);
+        const sage = await getMentorMarketContext("sage", ["AAPL", "KO"]);
+        const hero = await getMentorMarketContext("hero", ["NVDA", "AMD"]);
+        const speculator = await getMentorMarketContext("speculator", ["TSLA"]);
+        const father = await getMentorMarketContext("father", ["SPY"]);
+        const architect = await getMentorMarketContext("architect", []);
 
         return NextResponse.json({
             sage,
