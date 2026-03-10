@@ -28,6 +28,12 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  formatDetection: {
+    telephone: false,
+    date: false,
+    address: false,
+    email: false,
+  },
 };
 
 export default function RootLayout({
@@ -55,8 +61,8 @@ export default function RootLayout({
           <CurrencyProvider>
             <ThemeProvider
               attribute="class"
-              defaultTheme="dark"
-              enableSystem={false}
+              defaultTheme="light"
+              enableSystem
               disableTransitionOnChange
             >
               <main className="pb-20">

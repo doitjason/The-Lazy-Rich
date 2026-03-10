@@ -9,6 +9,7 @@ import { fetchNaverBook } from "@/lib/naver-books";
 import { SITE_CONFIG } from "@/lib/constants";
 import { getColumnContent } from "@/lib/mdx";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import React from "react";
 
 interface PageProps {
     params: Promise<{
@@ -91,7 +92,20 @@ const mdxComponents = {
                           !textContent.includes('3줄 요약') && 
                           !textContent.includes('결론:'); // Prevent some normal end-paragraphs from catching
 
-        if (isHeading) {
+        const isCtaPath = (href?: string) => 
+            href === "/" || 
+            href?.startsWith("/?persona=") || 
+            href?.startsWith("/?mentor=") || 
+            href?.startsWith("/calc");
+
+        // CTA links should never have a dot
+        const hasCtaLink = React.Children.toArray(children).some(child => 
+            React.isValidElement(child) && 
+            (child.props as any)?.href && 
+            isCtaPath((child.props as any).href)
+        );
+
+        if (isHeading && !hasCtaLink) {
             return (
                 <div className="flex items-center gap-2 mt-8 mb-3">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0" />
@@ -122,10 +136,15 @@ const mdxComponents = {
     ),
     a: ({ href, children }: { href?: string; children?: React.ReactNode }) => {
         const isExternal = href?.startsWith("http");
-        const isCta = href === "/" || href?.startsWith("/?persona=") || href?.startsWith("/calc");
+        const isCta = href === "/" || 
+                    href?.startsWith("/?persona=") || 
+                    href?.startsWith("/?mentor=") || 
+                    href?.startsWith("/calc");
         
         if (isCta) {
-            const isGuru = href === "/" || href?.startsWith("/?persona=");
+            const isGuru = href === "/" || 
+                        href?.startsWith("/?persona=") || 
+                        href?.startsWith("/?mentor=");
             return (
                 <Link 
                     href={href || "#"} 

@@ -7,11 +7,11 @@ export const dynamic = "force-dynamic";
 // Create or find a chat session
 export async function POST(req: NextRequest) {
     try {
-        const { userId, personaId } = await req.json();
+        const { userId, mentorId } = await req.json();
 
-        if (!userId || !personaId) {
+        if (!userId || !mentorId) {
             return NextResponse.json(
-                { error: "userId and personaId are required" },
+                { error: "userId and mentorId are required" },
                 { status: 400 }
             );
         }
@@ -27,18 +27,29 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 1. Check if a session already exists for this persona
+        // 1. Check if a session already exists for this mentor
         const { data: existingSession, error: findError } = await supabase
             .from("chat_sessions")
             .select("*")
             .eq("user_id", userId)
-            .eq("persona_id", personaId)
+            .eq("persona_id", mentorId)
             .order("created_at", { ascending: false })
             .limit(1)
             .maybeSingle();
 
         if (existingSession) {
-            return NextResponse.json({ session: existingSession });
+            // Optimization: Fetch the last few messages together with the session to improve load speed
+            const { data: messages } = await supabase
+                .from("chat_messages")
+                .select("id, role, content")
+                .eq("session_id", existingSession.id)
+                .order("created_at", { ascending: false })
+                .limit(50);
+
+            return NextResponse.json({ 
+                session: existingSession,
+                messages: (messages || []).reverse() // Chronological order
+            });
         }
 
         // 2. If not, create a new one
@@ -46,7 +57,7 @@ export async function POST(req: NextRequest) {
             .from("chat_sessions")
             .insert({
                 user_id: userId,
-                persona_id: personaId,
+                persona_id: mentorId,
             })
             .select()
             .single();
@@ -59,7 +70,10 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        return NextResponse.json({ session: data });
+        return NextResponse.json({ 
+            session: data,
+            messages: [] // New session has no messages
+        });
     } catch (error) {
         console.error("Session API Error:", error);
         return NextResponse.json(

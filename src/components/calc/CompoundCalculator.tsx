@@ -73,14 +73,20 @@ export function CompoundCalculator() {
 
             setTimeout(() => {
                 if (resultRef.current) {
-                    const yOffset = -80; // offset for sticky header if any
-                    const element = resultRef.current;
-                    const y = element.getBoundingClientRect().top + window.scrollY + yOffset;
-                    window.scrollTo({ top: y, behavior: 'smooth' });
+                    resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }, 300);
         }
     }, []); // Only on mount
+
+    // Auto scroll to result when manual calculation completes
+    useEffect(() => {
+        if (isCalculated && resultRef.current) {
+            setTimeout(() => {
+                resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+    }, [isCalculated]);
 
 
 
@@ -188,7 +194,8 @@ export function CompoundCalculator() {
     return (
         <div className="space-y-8">
             {/* Input Card: Premium Glassmorphism - Enhanced by Stitch */}
-            <Card className="relative overflow-hidden border border-white/15 bg-white/5 dark:bg-black/30 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
+            <Card className="relative overflow-hidden border border-white/30 bg-white/10 dark:bg-black/40 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.12)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/20 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
                 {/* Top Gradient Accent Line */}
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-60" />
 
@@ -221,26 +228,28 @@ export function CompoundCalculator() {
                             className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl text-lg font-medium"
                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
                         />
-                        <div className="flex flex-nowrap overflow-x-auto gap-1.5 pb-2 -mx-1 px-1 scrollbar-none">
+                        <div className="grid grid-cols-5 gap-1.5 pt-2 pb-2">
                             {(currency === "KRW"
-                                ? [10000000, 50000000, 100000000, 300000000, 500000000, 1000000000]
-                                : [10000, 50000, 100000, 300000, 500000, 1000000]
+                                ? [10000000, 50000000, 100000000, 300000000, 500000000]
+                                : [10000, 50000, 100000, 300000, 500000]
                             ).map((amt) => (
                                 <button
                                     key={amt}
                                     onClick={() => setInitial(amt)}
                                     className={cn(
-                                        "px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all duration-300 whitespace-nowrap shrink-0",
+                                        "px-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center backdrop-blur-md",
                                         initial === amt
-                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                                            : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
+                                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.3)] ring-1 ring-emerald-500/30 scale-[1.05] z-10"
+                                            : "bg-gradient-to-br from-white/20 to-white/5 hover:from-white/30 hover:to-white/10 text-muted-foreground hover:text-foreground border border-white/20 hover:border-white/40 shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_25px_rgba(0,0,0,0.15)] hover:-translate-y-1.5"
                                     )}
                                 >
                                     {currency === "KRW"
-                                        ? amt === 10000000 ? "1천만원"
-                                            : amt === 50000000 ? "5천만원"
-                                                : amt >= 100000000
-                                                    ? `${(amt / 100000000).toLocaleString()}억원`
+                                        ? amt >= 100000000
+                                            ? `${(amt / 100000000).toLocaleString()}억원`
+                                            : amt >= 10000000
+                                                ? `${(amt / 10000000).toLocaleString()}천만원`
+                                                : amt >= 1000000
+                                                    ? `${(amt / 1000000).toLocaleString()}백만원`
                                                     : `${(amt / 10000).toLocaleString()}만원`
                                         : `$${(amt / 1000).toLocaleString()}k`}
                                 </button>
@@ -278,7 +287,7 @@ export function CompoundCalculator() {
                             className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl text-lg font-medium"
                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
                         />
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-4 gap-1.5 pt-2 pb-2">
                             {(currency === "KRW"
                                 ? [500000, 1000000, 2000000, 3000000]
                                 : [500, 1000, 2000, 3000]
@@ -287,16 +296,20 @@ export function CompoundCalculator() {
                                     key={amt}
                                     onClick={() => setMonthly(amt)}
                                     className={cn(
-                                        "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
+                                        "px-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center backdrop-blur-md",
                                         monthly === amt
-                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                                            : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
+                                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.3)] ring-1 ring-emerald-500/30 scale-[1.05] z-10"
+                                            : "bg-gradient-to-br from-white/20 to-white/5 hover:from-white/30 hover:to-white/10 text-muted-foreground hover:text-foreground border border-white/20 hover:border-white/40 shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_25px_rgba(0,0,0,0.15)] hover:-translate-y-1.5"
                                     )}
                                 >
                                     {currency === "KRW"
                                         ? amt >= 100000000
                                             ? `${(amt / 100000000).toLocaleString()}억원`
-                                            : `${(amt / 10000).toLocaleString()}만원`
+                                            : amt >= 10000000
+                                                ? `${(amt / 10000000).toLocaleString()}천만원`
+                                                : amt >= 1000000
+                                                    ? `${(amt / 1000000).toLocaleString()}백만원`
+                                                    : `${(amt / 10000).toLocaleString()}만원`
                                         : `$${amt.toLocaleString()}`}
                                 </button>
                             ))}
@@ -323,7 +336,7 @@ export function CompoundCalculator() {
                             onValueChange={(vals) => setRate(vals[0])}
                             className="py-2 [&_[data-slot=slider-range]]:bg-emerald-500 [&_[data-slot=slider-thumb]]:border-emerald-500"
                         />
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-3 gap-1.5 pt-2 pb-2">
                             {[
                                 { val: 3, label: "예적금 (3%)" },
                                 { val: 10, label: "S&P 500 (10%)" },
@@ -333,10 +346,10 @@ export function CompoundCalculator() {
                                     key={item.val}
                                     onClick={() => setRate(item.val)}
                                     className={cn(
-                                        "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
+                                        "px-1 py-2 rounded-xl text-[8px] xs:text-[9px] min-[390px]:text-[10px] sm:text-[11px] font-bold whitespace-nowrap transition-all duration-300 flex items-center justify-center backdrop-blur-md text-center leading-tight",
                                         rate === item.val
-                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                                            : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
+                                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.25)] ring-1 ring-emerald-500/20 scale-[1.02] z-10"
+                                            : "bg-gradient-to-br from-white/15 to-white/5 hover:from-white/25 hover:to-white/10 text-muted-foreground hover:text-foreground border border-white/20 hover:border-white/40 shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:-translate-y-0.5"
                                     )}
                                 >
                                     {item.label}
@@ -365,16 +378,16 @@ export function CompoundCalculator() {
                             onValueChange={(vals) => setYears(vals[0])}
                             className="py-2 [&_[data-slot=slider-range]]:bg-emerald-500 [&_[data-slot=slider-thumb]]:border-emerald-500"
                         />
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-5 gap-1.5 pt-2 pb-2">
                             {[1, 5, 10, 20, 30].map((y) => (
                                 <button
                                     key={y}
                                     onClick={() => setYears(y)}
                                     className={cn(
-                                        "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
+                                        "px-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center backdrop-blur-md",
                                         years === y
-                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                                            : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
+                                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.3)] ring-1 ring-emerald-500/30 scale-[1.05] z-10"
+                                            : "bg-gradient-to-br from-white/20 to-white/5 hover:from-white/30 hover:to-white/10 text-muted-foreground hover:text-foreground border border-white/20 hover:border-white/40 shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_25px_rgba(0,0,0,0.15)] hover:-translate-y-1.5"
                                     )}
                                 >
                                     {y}년
@@ -399,16 +412,16 @@ export function CompoundCalculator() {
                             className="h-12 bg-white/[0.03] dark:bg-black/10 border-white/[0.06] focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-all rounded-xl text-lg font-medium"
                             onKeyDown={(e) => e.key === "Enter" && onCalculate()}
                         />
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-4 gap-1.5 pt-2 pb-2">
                             {[2, 3, 4, 5].map((val) => (
                                 <button
                                     key={val}
                                     onClick={() => setInflation(val)}
                                     className={cn(
-                                        "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-300",
+                                        "px-1 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center backdrop-blur-md",
                                         inflation === val
-                                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                                            : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
+                                            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.3)] ring-1 ring-emerald-500/30 scale-[1.05] z-10"
+                                            : "bg-gradient-to-br from-white/20 to-white/5 hover:from-white/30 hover:to-white/10 text-muted-foreground hover:text-foreground border border-white/20 hover:border-white/40 shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_25px_rgba(0,0,0,0.15)] hover:-translate-y-1.5"
                                     )}
                                 >
                                     {val}%
@@ -686,6 +699,8 @@ export function CompoundCalculator() {
                                         stroke="#10B981"
                                         fill="url(#colorTotal)"
                                         strokeWidth={2}
+                                        animationDuration={5000}
+                                        animationEasing="ease-in-out"
                                     />
                                     <Area
                                         type="monotone"
@@ -694,6 +709,8 @@ export function CompoundCalculator() {
                                         fill="url(#colorInvested)"
                                         strokeWidth={1}
                                         strokeDasharray="4 4"
+                                        animationDuration={3000}
+                                        animationEasing="ease-in-out"
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>

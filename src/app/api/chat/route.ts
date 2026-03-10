@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
-import { getGuruById } from "@/lib/guru-personas";
+import { getMentorById } from "@/lib/ai-mentors";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { getPersonaMarketContext, extractTickersFromMessage } from "@/lib/market-data";
+import { getMentorMarketContext, extractTickersFromMessage } from "@/lib/market-data";
 import { LAZY_RICH_CONSTITUTION } from "@/constants/constitution";
 
 // Mark as dynamic to avoid build-time pre-rendering issues with environment variables
@@ -19,13 +19,13 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient();
 
     try {
-        const { messages, personaId, sessionId, userId } = await req.json();
+        const { messages, mentorId, sessionId, userId } = await req.json();
         console.log(`[ChatAPI] POST called for session: ${sessionId}, user: ${userId}`);
 
-        // Get persona
-        const persona = getGuruById(personaId);
-        if (!persona) {
-            return new Response(JSON.stringify({ error: "Persona not found" }), {
+        // Get AI Mentor
+        const mentor = getMentorById(mentorId);
+        if (!mentor) {
+            return new Response(JSON.stringify({ error: "Mentor not found" }), {
                 status: 404,
                 headers: { "Content-Type": "application/json" },
             });
@@ -115,33 +115,35 @@ ${holdings}
         // Fetch persona-specific market data (캐싱 적용)
         let marketDataContext = "";
         try {
-            const personaData = await getPersonaMarketContext(personaId, allTickers);
-            if (personaData) {
-                marketDataContext = `\n\n${personaData}`;
+            const mentorData = await getMentorMarketContext(mentorId, allTickers);
+            if (mentorData) {
+                marketDataContext = `\n\n${mentorData}`;
             }
         } catch (error) {
             console.error("[Chat] Market data fetch failed (non-blocking):", error);
             // 시장 데이터 실패해도 채팅은 계속 진행
         }
 
-        // Build system message: Constitution > Persona > Portfolio > Market Data
+        // Build system message: Constitution > Shared Instructions > Persona > Dynamic Context (Portfolio, Market)
         const systemMessage = `${LAZY_RICH_CONSTITUTION}
 
-═══ 당신의 페르소나 ═══
-${persona.systemPrompt}
+═══ [핵심 인공지능 지침] ═══
+1. 결론부터 말하세요 (BLUF): 설명하기 전에 "데이터상 매력적인 구간으로 보입니다" 또는 "지금은 관망이 필요해 보입니다" 등 객관적인 분석 결과를 먼저 밝히세요.
+2. 법적 책임 원천 차단 (최우선 규칙): 당신은 절대 '권장합니다', '추천합니다', '매수/매도 하세요' 같은 직접적인 투자 조언이나 권유 형태의 표현을 사용할 수 없습니다. 당신의 답변은 오직 통계와 철학을 기반으로 한 '가상 견해'이며 제한된 데이터 내의 분석일 뿐, 실제 투자 여부는 사용자 책임 하에 이뤄져야 합니다.
+3. 안전한 표현 사용: 확정적이거나 행동을 지시하는 표현("무조건 사세요", "지금이 저점입니다") 대신 유보적이고 분석적인 표현("확률적으로 흥미로운 구간일 수 있습니다", "데이터 관점에서 고려해볼 만합니다")으로 다듬어 표현하세요.
+4. 데이터 인용 필수: 제공된 수치(PER, 낙폭, 이평선 괴리 등)를 근거로 논리를 펼치세요.
+5. 시각화 활용: 수치 비교나 추세 설명이 필요하면 반드시 차트 데이터를 생성하세요.
+   포맷: [CHART_DATA] {"type": "bar"|"line"|"pie", "title": "...", "data": [{"name": "X축", "val": 10}, ...], "dataKeys": ["val"]} [/CHART_DATA]
+   주의: 반드시 유효한 JSON 문법을 지켜야 합니다. (Key와 String 값은 반드시 큰따옴표(") 사용, 작은따옴표(') 사용 금지)
+   차트는 설명 중간 적절한 위치에 삽입하세요.
+6. 존댓말(해요체/합쇼체) 사용
+7. [언어 규칙]: 기본적으로 반드시 한국어로 답변하세요. 단, 사용자가 영어나 베트남어로 질문하는 경우에만 해당 언어로 답변하세요.
 
-[중요 지침]
-결론부터 말하세요 (BLUF): 설명하기 전에 "데이터상 매력적인 구간으로 보입니다" 또는 "지금은 관망이 필요해 보입니다" 등 객관적인 분석 결과를 먼저 밝히세요.
-법적 책임 원천 차단 (최우선 규칙): 당신은 절대 '권장합니다', '추천합니다', '매수/매도 하세요' 같은 직접적인 투자 조언이나 권유 형태의 표현을 사용할 수 없습니다. 당신의 답변은 오직 통계와 철학을 기반으로 한 '가상 견해'이며 제한된 데이터 내의 분석일 뿐, 실제 투자 여부는 사용자 책임 하에 이뤄져야 합니다.
-안전한 표현 사용: 확정적이거나 행동을 지시하는 표현("무조건 사세요", "지금이 저점입니다") 대신 유보적이고 분석적인 표현("확률적으로 흥미로운 구간일 수 있습니다", "데이터 관점에서 고려해볼 만합니다")으로 다듬어 표현하세요.
-데이터 인용 필수: 위 대괄호 안에 제공된 수치(PER, 낙폭, 이평선 괴리 등)를 근거로 논리를 펼치세요.
-시각화 활용: 수치 비교나 추세 설명이 필요하면 반드시 차트 데이터를 생성하세요.
-  포맷: [CHART_DATA] {"type": "bar"|"line"|"pie", "title": "...", "data": [{"name": "X축", "val": 10}, ...], "dataKeys": ["val"]} [/CHART_DATA]
-  주의: 반드시 유효한 JSON 문법을 지켜야 합니다. (Key와 String 값은 반드시 큰따옴표(") 사용, 작은따옴표(') 사용 금지)
-  차트는 설명 중간 적절한 위치에 삽입하세요.
-존댓말(해요체/합쇼체) 사용
-[언어 규칙]: 기본적으로 반드시 한국어로 답변하세요. 단, 사용자가 영어나 베트남어로 질문하는 경우에만 해당 언어로 답변하세요.
-${portfolioContext}${marketDataContext}`;
+═══ 당신의 페르소나 ═══
+${mentor.systemPrompt}
+
+${portfolioContext}
+${marketDataContext}`;
 
         // Save user message to database
         if (sessionId && messages.length > 0) {

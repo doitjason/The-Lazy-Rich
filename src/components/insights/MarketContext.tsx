@@ -31,8 +31,8 @@ export function MarketContext() {
 
     useEffect(() => {
         // 1. Check sessionStorage cache first (instant render)
-        const CACHE_KEY = "marketContextCache";
-        const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+        const CACHE_KEY = "marketContextCacheV2"; // Versioned key for new data format
+        const CACHE_TTL = 12 * 60 * 60 * 1000; // 12 hours (since data is static for 24h)
         try {
             const raw = sessionStorage.getItem(CACHE_KEY);
             if (raw) {
@@ -46,19 +46,21 @@ export function MarketContext() {
             }
         } catch { /* ignore */ }
 
-        // 2. Cache miss → fetch from server
-        getCommonMarketData().then((res) => {
-            if (res) {
-                setData(res);
-                try {
-                    sessionStorage.setItem(CACHE_KEY, JSON.stringify({
-                        data: res,
-                        expiry: Date.now() + CACHE_TTL,
-                    }));
-                } catch { /* sessionStorage full, ignore */ }
-            }
-            setLoading(false);
-        });
+        // 2. Cache miss → fetch from new cached API route
+        fetch("/api/insights/market-data")
+            .then(res => res.ok ? res.json() : null)
+            .then((res) => {
+                if (res) {
+                    setData(res);
+                    try {
+                        sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+                            data: res,
+                            expiry: Date.now() + CACHE_TTL,
+                        }));
+                    } catch { /* sessionStorage full, ignore */ }
+                }
+                setLoading(false);
+            });
     }, []);
 
     if (loading) {
@@ -231,7 +233,7 @@ export function MarketContext() {
                         시장 상황 판독 지표
                     </h3>
                     <div className="text-[11px] font-black text-emerald-500/60 uppercase tracking-widest bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        Live Data Feed
+                        Daily Market Summary
                     </div>
                 </div>
 
@@ -576,7 +578,7 @@ export function MarketContext() {
                 </Dialog>
 
                 <div className="text-[12px] text-muted-foreground/40 text-center pt-8 border-t border-dashed border-white/10 font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-                    * The Lazy Rich AI는 실시간 지표를 종합 분석합니다. 최종 투자 결정은 본인의 판단하에 이루어져야 합니다.
+                    * The Lazy Rich AI는 1일 1회 업데이트되는 데일리 지표를 종합 분석합니다. 최종 투자 결정은 본인의 판단하에 이루어져야 합니다.
                 </div>
             </div>
         </div>

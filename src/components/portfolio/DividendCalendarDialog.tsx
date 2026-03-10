@@ -50,8 +50,10 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
             const date = new Date(event.date);
             const month = date.getMonth(); // 0-11
 
-            // Aggregate quantity in case of multiple entries for same ticker
-            const quantity = items.filter(i => i.ticker === event.ticker).reduce((sum, i) => sum + i.quantity, 0);
+            // Aggregate quantity for this ticker from the items list
+            // Items are already unique by ticker in the store usually, but let's be safe.
+            const tickerItems = items.filter(i => i.ticker === event.ticker);
+            const quantity = tickerItems.reduce((sum, i) => sum + i.quantity, 0);
 
             if (quantity > 0) {
                 // Ensure we only count future/projected events appropriately or sum all known valid ones for an annual view

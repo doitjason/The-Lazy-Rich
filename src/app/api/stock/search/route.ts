@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
 
-export const dynamic = "force-dynamic";
+// Allow Vercel Data Cache
+export const dynamic = "auto";
 
 // Create YahooFinance instance (required for v3)
 const yahooFinance = new YahooFinance();
@@ -25,7 +26,14 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get("q");
 
     if (!query || query.length < 1) {
-        return NextResponse.json({ results: [] });
+        return NextResponse.json(
+            { results: [] },
+            {
+                headers: {
+                    "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+                },
+            }
+        );
     }
 
     try {
@@ -131,7 +139,14 @@ export async function GET(request: NextRequest) {
 
         console.log(`[Stock Search] Filtered results count: ${results.length}`);
 
-        return NextResponse.json({ results });
+        return NextResponse.json(
+            { results },
+            {
+                headers: {
+                    "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
+                },
+            }
+        );
     } catch (error: unknown) {
         console.error("[Stock Search] Error:", error);
         const message = error instanceof Error ? error.message : "Unknown error";

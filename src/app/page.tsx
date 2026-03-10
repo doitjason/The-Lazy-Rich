@@ -2,23 +2,24 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { GuruSelector } from "@/components/guru/GuruSelector";
-import { ChatInterface } from "@/components/guru/ChatInterface";
-import { GuruPersona, getGuruById } from "@/lib/guru-personas";
+import { MentorSelector } from "@/components/mentor/MentorSelector";
+import { ChatInterface } from "@/components/mentor/ChatInterface";
+import { AIMentor, getMentorById } from "@/lib/ai-mentors";
 import { useAuth } from "@/contexts/AuthContext";
 
 function GuruPageContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    const [selectedGuru, setSelectedGuru] = useState<GuruPersona | null>(null);
+    const [selectedMentor, setSelectedMentor] = useState<AIMentor | null>(null);
     const [sessionId, setSessionId] = useState<string | null>(null);
+    const [prefetchedMessages, setPrefetchedMessages] = useState<any[] | undefined>(undefined);
     const [initialMessage, setInitialMessage] = useState<string | undefined>(undefined);
     const { user } = useAuth();
 
-    // Create a new chat session when guru is selected
-    const handleGuruSelect = async (guru: GuruPersona) => {
-        setSelectedGuru(guru);
+    // Create a new chat session when mentor is selected
+    const handleMentorSelect = async (mentor: AIMentor) => {
+        setSelectedMentor(mentor);
 
         if (user) {
             try {
@@ -27,13 +28,16 @@ function GuruPageContent() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         userId: user.id,
-                        personaId: guru.id,
+                        mentorId: mentor.id,
                     }),
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     setSessionId(data.session?.id || null);
+                    if (data.messages) {
+                        setPrefetchedMessages(data.messages);
+                    }
                 }
             } catch (error) {
                 console.error("Failed to create session:", error);
@@ -44,12 +48,19 @@ function GuruPageContent() {
     // Handle auto-selection based on URL query param
     useEffect(() => {
         const action = searchParams.get("action");
-        const personaId = searchParams.get("persona");
+        const mentorId = searchParams.get("mentor") || searchParams.get("persona");
         const queryMessage = searchParams.get("q");
 
-        if (personaId) {
-            const autoGuru = getGuruById(personaId);
-            if (autoGuru && !selectedGuru) {  // only auto-select if a guru isn't already active
+        if (mentorId) {
+            const autoMentor = getMentorById(mentorId);
+            if (autoMentor && (!selectedMentor || selectedMentor.id !== mentorId)) {
+                // If switching mentors, reset everything first
+                if (selectedMentor && selectedMentor.id !== mentorId) {
+                    setSelectedMentor(null);
+                    setSessionId(null);
+                    setInitialMessage(undefined);
+                }
+
                 // Clean the URL so refreshing doesn't keep triggering it
                 router.replace("/", { scroll: false });
 
@@ -62,11 +73,13 @@ function GuruPageContent() {
 
                 if (msg) {
                     setInitialMessage(msg);
-                    handleGuruSelect(autoGuru);
+                    handleMentorSelect(autoMentor);
+                } else {
+                    handleMentorSelect(autoMentor);
                 }
             }
         }
-    }, [searchParams, selectedGuru, router]);
+    }, [searchParams, selectedMentor, router]);
 
     // Scroll to top when view changes
     useEffect(() => {
@@ -76,32 +89,33 @@ function GuruPageContent() {
             document.body.scrollTo({ top: 0, left: 0, behavior: "instant" });
         }, 0);
         return () => clearTimeout(timer);
-    }, [selectedGuru]);
+    }, [selectedMentor]);
 
     // Reset session when going back
     const handleBack = () => {
-        setSelectedGuru(null);
+        setSelectedMentor(null);
         setSessionId(null);
         setInitialMessage(undefined);
     };
 
     return (
-        <div className={selectedGuru ? "flex flex-col h-[calc(100dvh-85px)] p-4 max-w-md mx-auto" : "flex min-h-screen flex-col p-4 max-w-md mx-auto pb-24"}>
-            {selectedGuru ? (
+        <div className={selectedMentor ? "flex flex-col h-[calc(100dvh-85px)] p-4 max-w-md mx-auto" : "flex min-h-screen flex-col p-4 max-w-md mx-auto pb-24"}>
+            {selectedMentor ? (
                 <ChatInterface
-                    guru={selectedGuru}
+                    mentor={selectedMentor}
                     onBack={handleBack}
                     userId={user?.id}
                     sessionId={sessionId || undefined}
+                    initialHistory={prefetchedMessages}
                     initialMessage={initialMessage}
                 />
             ) : (
                 <>
                     <header className="pt-8 pb-6">
-                        <h1 className="text-3xl font-bold tracking-tight">AI Mentor</h1>
-                        <p className="text-muted-foreground">당신만의 AI Mentor와 대화하세요.</p>
+                        <h1 className="text-3xl font-bold tracking-tight">AI 멘토</h1>
+                        <p className="text-muted-foreground">당신만의 AI 멘토와 대화하세요.</p>
                     </header>
-                    <GuruSelector onSelect={handleGuruSelect} />
+                    <MentorSelector onSelect={handleMentorSelect} />
                 </>
             )}
         </div>
@@ -110,7 +124,7 @@ function GuruPageContent() {
 
 export default function Home() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading AI Mentor...</div>}>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">AI 멘토 로딩 중...</div>}>
             <GuruPageContent />
         </Suspense>
     );

@@ -27,6 +27,22 @@ export const CATEGORY_OPTIONS = [
 
 export const COLUMNS: Column[] = [
     {
+        id: "peace-portfolio",
+        title: "지정학적 위기와 '평화 포트폴리오' 전략",
+        subtitle: "불확실성이 상수가 된 시대, 당신의 자산을 지켜줄 가장 차가운 방패",
+        category: "market",
+        categoryLabel: "시장 해부",
+        categoryColor: "text-blue-400",
+        categoryBg: "bg-blue-500/10",
+        thumbnailEmoji: "🛡️",
+        author: "The Lazy Rich 에디터",
+        publishedAt: "2026-03-10",
+        readTime: 8,
+        tags: ["지정학적리스크", "방산주", "경제안보", "리스크관리"],
+        featured: true,
+        relatedBookIds: ["principles", "the-most-important-thing"],
+    },
+    {
         id: "etf-delisting-truth",
         title: "ETF가 상장폐지되면 내 돈은 다 날아갈까?",
         subtitle: "휴지조각이 되는 주식과 달리 내 자산이 안전하게 보호받는 ETF의 구조적 진실",

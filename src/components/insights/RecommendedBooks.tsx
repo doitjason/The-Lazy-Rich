@@ -140,11 +140,8 @@ export function RecommendedBooks() {
         const queriesToFetch = cached ? missingQueries : RECOMMENDED_BOOKS.filter(b => b.naverQuery).map(b => b.naverQuery!);
 
         if (queriesToFetch.length > 0) {
-            fetch("/api/books/batch", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ queries: queriesToFetch }),
-            })
+            const queryIds = queriesToFetch.join(",");
+            fetch(`/api/books/batch?queries=${encodeURIComponent(queryIds)}`)
                 .then(res => res.ok ? res.json() : {})
                 .then((newBatch: BookCoverData) => {
                     const mergedData = { ...(cached || {}), ...newBatch };

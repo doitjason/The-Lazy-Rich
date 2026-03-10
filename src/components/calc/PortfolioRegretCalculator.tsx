@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     Popover,
     PopoverContent,
@@ -123,6 +123,7 @@ export function PortfolioRegretCalculator() {
     const { currency, exchangeRate, formatCurrency, formatCompactNumber } = useCurrency();
     const { user } = useAuth();
     const { items, fetchPortfolio } = usePortfolioStore();
+    const resultRef = useRef<HTMLDivElement>(null);
 
     const [assets, setAssets] = useState<PortfolioAsset[]>([{ ticker: "", weight: 100 }]);
     const [amount, setAmount] = useState<number>(currency === "KRW" ? 10000000 : 10000);
@@ -134,6 +135,14 @@ export function PortfolioRegretCalculator() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Auto scroll to result
+    useEffect(() => {
+        if (isCalculated && resultRef.current && !isLoading) {
+            setTimeout(() => {
+                resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+    }, [isCalculated, isLoading]);
 
     // Update default values when currency changes
     useEffect(() => {
@@ -635,7 +644,8 @@ export function PortfolioRegretCalculator() {
     return (
         <div className="space-y-8">
             {/* Input Card: Premium Glassmorphism - Enhanced by Stitch */}
-            <Card className="relative overflow-hidden border border-white/15 bg-white/5 dark:bg-black/30 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5">
+            <Card className="relative overflow-hidden border border-white/30 bg-white/10 dark:bg-black/40 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.12)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.5)] ring-1 ring-white/20 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
                 {/* Top Gradient Accent Line */}
                 <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-500 to-transparent opacity-60" />
 
@@ -786,24 +796,30 @@ export function PortfolioRegretCalculator() {
                                 <DollarSign className="w-3.5 h-3.5 text-emerald-500/70" />
                                 기준 투자 금액 ({currency === "KRW" ? "원" : "$"})
                             </label>
-                            <div className="grid grid-cols-4 gap-2">
+                            <div className="grid grid-cols-5 gap-1.5 pt-2 pb-2">
                                 {(currency === "KRW"
-                                    ? [1000000, 5000000, 10000000, 50000000]
+                                    ? [1000000, 5000000, 10000000, 50000000, 100000000]
                                     : [1000, 5000, 10000, 50000]
                                 ).map((amt) => (
                                     <button
                                         key={amt}
                                         onClick={() => setAmount(amt)}
                                         className={cn(
-                                            "relative h-11 rounded-xl text-sm font-semibold transition-all duration-300",
+                                            "relative h-11 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center backdrop-blur-md",
                                             amount === amt
-                                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                                                : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
+                                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.3)] ring-1 ring-emerald-500/30 scale-[1.05] z-10"
+                                                : "bg-gradient-to-br from-white/20 to-white/5 hover:from-white/30 hover:to-white/10 text-muted-foreground hover:text-foreground border border-white/20 hover:border-white/40 shadow-[0_4px_15px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_25px_rgba(0,0,0,0.15)] hover:-translate-y-1.5"
                                         )}
                                     >
                                         {currency === "KRW"
-                                            ? amt >= 100000000 ? `${amt / 100000000}억` : `${(amt / 10000).toLocaleString()}만`
-                                            : `$${amt.toLocaleString()}`}
+                                            ? amt >= 100000000
+                                                ? `${amt / 100000000}억원`
+                                                : amt >= 10000000
+                                                    ? `${amt / 10000000}천만원`
+                                                    : amt >= 1000000
+                                                        ? `${amt / 1000000}백만원`
+                                                        : `${(amt / 10000).toLocaleString()}만원`
+                                            : `$${(amt / 1000).toLocaleString()}k`}
                                     </button>
                                 ))}
                             </div>
@@ -829,16 +845,16 @@ export function PortfolioRegretCalculator() {
                                 onValueChange={(vals) => setPeriod(`${vals[0]}Y`)}
                                 className="py-2 [&_[data-slot=slider-range]]:bg-emerald-500 [&_[data-slot=slider-thumb]]:border-emerald-500"
                             />
-                            <div className="grid grid-cols-3 gap-2">
-                                {(["1Y", "3Y", "5Y", "10Y", "20Y", "30Y"] as const).map((p) => (
+                            <div className="grid grid-cols-5 gap-1 pt-2 pb-2">
+                                {(["1Y", "3Y", "5Y", "10Y", "20Y"] as const).map((p) => (
                                     <button
                                         key={p}
                                         onClick={() => setPeriod(p)}
                                         className={cn(
-                                            "h-11 rounded-xl text-sm font-semibold transition-all duration-300",
+                                            "h-11 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center backdrop-blur-md",
                                             period === p
-                                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                                                : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
+                                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.25)] ring-1 ring-emerald-500/20 scale-[1.02] z-10"
+                                                : "bg-gradient-to-br from-white/15 to-white/5 hover:from-white/25 hover:to-white/10 text-muted-foreground hover:text-foreground border border-white/20 hover:border-white/40 shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:-translate-y-0.5"
                                         )}
                                     >
                                         {p.replace("Y", "년 전")}
@@ -856,21 +872,21 @@ export function PortfolioRegretCalculator() {
                                 <RefreshCw className="w-3.5 h-3.5 text-emerald-500/70" />
                                 리밸런싱 주기
                             </label>
-                            <div className="grid grid-cols-4 gap-2">
+                            <div className="grid grid-cols-4 gap-1 pt-2 pb-2">
                                 {[
                                     { label: "1개월", value: "monthly" },
-                                    { label: "6개월", value: "semi-annually" },
+                                    { label: "6개월", value: "6개월" },
                                     { label: "1년", value: "annually" },
-                                    { label: "하지 않음", value: "none" }
+                                    { label: "안함", value: "none" }
                                 ].map((opt) => (
                                     <button
                                         key={opt.value}
                                         onClick={() => setRebalancePeriod(opt.value as any)}
                                         className={cn(
-                                            "h-11 rounded-xl text-sm font-semibold transition-all duration-300",
+                                            "h-11 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center justify-center backdrop-blur-md text-center leading-tight",
                                             rebalancePeriod === opt.value
-                                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                                                : "bg-white/[0.03] hover:bg-white/[0.06] text-muted-foreground hover:text-foreground border border-white/[0.06] hover:border-white/15"
+                                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.25)] ring-1 ring-emerald-500/20 scale-[1.02] z-10"
+                                                : "bg-gradient-to-br from-white/15 to-white/5 hover:from-white/25 hover:to-white/10 text-muted-foreground hover:text-foreground border border-white/20 hover:border-white/40 shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.1)] hover:-translate-y-0.5"
                                         )}
                                     >
                                         {opt.label}
@@ -910,7 +926,7 @@ export function PortfolioRegretCalculator() {
 
             {/* Results Section */}
             {isCalculated && result && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div ref={resultRef} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <Card className="overflow-hidden border border-white/20 bg-white/60 dark:bg-black/40 backdrop-blur-xl shadow-2xl">
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-purple-500/5 pointer-events-none" />
                         <CardContent className="pt-8 pb-8 px-6 relative z-10">
@@ -1128,6 +1144,8 @@ export function PortfolioRegretCalculator() {
                                             fill="url(#colorValue)"
                                             strokeWidth={3}
                                             activeDot={{ r: 6, strokeWidth: 0, fill: '#fff' }}
+                                            animationDuration={5000}
+                                            animationEasing="ease-in-out"
                                         />
                                     </AreaChart>
                                 </ResponsiveContainer>

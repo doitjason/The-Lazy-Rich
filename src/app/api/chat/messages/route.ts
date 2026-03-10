@@ -24,37 +24,34 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    // Verify session ownership
-    const { data: session } = await supabase
-        .from("chat_sessions")
-        .select("user_id")
-        .eq("id", sessionId)
-        .single();
-
-    if (!session || session.user_id !== user.id) {
-        return NextResponse.json(
-            { error: "Unauthorized: Session not found or not owned by user" },
-            { status: 401 }
-        );
-    }
-
+    // Verify session ownership and fetch messages in parallel or combined
+    // Best way: fetch messages with only needed fields and verify session owner in one go if possible
+    // For now, let's just fetch the messages and the session info to verify
+    
+    // Optimized: Fetch messages with only required fields
     const { data, error } = await supabase
         .from("chat_messages")
-        .select("*")
+        .select("id, role, content, created_at, chat_sessions!inner(user_id)")
         .eq("session_id", sessionId)
-        .order("created_at", { ascending: false }) // Get newest first
-        .limit(100); // Safety limit: last 100 messages
+        .eq("chat_sessions.user_id", user.id) // Ensure cross-check
+        .order("created_at", { ascending: false })
+        .limit(100);
 
     if (error) {
         console.error("Fetch messages error:", error);
         return NextResponse.json(
-            { error: "Failed to fetch messages" },
+            { error: "Failed to fetch messages or unauthorized" },
             { status: 500 }
         );
     }
 
-    // Reverse to show in chronological (ascending) order for the UI
-    const formattedMessages = data ? [...data].reverse() : [];
+    // Format and reverse to show in chronological (ascending) order for the UI
+    const formattedMessages = data ? data.map(m => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        // created_at: m.created_at // optional
+    })).reverse() : [];
 
     console.log(`[API] Found ${formattedMessages.length} messages for session ${sessionId}`);
     return NextResponse.json({ messages: formattedMessages });

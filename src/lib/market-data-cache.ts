@@ -14,8 +14,8 @@ class MarketDataCache {
     private cache: Map<string, CacheEntry<unknown>> = new Map();
 
     // TTL in milliseconds
-    static readonly STOCK_TTL = 5 * 60 * 1000;   // 5분
-    static readonly MARKET_TTL = 10 * 60 * 1000;  // 10분
+    static readonly STOCK_TTL = 60 * 60 * 1000;   // 1시간 (Prompt Caching 최적화)
+    static readonly MARKET_TTL = 60 * 60 * 1000;  // 1시간 (Prompt Caching 최적화)
 
     /**
      * 캐시에서 데이터 조회 (만료 시 null 반환)

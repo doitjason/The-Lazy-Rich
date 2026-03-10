@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Send, ArrowLeft, Bot, User as UserIcon, Loader2, AlertTriangle, BarChart as ChartIcon, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { GuruPersona, getIntroMessage, SupportedLanguage } from "@/lib/guru-personas";
+import { AIMentor, getIntroMessage, SupportedLanguage } from "@/lib/ai-mentors";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,10 +17,11 @@ interface Message {
 }
 
 interface ChatInterfaceProps {
-    guru: GuruPersona;
+    mentor: AIMentor;
     onBack: () => void;
     userId?: string;
     sessionId?: string;
+    initialHistory?: Message[];
     initialMessage?: string;
 }
 
@@ -29,14 +30,14 @@ import Link from "next/link";
 import { PlusCircle, LogIn } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-const getQuickSuggestions = (guruId: string, language: SupportedLanguage): string[] => {
+const getQuickSuggestions = (mentorId: string, language: SupportedLanguage): string[] => {
     const commonQuestion = language === "ko" ? "내 포트폴리오를 분석해주세요" : "Analyze my portfolio";
 
     if (language !== "ko") {
         return [commonQuestion, "What's your take on the current market?"];
     }
 
-    switch (guruId) {
+    switch (mentorId) {
         case "sage":
             return [commonQuestion, "내재 가치 평가는 어떤 기준으로 하나요?", "기업의 경제적 해자는 어떻게 파악하나요?"];
         case "hero":
@@ -50,7 +51,7 @@ const getQuickSuggestions = (guruId: string, language: SupportedLanguage): strin
     }
 };
 
-export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage }: ChatInterfaceProps) {
+export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistory, initialMessage }: ChatInterfaceProps) {
     const { currency } = useCurrency();
     const { signInWithGoogle } = useAuth();
 
@@ -61,11 +62,11 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
         return "ko";
     }, [currency]);
 
-    const [messages, setMessages] = useState<Message[]>([
+    const [messages, setMessages] = useState<Message[]>(initialHistory && initialHistory.length > 0 ? initialHistory : [
         {
             id: "intro",
             role: "assistant",
-            content: getIntroMessage(guru, language),
+            content: getIntroMessage(mentor, language),
         },
     ]);
     const [input, setInput] = useState("");
@@ -89,23 +90,51 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
 
     // Fetch existing messages if sessionId exists
     useEffect(() => {
+        // Optimization: If initialHistory was provided, skip the first fetch to avoid duplicate logic
+        // and allow instant interaction.
+        if (initialHistory !== undefined && fetchedSessionId.current === null) {
+            console.log(`[ChatHistory] Using initialHistory for session: ${sessionId}`);
+            fetchedSessionId.current = sessionId || null;
+            return;
+        }
+
         if (!sessionId || isHistoryLoading || fetchedSessionId.current === sessionId) return;
 
         const fetchMessages = async () => {
+            // Check cache first
+            const cacheKey = `chat_history_${sessionId}`;
+            const cached = sessionStorage.getItem(cacheKey);
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        console.log(`[ChatHistory] Loading from cache for session: ${sessionId}`);
+                        setMessages(parsed);
+                        fetchedSessionId.current = sessionId;
+                        // Still fetch in background to ensure up-to-date data (SWR)
+                    }
+                } catch (e) {
+                    sessionStorage.removeItem(cacheKey);
+                }
+            }
+
             setIsHistoryLoading(true);
             try {
-                console.log(`[ChatHistory] Fetching for session: ${sessionId}`);
+                console.log(`[ChatHistory] Fetching from API for session: ${sessionId}`);
                 const response = await fetch(`/api/chat/messages?sessionId=${sessionId}`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.messages && data.messages.length > 0) {
-                        console.log(`[ChatHistory] Found ${data.messages.length} messages`);
+                        console.log(`[ChatHistory] API found ${data.messages.length} messages`);
                         const formattedMessages: Message[] = data.messages.map((m: any) => ({
                             id: m.id,
                             role: m.role,
                             content: m.content,
                         }));
                         setMessages(formattedMessages);
+                        // Update cache
+                        sessionStorage.setItem(cacheKey, JSON.stringify(formattedMessages));
+                        
                         // Use instant scroll for historical messages
                         setTimeout(() => {
                             messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
@@ -122,7 +151,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
             }
         };
         fetchMessages();
-    }, [sessionId, isHistoryLoading]);
+    }, [sessionId, isHistoryLoading, initialHistory]);
 
     const hasSentInitialRef = useRef(false);
 
@@ -151,7 +180,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                             role: m.role,
                             content: m.content,
                         })),
-                    personaId: guru.id,
+                    mentorId: mentor.id,
                     sessionId,
                     userId,
                 }),
@@ -177,13 +206,20 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                         if (line.startsWith("data: ")) {
                             const data = line.slice(6);
                             if (data === "[DONE]") {
-                                const assistantMessage: Message = {
-                                    id: (Date.now() + 1).toString(),
-                                    role: "assistant",
-                                    content: fullContent,
-                                };
-                                setMessages((prev) => [...prev, assistantMessage]);
-                                setStreamingContent("");
+                                    const assistantMessage: Message = {
+                                        id: (Date.now() + 1).toString(),
+                                        role: "assistant",
+                                        content: fullContent,
+                                    };
+                                    setMessages((prev) => {
+                                        const newMessages = [...prev, assistantMessage];
+                                        // Update cache if session exists
+                                        if (sessionId) {
+                                            sessionStorage.setItem(`chat_history_${sessionId}`, JSON.stringify(newMessages));
+                                        }
+                                        return newMessages;
+                                    });
+                                    setStreamingContent("");
                             } else {
                                 try {
                                     const parsed = JSON.parse(data);
@@ -215,18 +251,26 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
 
     // Auto trigger initialMessage
     useEffect(() => {
-        const isSessionReady = userId ? (!!sessionId && fetchedSessionId.current === sessionId) : true;
+        // Robust session readiness: 
+        // 1. For guests (no userId), send immediately.
+        // 2. For logged-in users, we MUST have a sessionId.
+        // 3. We also wait for history to NOT be currently loading (isHistoryLoading === false)
+        //    AND fetchedSessionId.current to match the current sessionId (to ensure history is ready/checked)
+        
+        const isUserSessionReady = !!userId ? (!!sessionId && fetchedSessionId.current === sessionId) : true;
+        const isDataReady = !isHistoryLoading;
 
         if (
             initialMessage &&
-            isSessionReady &&
-            !isHistoryLoading &&
+            isUserSessionReady &&
+            isDataReady &&
             !hasSentInitialRef.current
         ) {
+            console.log(`[ChatInterface] Auto-triggering initial message: "${initialMessage}"`);
             hasSentInitialRef.current = true;
             sendMessage(initialMessage);
         }
-    }, [initialMessage, sessionId, userId, isHistoryLoading]);
+    }, [initialMessage, sessionId, userId, isHistoryLoading, messages.length]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -246,13 +290,15 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                     await fetch(`/api/chat/messages?sessionId=${sessionId}`, {
                         method: 'DELETE',
                     });
+                    // Clear cache
+                    sessionStorage.removeItem(`chat_history_${sessionId}`);
                 }
 
                 setMessages([
                     {
                         id: "intro",
                         role: "assistant",
-                        content: getIntroMessage(guru, language),
+                        content: getIntroMessage(mentor, language),
                     },
                 ]);
                 setStreamingContent("");
@@ -279,7 +325,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
             <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg py-1.5 px-3 mb-3 flex items-center justify-center gap-1.5 opacity-90">
                 <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-500 flex-shrink-0" />
                 <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-tight font-medium text-center">
-                    AI Mentor는 가상의 캐릭터이며 투자 권유가 아닙니다. 모든 투자 책임은 본인에게 있습니다.
+                    AI 멘토는 가상의 캐릭터이며 투자 권유가 아닙니다. 모든 투자 책임은 본인에게 있습니다.
                 </p>
             </div>
 
@@ -288,12 +334,12 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                 <Button variant="ghost" size="icon" onClick={onBack} className="h-8 w-8">
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
-                <div className={`h-10 w-10 rounded-full ${guru.color} flex items-center justify-center text-white shadow-sm text-xl`}>
-                    {guru.avatarEmoji}
+                <div className={`h-10 w-10 rounded-full ${mentor.color} flex items-center justify-center text-white shadow-sm text-xl`}>
+                    {mentor.avatarEmoji}
                 </div>
                 <div className="flex-1">
-                    <h3 className="font-semibold text-sm">{guru.name}</h3>
-                    <p className="text-xs text-primary">{guru.tag}</p>
+                    <h3 className="font-semibold text-sm">{mentor.name}</h3>
+                    <p className="text-xs text-primary">{mentor.tag}</p>
                 </div>
                 <Button
                     variant="ghost"
@@ -484,7 +530,9 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                         <div className="bg-white/60 dark:bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl rounded-tl-none p-3 text-sm shadow-sm flex items-center gap-2">
                             <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
                             <span className="text-muted-foreground text-xs font-medium">
-                                {initialMessage ? "포트폴리오 분석 준비 중..." : "대화 기록을 불러오는 중..."}
+                                {initialMessage 
+                                    ? (initialMessage.includes("내 포트폴리오") ? "포트폴리오 분석 준비 중..." : "AI 멘토가 질문을 분석 중입니다...") 
+                                    : "대화 기록을 불러오는 중..."}
                             </span>
                         </div>
                     </motion.div>
@@ -523,7 +571,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
                     >
-                        {getQuickSuggestions(guru.id, language).map((suggestion) => (
+                        {getQuickSuggestions(mentor.id, language).map((suggestion) => (
                             <button
                                 key={suggestion}
                                 onClick={() => {
@@ -542,7 +590,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                                         headers: { "Content-Type": "application/json" },
                                         body: JSON.stringify({
                                             messages: [{ role: "user", content: suggestion }], // 첫 질문은 항상 이것만
-                                            personaId: guru.id,
+                                            mentorId: mentor.id,
                                             sessionId,
                                             userId,
                                         }),
@@ -607,7 +655,7 @@ export function ChatInterface({ guru, onBack, userId, sessionId, initialMessage 
                         ref={inputRef}
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder={`${guru.name}에게 질문하세요...`}
+                        placeholder={`${mentor.name}에게 질문하세요...`}
                         className="pr-12 bg-white dark:bg-black/20 border-black/10 dark:border-white/20 backdrop-blur-md focus:ring-emerald-500/50 shadow-sm"
                         disabled={isLoading || isPreparing}
                     />

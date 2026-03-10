@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
 
-export const dynamic = "force-dynamic";
+// Allow Vercel Data Cache
+export const dynamic = "auto";
 
 // Create YahooFinance instance (required for v3)
 const yahooFinance = new YahooFinance();
@@ -147,23 +148,30 @@ export async function GET(request: NextRequest) {
             };
         });
 
-        return NextResponse.json({
-            ticker: ticker.toUpperCase(),
-            period,
-            pastPrice,
-            currentPrice,
-            pastExchangeRate,
-            currentExchangeRate,
-            currency: quote?.currency || "USD",
-            name: quote?.shortName || quote?.longName || ticker,
-            quoteType: quote?.quoteType || "UNKNOWN",
-            isEtf: quote?.quoteType === "ETF",
-            dataPoints: historical.length,
-            chartData,
-            // Actual data start date (in case stock didn't exist for full period)
-            actualStartDate: historical[0]?.date,
-            actualEndDate: historical[historical.length - 1]?.date,
-        });
+        return NextResponse.json(
+            {
+                ticker: ticker.toUpperCase(),
+                period,
+                pastPrice,
+                currentPrice,
+                pastExchangeRate,
+                currentExchangeRate,
+                currency: quote?.currency || "USD",
+                name: quote?.shortName || quote?.longName || ticker,
+                quoteType: quote?.quoteType || "UNKNOWN",
+                isEtf: quote?.quoteType === "ETF",
+                dataPoints: historical.length,
+                chartData,
+                // Actual data start date (in case stock didn't exist for full period)
+                actualStartDate: historical[0]?.date,
+                actualEndDate: historical[historical.length - 1]?.date,
+            },
+            {
+                headers: {
+                    "Cache-Control": "public, s-maxage=21600, stale-while-revalidate=86400",
+                },
+            }
+        );
     } catch (error: unknown) {
         console.error("[Historical] Error:", error);
         const message = error instanceof Error ? error.message : "Failed to fetch historical data";

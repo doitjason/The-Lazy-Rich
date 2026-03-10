@@ -52,7 +52,7 @@ interface PortfolioDashboardProps {
 
 const COLORS = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899', '#6366f1'];
 
-import { GURU_PERSONAS } from "@/lib/guru-personas";
+import { AIMentor, AI_MENTORS } from "@/lib/ai-mentors";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -186,14 +186,21 @@ export function PortfolioDashboard({ onAdd }: PortfolioDashboardProps) {
         items.forEach(item => {
             const data = enrichedData[item.ticker];
             const currentPrice = data?.price || item.avg_price;
-            const value = item.quantity * currentPrice;
-            const cost = item.quantity * item.avg_price;
+            
+            // Normalize to USD for internal calculation base
+            const isKrw = item.ticker.endsWith(".KS");
+            const priceInUsd = isKrw ? currentPrice / exchangeRate : currentPrice;
+            const avgPriceInUsd = isKrw ? item.avg_price / exchangeRate : item.avg_price;
+            
+            const value = item.quantity * priceInUsd;
+            const cost = item.quantity * avgPriceInUsd;
 
             totalVal += value;
             totalCst += cost;
 
             if (data) {
-                dayChg += data.change * item.quantity;
+                const changeInUsd = isKrw ? data.change / exchangeRate : data.change;
+                dayChg += changeInUsd * item.quantity;
 
                 // Dividend (yield is typically in decimal like 0.05, sometimes undefined)
                 if (data.dividendYield) {

@@ -96,7 +96,7 @@ export function StockSearchInput({
                     role="combobox"
                     aria-expanded={open}
                     className={cn(
-                        "w-full justify-between h-12 bg-white/5 dark:bg-black/10 border-white/10 hover:bg-white/10 dark:hover:bg-black/20 hover:text-foreground text-left font-medium px-4",
+                        "w-full justify-between h-14 bg-gradient-to-br from-white/20 to-white/5 dark:from-black/40 dark:to-transparent border-white/30 hover:border-white/50 hover:text-foreground text-left font-bold px-4 backdrop-blur-3xl shadow-[0_15px_35px_rgba(0,0,0,0.1)] dark:shadow-[0_15px_35px_rgba(0,0,0,0.4)] ring-1 ring-white/10 hover:ring-white/30 transition-all duration-500 rounded-xl hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(0,0,0,0.15)]",
                         className
                     )}
                 >
@@ -117,7 +117,7 @@ export function StockSearchInput({
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[320px] p-0" align="start">
+            <PopoverContent className="w-[320px] p-0 border border-white/30 bg-white/70 dark:bg-black/80 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.25)] rounded-2xl ring-1 ring-white/20" align="start">
                 <Command shouldFilter={false}>
                     <CommandInput
                         placeholder="종목 검색 (예: samsung, AAPL)..."

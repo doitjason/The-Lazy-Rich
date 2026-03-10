@@ -22,11 +22,11 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const fetchRate = async () => {
             try {
-                const res = await fetch("https://api.frankfurter.app/latest?from=USD&to=KRW");
-                if (!res.ok) throw new Error("Failed to fetch rates");
+                const res = await fetch("/api/exchange-rate");
+                if (!res.ok) throw new Error("Failed to fetch rates from internal API");
                 const data = await res.json();
-                if (data.rates.KRW) {
-                    setExchangeRate(data.rates.KRW);
+                if (data.rate) {
+                    setExchangeRate(data.rate);
                 }
             } catch (error) {
                 console.error("Exchange rate fetch failed, using fallback:", error);

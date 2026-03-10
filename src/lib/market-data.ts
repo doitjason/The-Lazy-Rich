@@ -1,5 +1,5 @@
 /**
- * Persona-Specific Market Data Fetcher
+ * AI 멘토별 시장 데이터 Fetcher
  * 각 페르소나 성향에 맞는 시장 데이터를 Yahoo Finance에서 가져옵니다.
  * 캐싱 레이어를 통해 중복 API 호출을 방지합니다.
  */
@@ -299,7 +299,8 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
             }
         };
 
-        marketCache.set(cacheKey, data, MarketDataCache.MARKET_TTL);
+        const DAY_TTL = 24 * 60 * 60 * 1000;
+        marketCache.set(cacheKey, data, DAY_TTL);
         return data;
 
     } catch (error) {
@@ -308,8 +309,8 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
     }
 }
 
-function getPersonaInterpretationInstructions(personaId: string, pName: string): string {
-    switch (personaId) {
+function getMentorInterpretationInstructions(mentorId: string, mName: string): string {
+    switch (mentorId) {
         case "sage":
             return `데이터 기반 분석: 제시된 FCF Yield, ROIC, 부채비율, 내부자 거래 등의 수치를 하나하나 언급하며 내재 가치가 훼손되었는지 진단하세요. 특히 S&P 500의 200일선 이격도를 보고 시장 전체의 거품 유무를 판단하십시오.
 철학적 결론: "가격은 당신이 지불하는 것이고, 가치는 당신이 얻는 것이다"라는 원칙에 따라, 현재가 안전마진이 확보된 구간인지 아니면 인내하며 현금을 보유할 때인지 명확한 결론을 내리세요.`;
@@ -330,15 +331,15 @@ function getPersonaInterpretationInstructions(personaId: string, pName: string):
     }
 }
 
-export function commonDataToPrompt(data: CommonMarketData, personaId: string): string {
-    const personaNameMap: Record<string, string> = {
+export function commonDataToPrompt(data: CommonMarketData, mentorId: string): string {
+    const mentorNameMap: Record<string, string> = {
         "sage": "현인",
         "hero": "영웅",
         "architect": "원칙가",
         "speculator": "투기꾼",
         "father": "아버지"
     };
-    const pName = personaNameMap[personaId] || "멘토";
+    const mName = mentorNameMap[mentorId] || "멘토";
 
     const formatTrend = (indicator: MarketIndicator) => {
         if (!indicator.ma200) return "";
@@ -348,8 +349,8 @@ export function commonDataToPrompt(data: CommonMarketData, personaId: string): s
     };
 
     return `[🌍 공통 시장 대시보드 (Real-time Market Dashboard)]
-이 데이터는 모든 페르소나가 동일하게 참조하는 팩트 기반의 공통 지표입니다. 
-분석 시 아래 지표들을 최우선으로 반영하되, 당신(${pName})의 투자 철학에 맞춰 해석하세요.
+이 데이터는 모든 AI 멘토가 동일하게 참조하는 팩트 기반의 공통 지표입니다. 
+분석 시 아래 지표들을 최우선으로 반영하되, 당신(${mName})의 투자 철학에 맞춰 해석하세요.
 
 1. 📊 [시장 지수] 전체적 흐름 (전일 변동 & 200일 장기 추세)
    S&P 500: ${data.indices.snp500.price.toFixed(2)} (${formatChangePercent(data.indices.snp500.changePercent)})${formatTrend(data.indices.snp500)}
@@ -376,18 +377,18 @@ export function commonDataToPrompt(data: CommonMarketData, personaId: string): s
 5. 🏢 [M7 주도주] 시장 견인력
    🍎AAPL ${formatChangePercent(data.m7.aapl.changePercent)} | 🤖NVDA ${formatChangePercent(data.m7.nvda.changePercent)} | 🚗TSLA ${formatChangePercent(data.m7.tsla.changePercent)}
 
-[⭐️ ${pName}의 시황 프리셋 답변 가이드]
+[⭐️ ${mName}의 시황 프리셋 답변 가이드]
 유저가 "요즘 시황 어때?" 또는 "현재 시장 상황 분석해줘"라고 물으면 다음 3단계 프로세스로 답변하세요:
 
 1단계: [공통 팩트 요약]
 위 데이터에서 주요 지수(S&P 500, 나스닥 등)의 현재 수치와 전일 대비 변동성, 그리고 200일 이동평균선 대비 위치(장기 추세)를 객관적으로 요약하세요. 10년물 국채금리와 VIX 지수의 현재 수준도 필수적으로 언급해야 합니다.
 
 2단계: [데이터 기반 심층 분석]
-당신(${pName})에게 할당된 전문 지표(예: 현인-FCF Yield, 원칙가-MOVE 지수 등)와 공통 지표를 결합하여 현재 상황을 숫자로 증명하세요. 단순히 "금리가 높다"가 아니라 "금리가 몇 %이므로 밸류에이션에 이런 영향을 준다"라고 상세히 분석하십시오.
+당신(${mName})에게 할당된 전문 지표(예: 현인-FCF Yield, 원칙가-MOVE 지수 등)와 공통 지표를 결합하여 현재 상황을 숫자로 증명하세요. 단순히 "금리가 높다"가 아니라 "금리가 몇 %이므로 밸류에이션에 이런 영향을 준다"라고 상세히 분석하십시오.
 
-3단계: [${pName}의 철학적 결론]
+3단계: [${mName}의 철학적 결론]
 분석 내용을 바탕으로 당신의 투자 철학이 담긴 최종 판단과 행동 전략을 제시하세요. 
-${getPersonaInterpretationInstructions(personaId, pName)}
+${getMentorInterpretationInstructions(mentorId, mName)}
 `;
 }
 
@@ -1562,10 +1563,10 @@ async function calculateHistoryMetrics(): Promise<HistoryMetrics | null> {
 }
 
 // ─── 차트용 과거 데이터 (30일) 가져오기 ───
-
-export async function fetchPriceHistory(symbol: string): Promise<{ date: string; price: number }[]> {
-    const cacheKey = `history: 30d:${symbol} `;
-    const cached = marketCache.get<{ date: string; price: number }[]>(cacheKey);
+// 최적화: 날짜 생략하고 가격만 나열하여 토큰 절약
+export async function fetchPriceHistory(symbol: string): Promise<number[]> {
+    const cacheKey = `history:30d:v2:${symbol}`;
+    const cached = marketCache.get<number[]>(cacheKey);
     if (cached) return cached;
 
     try {
@@ -1579,11 +1580,8 @@ export async function fetchPriceHistory(symbol: string): Promise<{ date: string;
             interval: "1d",
         });
 
-        // 최근 30개만 추출 및 포맷팅 (YYYY-MM-DD)
-        const data = result.slice(-30).map(item => ({
-            date: item.date.toISOString().split("T")[0],
-            price: item.close
-        }));
+        // 최근 30개 종가만 추출
+        const data = result.slice(-30).map(item => Number(item.close.toFixed(2)));
 
         marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
         return data;
@@ -1595,16 +1593,16 @@ export async function fetchPriceHistory(symbol: string): Promise<{ date: string;
 
 // [Deleted legacy fetchCommonMarketData]
 
-// ─── 페르소나별 시장 해석 렌즈 ───
+// ─── AI 멘토별 시장 해석 렌즈 ───
 
-function getPersonaMarketLens(personaId: string): string {
+function getMentorMarketLens(mentorId: string): string {
     const commonInstruction = `
 🚨[답변 태도: 명확하되 안전하게]
     - "확인해보세요" 같은 회피형 답변 금지.대신 "데이터상 ~한 구간으로 판단됩니다"라고 명확히 의견을 내세요.
 - 단, "무조건 사세요/파세요" 같은 명령조는 금지. "매력적인 진입 시점입니다", "리스크 관리가 필요합니다" 처럼 전문적인 뉘앙스로 말하세요.
 - 모든 판단의 근거는 반드시 위 데이터에서 찾아서 인용하세요.`;
 
-    switch (personaId) {
+    switch (mentorId) {
         case "sage":
             return `
 ${commonInstruction}
@@ -1650,7 +1648,7 @@ ${commonInstruction}
     }
 }
 
-function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: string): string {
+function commonMarketSnapshotToPrompt(snapshot: CommonMarketSnapshot, mentorId: string): string {
     const { indicators, yieldCurveSpread } = snapshot;
     if (indicators.length === 0) return "";
 
@@ -1661,28 +1659,28 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
     let commoditySymbols: string[] = [];
     let showMacroComments = true;
 
-    if (personaId === "sage") {
+    if (mentorId === "sage") {
         indexSymbols = ["^GSPC", "^DJI", "^VIX"];
         sectorSymbols = [];
         rateSymbols = ["^TNX"]; // 가치평가용 10년물 참조
         commoditySymbols = ["GC=F"]; // 안전자산 금 정도만
         showMacroComments = false;
-    } else if (personaId === "hero") {
+    } else if (mentorId === "hero") {
         indexSymbols = ["^IXIC", "^RUT", "^SOX", "^VIX"]; // 나스닥, 중소형, 반도체 위주
         sectorSymbols = ["XLK"];
         rateSymbols = [];
         commoditySymbols = ["BTC-USD"]; // 위험 선호도 파악용
         showMacroComments = false;
-    } else if (personaId === "architect") {
+    } else if (mentorId === "architect") {
         indexSymbols = ["^GSPC", "^IXIC", "^DJI", "^RUT", "^SOX", "^VIX"];
         sectorSymbols = ["XLK", "XLE", "XLF"];
         rateSymbols = ["^TNX", "^TYX", "^IRX"];
         commoditySymbols = ["DX-Y.NYB", "GC=F", "HG=F", "CL=F", "BTC-USD"];
         showMacroComments = true;
-    } else if (personaId === "father") {
+    } else if (mentorId === "father") {
         // 아버지는 이미 전문 데이터에 인덱스와 ETF가 꽉 차있음. 거시 지표는 완전 배제.
-        const personaLens = getPersonaMarketLens(personaId);
-        return `[📡 실시간 시장 현황]\n${getPersonaHistoryString(snapshot.sp500History, personaId)}\n${personaLens}\n\n위 데이터를 당신의 투자 철학과 해석 렌즈에 따라 분석하세요.`;
+        const mentorLens = getMentorMarketLens(mentorId);
+        return `[📡 실시간 시장 현황]\n${getMentorHistoryString(snapshot.sp500History, mentorId)}\n${mentorLens}\n\n위 데이터를 당신의 투자 철학과 해석 렌즈에 따라 분석하세요.`;
     }
 
     const formatLine = (i: MarketIndicator) => {
@@ -1731,19 +1729,19 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
         if (oil && oil.price >= 90) comments.push("🔥 유가 급등 ($90+): 인플레 재점화 우려");
     }
     // Hero 추가 코멘트
-    if (personaId === "hero") {
+    if (mentorId === "hero") {
         const btc = indicators.find((i) => i.symbol === "BTC-USD");
         if (btc && btc.changePercent > 5) comments.push("🚀 코인/위험자산 선호 심리 강세 중");
     }
 
     const commentSection = comments.length > 0 ? `\n\n📌 팩트 기반 시장 요약: \n${comments.join("\n")} ` : "";
 
-    const personaLens = getPersonaMarketLens(personaId);
+    const mentorLens = getMentorMarketLens(mentorId);
 
     const sections = [];
     if (indexLines.length > 0) sections.push(`주요 지수:\n${indexLines.join("\n")}`);
     if (sectorLines.length > 0) sections.push(`섹터 동향:\n${sectorLines.join("\n")}`);
-    if (rateLines.length > 0) sections.push(`금리:\n${rateLines.join("\n")}\n${yieldCurveSpread !== null && personaId === 'architect' ? `  장단기 금리차(10Y - 3M): ${yieldCurveSpread}%p` : ""}`);
+    if (rateLines.length > 0) sections.push(`금리:\n${rateLines.join("\n")}\n${yieldCurveSpread !== null && mentorId === 'architect' ? `  장단기 금리차(10Y - 3M): ${yieldCurveSpread}%p` : ""}`);
     if (commodityLines.length > 0) sections.push(`원자재·통화·자산:\n${commodityLines.join("\n")}`);
 
     return `[📡 실시간 시장 현황]
@@ -1751,18 +1749,18 @@ function commonMarketDataToPrompt(snapshot: CommonMarketSnapshot, personaId: str
 ${sections.join("\n\n")}
 ${commentSection}
 
-${getPersonaHistoryString(snapshot.sp500History, personaId)}
-${personaLens}
+${getMentorHistoryString(snapshot.sp500History, mentorId)}
+${mentorLens}
 
 위 실시간 데이터를 당신의 투자 철학과 위 해석 렌즈에 따라 분석하고, 구체적 수치를 인용하며 답변하세요.`;
 }
 
-// 페르소나별 성향에 맞는 기간 수익률 문자열 생성
-function getPersonaHistoryString(history: HistoryMetrics | null, personaId: string): string {
+// AI 멘토별 성향에 맞는 기간 수익률 문자열 생성
+function getMentorHistoryString(history: HistoryMetrics | null, mentorId: string): string {
     if (!history) return "";
     const p = (n: number | null) => n !== null ? `${(n * 100).toFixed(2)}% ` : "N/A";
 
-    switch (personaId) {
+    switch (mentorId) {
         case "speculator": // 단기 추세
             return `📊 S & P 500 단기 추세: 1주(${p(history.change1W)}) | 1개월(${p(history.change1M)})`;
         case "hero": // 중기 모멘텀
@@ -1782,20 +1780,20 @@ function getPersonaHistoryString(history: HistoryMetrics | null, personaId: stri
 // 통합 함수: 페르소나 ID + 유저 종목 → 프롬프트 텍스트
 // ═══════════════════════════════════════════════════════
 
-export async function getPersonaMarketContext(
-    personaId: string,
+export async function getMentorMarketContext(
+    mentorId: string,
     userTickers: string[]
 ): Promise<string> {
     try {
-        // Step 1: 공통 시장 데이터 (모든 페르소나 공통) + 페르소나별 해석 렌즈
+        // Step 1: 공통 시장 데이터 (모든 AI 멘토 공통) + AI 멘토별 해석 렌즈
         const commonData = await fetchCommonMarketData();
         // New common data formatter
-        const commonPrompt = commonData ? commonDataToPrompt(commonData, personaId) : "";
+        const commonPrompt = commonData ? commonDataToPrompt(commonData, mentorId) : "";
 
-        // Step 2: 페르소나별 전문 데이터
+        // Step 2: AI 멘토별 전문 데이터
         let specializedPrompt = "";
 
-        switch (personaId) {
+        switch (mentorId) {
             case "sage": {
                 const targets = userTickers.length > 0 ? userTickers.slice(0, 5) : ["SPY", "AAPL"];
                 const results = await Promise.all(
@@ -1878,7 +1876,7 @@ export async function getPersonaMarketContext(
             }
         }
 
-        // Step 3: 차트 생성을 위한 과거 데이터 주입 (모든 페르소나 공통, 요청된 티커 대상)
+        // Step 3: 차트 생성을 위한 과거 데이터 주입 (모든 AI 멘토 공통, 요청된 티커 대상)
         let chartContext = "";
         if (userTickers.length > 0) {
             const uniqueTickers = Array.from(new Set(userTickers.map(t => resolveKoreanTicker(t)))).slice(0, 3); // 최대 3개
@@ -1886,17 +1884,15 @@ export async function getPersonaMarketContext(
                 uniqueTickers.map(async (symbol) => {
                     const history = await fetchPriceHistory(symbol);
                     if (history.length === 0) return null;
-                    // 토큰 절약을 위해 데이터 압축 (날짜는 생략하고 값만 나열하거나, 간략화)
-                    // 여기서는 JSON 문자열로 제공하여 AI가 바로 파싱해서 차트를 그리게 유도
-                    return `"${symbol}": ${JSON.stringify(history)} `;
+                    // 토큰 절약: 배열 형태로 직접 주입
+                    return `"${symbol}": [${history.join(",")}]`;
                 })
             );
 
             const validHistory = historyData.filter(Boolean);
             if (validHistory.length > 0) {
                 chartContext = `
-[📈 차트 생성용 과거 데이터(30일)]
-AI는 아래 데이터를 사용하여 선 그래프(Line Chart)를 그려야 합니다.
+[📈 CHART_DATA_HISTORY_30D]
 {
   ${validHistory.join(",\n  ")}
 }
@@ -1908,7 +1904,7 @@ AI는 아래 데이터를 사용하여 선 그래프(Line Chart)를 그려야 �
         const parts = [commonPrompt, specializedPrompt, chartContext].filter(Boolean);
         return parts.join("\n\n");
     } catch (error) {
-        console.error(`[MarketData] Failed to get context for ${personaId}: `, error);
+        console.error(`[MarketData] Failed to get context for ${mentorId}: `, error);
         return "";
     }
 }
@@ -2072,8 +2068,8 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
                             const payDate = cal.dividendDate ? new Date(cal.dividendDate) : undefined;
                             const payDateStr = payDate ? formatDate(payDate) : undefined;
 
-                            // Check duplicate by date
-                            const exists = events.some(e => e.ticker === ticker && e.date === dateStr);
+                            // Check duplicate by date (Ignore time component for safety)
+                            const exists = events.some(e => e.ticker === ticker && e.date.split('T')[0] === dateStr.split('T')[0]);
 
                             if (!exists && exDate > new Date()) {
                                 let amount = 0;
@@ -2262,8 +2258,17 @@ export async function fetchBenchmarkHistory(
     let basePortfolioValue = 0;
     let baseBenchmarkValue = 0;
 
-    // Use Fixed Exchange Rate to remove FX volatility 
-    const FIXED_KRW_RATE = 1400;
+    // Get real-time exchange rate for benchmark calculation
+    let FIXED_KRW_RATE = 1400;
+    try {
+        const rateResult = await yahooFinance.quote("USDKRW=X");
+        if (rateResult && rateResult.regularMarketPrice) {
+            FIXED_KRW_RATE = rateResult.regularMarketPrice;
+        }
+    } catch (e) {
+        console.warn("Failed to fetch real-time rate for benchmark, using fallback 1400", e);
+    }
+
     const lastPrices = new Map<string, number>();
 
     // Determine Chart Range & Base Date

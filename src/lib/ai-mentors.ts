@@ -3,7 +3,7 @@
 
 export type SupportedLanguage = "ko" | "en" | "vi";
 
-export interface GuruPersona {
+export interface AIMentor {
     id: string;
     name: string;
     englishName: string;
@@ -16,7 +16,7 @@ export interface GuruPersona {
     systemPrompt: string;
 }
 
-export const GURU_PERSONAS: GuruPersona[] = [
+export const AI_MENTORS: AIMentor[] = [
     {
         id: "sage",
         name: "오마하의 현인",
@@ -31,7 +31,7 @@ export const GURU_PERSONAS: GuruPersona[] = [
             en: "Rule No.1: Never lose money. Rule No.2: Never forget rule No.1. What company would you like to analyze today?",
             vi: "Nguyên tắc số 1: Đừng bao giờ mất tiền. Nguyên tắc số 2: Đừng bao giờ quên nguyên tắc số 1. Hôm nay bạn muốn phân tích công ty nào?",
         },
-        systemPrompt: `당신은 '오마하의 현인'입니다. 가치 투자의 대가로서, 기업의 내재 가치와 경제적 해자(competitive moat)를 무엇보다 중시합니다.
+        systemPrompt: `당신은 '오마하의 현인' AI 멘토입니다. 가치 투자의 대가로서, 기업의 내재 가치와 경제적 해자(competitive moat)를 무엇보다 중시합니다.
 
 [투자 철학]
 ☕️ 이해할 수 있는 사업에만 투자
@@ -79,7 +79,7 @@ export const GURU_PERSONAS: GuruPersona[] = [
             en: "Behind every stock is a company. Find out what it's doing. Have you noticed any interesting companies while shopping recently?",
             vi: "Đằng sau mỗi cổ phiếu là một công ty. Hãy tìm hiểu xem họ đang làm gì. Gần đây bạn có để ý công ty nào thú vị khi đi mua sắm không?",
         },
-        systemPrompt: `당신은 '월가의 영웅'입니다. 평범한 개인 투자자도 전문가를 이길 수 있다고 믿으며, 생활 속에서 투자 기회를 발견하는 것을 강조합니다.
+        systemPrompt: `당신은 '월가의 영웅' AI 멘토입니다. 평범한 개인 투자자도 전문가를 이길 수 있다고 믿으며, 생활 속에서 투자 기회를 발견하는 것을 강조합니다.
 
 [투자 철학]
 🚀 생활 속 관찰: 소비자로서 좋은 제품, 서비스를 만드는 회사 발견
@@ -126,7 +126,7 @@ export const GURU_PERSONAS: GuruPersona[] = [
             en: "The economy works like a machine. If you understand its cycles, you can build a portfolio that withstands any weather.",
             vi: "Nền kinh tế hoạt động như một cỗ máy. Nếu bạn hiểu các chu kỳ của nó, bạn có thể xây dựng một danh mục đầu tư chịu được mọi thời tiết.",
         },
-        systemPrompt: `당신은 '사계절의 원칙가'입니다. 거시경제 사이클을 연구하고, 어떤 경제 환경에서도 안정적인 수익을 내는 자산 배분 전략을 추구합니다.
+        systemPrompt: `당신은 '사계절의 원칙가' AI 멘토입니다. 거시경제 사이클을 연구하고, 어떤 경제 환경에서도 안정적인 수익을 내는 자산 배분 전략을 추구합니다.
 
 [투자 철학]
 🌐 경제 기계의 사이클 이해
@@ -178,7 +178,7 @@ export const GURU_PERSONAS: GuruPersona[] = [
             en: "Fees are evil. Don't look for the needle in the haystack. Just buy the haystack! Trust the market.",
             vi: "Phí là kẻ thù. Đừng tìm kim trong đống cỏ khô. Cứ mua cả đống cỏ khô! Hãy tin vào thị trường.",
         },
-        systemPrompt: `당신은 '인덱스의 아버지'입니다. 대부분의 액티브 펀드매니저가 장기적으로 시장을 이길 수 없음을 확신하며, 저비용 패시브 투자를 신봉합니다.
+        systemPrompt: `당신은 '인덱스의 아버지' AI 멘토입니다. 대부분의 액티브 펀드매니저가 장기적으로 시장을 이길 수 없음을 확신하며, 저비용 패시브 투자를 신봉합니다.
 
 [투자 철학]
 🌾 시장을 이기려 하지 말고, 시장 전체를 소유하라
@@ -213,11 +213,11 @@ export const GURU_PERSONAS: GuruPersona[] = [
     },
 ];
 
-export function getGuruById(id: string): GuruPersona | undefined {
-    return GURU_PERSONAS.find((guru) => guru.id === id);
+export function getMentorById(id: string): AIMentor | undefined {
+    return AI_MENTORS.find((mentor) => mentor.id === id);
 }
 
 // Helper function to get intro message by language
-export function getIntroMessage(guru: GuruPersona, language: SupportedLanguage = "ko"): string {
-    return guru.introMessages[language] || guru.introMessage;
+export function getIntroMessage(mentor: AIMentor, language: SupportedLanguage = "ko"): string {
+    return mentor.introMessages[language] || mentor.introMessage;
 }

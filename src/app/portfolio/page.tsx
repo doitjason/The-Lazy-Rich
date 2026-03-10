@@ -5,7 +5,7 @@ import { PortfolioDashboard } from "@/components/portfolio/PortfolioDashboard";
 import { AddStockDialog } from "@/components/portfolio/AddStockDialog";
 import { motion } from "framer-motion";
 import { BrandStoryDialog } from "@/components/layout/BrandStoryDialog";
-import { GURU_PERSONAS } from "@/lib/guru-personas";
+import { AI_MENTORS } from "@/lib/ai-mentors";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 
 export default function PortfolioPage() {
     const [isAddOpen, setIsAddOpen] = useState(false);
-    const [isGuruSelectOpen, setIsGuruSelectOpen] = useState(false);
+    const [isMentorSelectOpen, setIsMentorSelectOpen] = useState(false);
     const [isWarningOpen, setIsWarningOpen] = useState(false);
     const { user, signInWithGoogle } = useAuth();
     const { items } = usePortfolioStore();
@@ -33,13 +33,13 @@ export default function PortfolioPage() {
         if (!user || items.length === 0) {
             setIsWarningOpen(true);
         } else {
-            setIsGuruSelectOpen(true);
+            setIsMentorSelectOpen(true);
         }
     };
 
-    const handleGuruSelect = (guruId: string) => {
-        setIsGuruSelectOpen(false);
-        router.push(`/?action=analyze_portfolio&persona=${guruId}`);
+    const handleMentorSelect = (mentorId: string) => {
+        setIsMentorSelectOpen(false);
+        router.push(`/?action=analyze_portfolio&mentor=${mentorId}`);
     };
 
     return (
@@ -86,8 +86,8 @@ export default function PortfolioPage() {
 
             <AddStockDialog open={isAddOpen} onOpenChange={setIsAddOpen} />
 
-            {/* AI Guru Quick Select Modal */}
-            <Dialog open={isGuruSelectOpen} onOpenChange={setIsGuruSelectOpen}>
+            {/* AI Mentor Quick Select Modal */}
+            <Dialog open={isMentorSelectOpen} onOpenChange={setIsMentorSelectOpen}>
                 <DialogContent className="sm:max-w-[425px] bg-white/95 dark:bg-[#1a1c23]/95 backdrop-blur-3xl border-white/20 dark:border-white/10 p-0 overflow-hidden fixed bottom-0 top-auto translate-y-0 translate-x-[-50%] sm:top-[50%] sm:-translate-y-1/2 rounded-t-3xl rounded-b-none sm:rounded-2xl z-50">
                     <div className="p-6">
                         <DialogHeader className="mb-4 text-center sm:text-left">
@@ -100,23 +100,23 @@ export default function PortfolioPage() {
                         </DialogHeader>
 
                         <div className="grid grid-cols-1 gap-2 mt-2">
-                            {GURU_PERSONAS.map((guru) => (
+                            {AI_MENTORS.map((m) => (
                                 <button
-                                    key={guru.id}
-                                    onClick={() => handleGuruSelect(guru.id)}
+                                    key={m.id}
+                                    onClick={() => handleMentorSelect(m.id)}
                                     className="flex items-center gap-4 p-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-all text-left group border border-transparent hover:border-black/10 dark:hover:border-white/10 active:scale-[0.98]"
                                 >
-                                    <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-sm shrink-0 transition-transform group-hover:scale-110", guru.color)}>
-                                        {guru.avatarEmoji}
+                                    <div className={cn("w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-sm shrink-0 transition-transform group-hover:scale-110", m.color)}>
+                                        {m.avatarEmoji}
                                     </div>
                                     <div className="flex flex-col gap-0.5 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <span className="font-bold text-foreground text-sm truncate">{guru.name}</span>
+                                            <span className="font-bold text-foreground text-sm truncate">{m.name}</span>
                                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
-                                                {guru.tag}
+                                                {m.tag}
                                             </span>
                                         </div>
-                                        <span className="text-xs text-muted-foreground leading-tight break-keep line-clamp-2">{guru.description}</span>
+                                        <span className="text-xs text-muted-foreground leading-tight break-keep line-clamp-2">{m.description}</span>
                                     </div>
                                 </button>
                             ))}
