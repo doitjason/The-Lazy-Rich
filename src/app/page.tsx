@@ -97,9 +97,14 @@ function GuruPageContent() {
         setSessionId(null);
         setInitialMessage(undefined);
     };
-
     return (
-        <div className={selectedMentor ? "flex flex-col h-[calc(100dvh-85px)] p-4 max-w-md mx-auto" : "flex min-h-screen flex-col p-4 max-w-md mx-auto pb-24"}>
+        <div 
+            className={selectedMentor 
+                ? "fixed left-0 right-0 top-0 max-w-md mx-auto flex flex-col px-4 pt-4 pb-3 bg-background z-40" 
+                : "flex min-h-screen flex-col p-4 max-w-md mx-auto pb-24"
+            }
+            style={selectedMentor ? { bottom: "calc(4rem + env(safe-area-inset-bottom))" } : undefined}
+        >
             {selectedMentor ? (
                 <ChatInterface
                     mentor={selectedMentor}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { QuoteCard } from "@/components/insights/QuoteCard";
 import { MarketContext } from "@/components/insights/MarketContext";
 import { RecommendedBooks } from "@/components/insights/RecommendedBooks";
@@ -8,16 +9,22 @@ import { ColumnList } from "@/components/insights/ColumnList";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-export default function InsightsPage() {
-    const [selectedTab, setSelectedTab] = useState<"market" | "blog" | "community" | "recommended">("blog");
+function InsightsContent() {
+    const searchParams = useSearchParams();
+    const [selectedTab, setSelectedTab] = useState<"market" | "blog" | "community" | "recommended">("community");
 
-    // Retrieve the active tab from sessionStorage when component mounts
+    // Load tab from URL param or sessionStorage
     useEffect(() => {
-        const savedTab = sessionStorage.getItem("insightsTab");
-        if (savedTab) {
-            setSelectedTab(savedTab as any);
+        const urlTab = searchParams.get("tab");
+        if (urlTab && ["market", "blog", "community", "recommended"].includes(urlTab)) {
+            setSelectedTab(urlTab as any);
+        } else {
+            const savedTab = sessionStorage.getItem("insightsTab");
+            if (savedTab) {
+                setSelectedTab(savedTab as any);
+            }
         }
-    }, []);
+    }, [searchParams]);
 
     // Save the active tab to sessionStorage whenever it changes
     const handleTabChange = (tab: "market" | "blog" | "community" | "recommended") => {
@@ -35,8 +42,8 @@ export default function InsightsPage() {
             {/* Navigation Tabs */}
             <div className="flex items-center justify-between w-full gap-1 pb-2">
                 {[
-                    { id: "blog", label: "블로그" },
                     { id: "community", label: "커뮤니티" },
+                    { id: "blog", label: "블로그" },
                     { id: "recommended", label: "추천 도서" },
                     { id: "market", label: "시장 상황" },
                 ].map((tab) => (
@@ -92,5 +99,13 @@ export default function InsightsPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function InsightsPage() {
+    return (
+        <Suspense fallback={<div className="text-center py-20 opacity-50">Loading...</div>}>
+            <InsightsContent />
+        </Suspense>
     );
 }

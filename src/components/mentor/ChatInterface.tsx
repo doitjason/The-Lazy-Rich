@@ -9,6 +9,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ChartRenderer, ChartData } from "./ChartRenderer";
+import { useRouter } from "next/navigation";
+import { COLUMNS } from "@/data/columns";
+import { RECOMMENDED_BOOKS } from "@/data/books";
 
 interface Message {
     id: string;
@@ -27,8 +30,49 @@ interface ChatInterfaceProps {
 
 // Quick suggestion tags in multiple languages
 import Link from "next/link";
-import { PlusCircle, LogIn } from "lucide-react";
+import { PlusCircle, LogIn, Calculator, BookOpen, TrendingUp, PieChart, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+
+// ─── Action Tag Types ────────────────────────────────────────
+interface ParsedAction {
+    type: "calc-regret" | "calc-portfolio" | "calc-fire" | "column" | "book" | "market" | "portfolio-create" | "portfolio-metrics" | "login";
+    ticker?: string;
+    amount?: string;
+    id?: string;
+}
+
+/** Parse all [ACTION:...] tags from a message string */
+function parseActionTags(text: string): ParsedAction[] {
+    const actions: ParsedAction[] = [];
+    const actionRegex = /\[ACTION:(CALC:regret(?::([A-Za-z0-9.]+)(?::([0-9]+))?)?|CALC:portfolio|CALC:fire|COLUMN:([a-z0-9-]+)|BOOK:([a-z0-9-]+)|MARKET|PORTFOLIO:create|PORTFOLIO:metrics|LOGIN)\]/g;
+    let m;
+    while ((m = actionRegex.exec(text)) !== null) {
+        const tag = m[1];
+        if (tag.startsWith("CALC:regret")) {
+            actions.push({ type: "calc-regret", ticker: m[2], amount: m[3] });
+        } else if (tag === "CALC:portfolio") {
+            actions.push({ type: "calc-portfolio" });
+        } else if (tag === "CALC:fire") {
+            actions.push({ type: "calc-fire" });
+        } else if (tag.startsWith("COLUMN:")) {
+            actions.push({ type: "column", id: m[4] });
+        } else if (tag.startsWith("BOOK:")) {
+            actions.push({ type: "book", id: m[5] });
+        } else if (tag === "MARKET") {
+            actions.push({ type: "market" });
+        } else if (tag === "PORTFOLIO:create") {
+            actions.push({ type: "portfolio-create" });
+        } else if (tag === "PORTFOLIO:metrics") {
+            actions.push({ type: "portfolio-metrics" });
+        } else if (tag === "LOGIN") {
+            actions.push({ type: "login" });
+        }
+    }
+    return actions;
+}
+
+/** Strip all action tags from visible text */
+const STRIP_ACTIONS_REGEX = /\[ACTION:[^\]]+\]/g;
 
 const getQuickSuggestions = (mentorId: string, language: SupportedLanguage): string[] => {
     const commonQuestion = language === "ko" ? "내 포트폴리오를 분석해주세요" : "Analyze my portfolio";
@@ -54,6 +98,7 @@ const getQuickSuggestions = (mentorId: string, language: SupportedLanguage): str
 export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistory, initialMessage }: ChatInterfaceProps) {
     const { currency } = useCurrency();
     const { signInWithGoogle } = useAuth();
+    const router = useRouter();
 
     // Determine language from currency setting
     const language: SupportedLanguage = useMemo(() => {
@@ -387,8 +432,8 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
                                     let match;
 
                                     // Clone content to avoid mutation issues if any
-                                    // Remove special action tags from visible text
-                                    const content = message.content.replace(/\[ACTION:[A-Z_]+\]/g, "").trim();
+                                    // Remove ALL action tags (including parameterized ones) from visible text
+                                    const content = message.content.replace(STRIP_ACTIONS_REGEX, "").trim();
 
                                     while ((match = regex.exec(content)) !== null) {
                                         if (match.index > lastIndex) {
@@ -417,40 +462,176 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
 
                                     return parts.length > 0 ? parts : <p className="whitespace-pre-wrap leading-relaxed">{content}</p>;
                                 })()}
-                                {/* Action Button Renderer */}
-                                {message.role === "assistant" && message.content.includes("[ACTION:CREATE_PORTFOLIO]") && (
-                                    <div className="mt-3">
-                                        <Link href="/portfolio">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
-                                            >
-                                                <PlusCircle className="w-4 h-4" />
-                                                내 포트폴리오 만들러 가기
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                )}
-                                {message.role === "assistant" && message.content.includes("[ACTION:LOGIN]") && (
-                                    <div className="mt-3">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:border-emerald-500/50 transition-all font-bold gap-2"
-                                            onClick={async () => {
-                                                await signInWithGoogle();
-                                            }}
-                                        >
-                                            <LogIn className="w-4 h-4" />
-                                            간편하게 시작하기 (로그인)
-                                        </Button>
-                                        <p className="mt-1.5 text-[10px] text-muted-foreground/60 leading-tight text-center px-2">
-                                            안전한 로그인을 위해 보안 인증 서버(supabase.co)로 연결됩니다.<br />
-                                            안심하고 계속하셔도 좋습니다.
-                                        </p>
-                                    </div>
-                                )}
+                                {/* ═══ Dynamic Action Card Renderer ═══ */}
+                                {message.role === "assistant" && (() => {
+                                    const actions = parseActionTags(message.content);
+                                    if (actions.length === 0) return null;
+                                    return (
+                                        <div className="mt-3 flex flex-col gap-2">
+                                            {actions.map((action, idx) => {
+                                                switch (action.type) {
+                                                    case "calc-regret": {
+                                                        const ticker = action.ticker || "";
+                                                        const amount = action.amount || "";
+                                                        const params = new URLSearchParams();
+                                                        params.set("tab", "regret");
+                                                        if (ticker) params.set("ticker", ticker);
+                                                        if (amount) params.set("amount", amount);
+                                                        params.set("from", "guru");
+                                                        return (
+                                                            <button key={idx} onClick={() => router.push(`/calc?${params.toString()}`)} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 dark:from-amber-500/15 dark:to-orange-500/15 border border-amber-500/20 dark:border-amber-400/20 hover:border-amber-500/40 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="h-8 w-8 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                                        <Calculator className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-bold text-amber-700 dark:text-amber-300">⏳ 과거로 돌아간다면?{ticker ? ` (${ticker})` : ""}</p>
+                                                                        <p className="text-[10px] text-amber-600/70 dark:text-amber-400/60 truncate">
+                                                                            {ticker && amount ? `${ticker}에 ${Number(amount).toLocaleString()}원 투자했다면?` : "과거 수익률을 직접 확인해보세요"}
+                                                                        </p>
+                                                                    </div>
+                                                                    <Sparkles className="h-3.5 w-3.5 text-amber-500/50 ml-auto flex-shrink-0 group-hover:text-amber-500 transition-colors" />
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    }
+                                                    case "calc-portfolio":
+                                                        return (
+                                                            <button key={idx} onClick={() => router.push("/calc?tab=regret-v2&from=guru")} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 dark:from-blue-500/15 dark:to-indigo-500/15 border border-blue-500/20 dark:border-blue-400/20 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="h-8 w-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                                        <PieChart className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-bold text-blue-700 dark:text-blue-300">📊 포트폴리오 백테스트</p>
+                                                                        <p className="text-[10px] text-blue-600/70 dark:text-blue-400/60">내 구성으로 과거 수익률을 검증해보세요</p>
+                                                                    </div>
+                                                                    <Sparkles className="h-3.5 w-3.5 text-blue-500/50 ml-auto flex-shrink-0 group-hover:text-blue-500 transition-colors" />
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    case "calc-fire":
+                                                        return (
+                                                            <button key={idx} onClick={() => router.push("/calc?tab=compound&from=guru")} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/15 dark:to-pink-500/15 border border-purple-500/20 dark:border-purple-400/20 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/5 transition-all duration-300">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="h-8 w-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                                        <Calculator className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-bold text-purple-700 dark:text-purple-300">🔥 경제적 자유 시뮬레이션</p>
+                                                                        <p className="text-[10px] text-purple-600/70 dark:text-purple-400/60">복리의 힘으로 은퇴 플랜을 세워보세요</p>
+                                                                    </div>
+                                                                    <Sparkles className="h-3.5 w-3.5 text-purple-500/50 ml-auto flex-shrink-0 group-hover:text-purple-500 transition-colors" />
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    case "column": {
+                                                        const col = COLUMNS.find(c => c.id === action.id);
+                                                        return (
+                                                            <button key={idx} onClick={() => router.push(`/insights/columns/${action.id}?from=guru`)} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/15 dark:to-teal-500/15 border border-emerald-500/20 dark:border-emerald-400/20 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="h-8 w-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                                        <BookOpen className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">📰 {col?.title || "칼럼 읽기"}</p>
+                                                                        <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/60 truncate">{col?.subtitle || "전문가 인사이트를 확인해보세요"}</p>
+                                                                    </div>
+                                                                    <Sparkles className="h-3.5 w-3.5 text-emerald-500/50 ml-auto flex-shrink-0 group-hover:text-emerald-500 transition-colors" />
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    }
+                                                    case "book": {
+                                                        const book = RECOMMENDED_BOOKS.find(b => b.id === action.id);
+                                                        return (
+                                                            <button key={idx} onClick={() => router.push(`/insights/books/${action.id}?from=guru`)} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 dark:from-violet-500/15 dark:to-fuchsia-500/15 border border-violet-500/20 dark:border-violet-400/20 hover:border-violet-500/40 hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="h-8 w-8 rounded-lg bg-violet-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                                        <BookOpen className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-bold text-violet-700 dark:text-violet-300">📚 {book?.title || "추천 도서"}</p>
+                                                                        <p className="text-[10px] text-violet-600/70 dark:text-violet-400/60 truncate">{book ? `${book.author} · ${book.tag}` : "투자 철학을 깊이 배워보세요"}</p>
+                                                                    </div>
+                                                                    <Sparkles className="h-3.5 w-3.5 text-violet-500/50 ml-auto flex-shrink-0 group-hover:text-violet-500 transition-colors" />
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    }
+                                                    case "market":
+                                                        return (
+                                                            <button key={idx} onClick={() => router.push("/insights?tab=market&from=guru")} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-sky-500/10 dark:from-cyan-500/15 dark:to-sky-500/15 border border-cyan-500/20 dark:border-cyan-400/20 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-300">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="h-8 w-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                                        <TrendingUp className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-bold text-cyan-700 dark:text-cyan-300">📈 현재 시장 상황 점검</p>
+                                                                        <p className="text-[10px] text-cyan-600/70 dark:text-cyan-400/60">투자 심리와 주요 매크로 지표 확인</p>
+                                                                    </div>
+                                                                    <Sparkles className="h-3.5 w-3.5 text-cyan-500/50 ml-auto flex-shrink-0 group-hover:text-cyan-500 transition-colors" />
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    case "portfolio-create":
+                                                        return (
+                                                            <button key={idx} onClick={() => router.push("/portfolio")} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-green-500/10 dark:from-emerald-500/15 dark:to-green-500/15 border border-emerald-500/20 dark:border-emerald-400/20 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="h-8 w-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                                        <PlusCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">✨ 내 포트폴리오 만들기</p>
+                                                                        <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/60">종목을 등록하고 맞춤형 분석을 받아보세요</p>
+                                                                    </div>
+                                                                    <Sparkles className="h-3.5 w-3.5 text-emerald-500/50 ml-auto flex-shrink-0 group-hover:text-emerald-500 transition-colors" />
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    case "portfolio-metrics":
+                                                        return (
+                                                            <button key={idx} onClick={() => router.push("/portfolio?from=guru")} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-indigo-500/10 to-blue-500/10 dark:from-indigo-500/15 dark:to-blue-500/15 border border-indigo-500/20 dark:border-indigo-400/20 hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="h-8 w-8 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                                        <PieChart className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <p className="text-xs font-bold text-indigo-700 dark:text-indigo-300">🔍 내 자산 정밀 지표 확인</p>
+                                                                        <p className="text-[10px] text-indigo-600/70 dark:text-indigo-400/60">배당금 및 종목별 성과 기여도 분석</p>
+                                                                    </div>
+                                                                    <Sparkles className="h-3.5 w-3.5 text-indigo-500/50 ml-auto flex-shrink-0 group-hover:text-indigo-500 transition-colors" />
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    case "login":
+                                                        return (
+                                                            <div key={idx}>
+                                                                <button onClick={async () => { await signInWithGoogle(); }} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/15 dark:to-teal-500/15 border border-emerald-500/20 dark:border-emerald-400/20 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
+                                                                    <div className="flex items-center gap-2.5">
+                                                                        <div className="h-8 w-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                                            <LogIn className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                                                        </div>
+                                                                        <div className="min-w-0">
+                                                                            <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">🚀 간편하게 시작하기</p>
+                                                                            <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/60">로그인하고 맞춤형 투자 분석을 받아보세요</p>
+                                                                        </div>
+                                                                        <Sparkles className="h-3.5 w-3.5 text-emerald-500/50 ml-auto flex-shrink-0 group-hover:text-emerald-500 transition-colors" />
+                                                                    </div>
+                                                                </button>
+                                                                <p className="mt-1.5 text-[10px] text-muted-foreground/60 leading-tight text-center px-2">
+                                                                    안전한 로그인을 위해 보안 인증 서버(supabase.co)로 연결됩니다.<br />
+                                                                    안심하고 계속하셔도 좋습니다.
+                                                                </p>
+                                                            </div>
+                                                        );
+                                                    default:
+                                                        return null;
+                                                }
+                                            })}
+                                        </div>
+                                    );
+                                })()}
 
                             </div>
                         </motion.div>

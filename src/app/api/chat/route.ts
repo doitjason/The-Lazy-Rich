@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { getMentorMarketContext, extractTickersFromMessage } from "@/lib/market-data";
 import { LAZY_RICH_CONSTITUTION } from "@/constants/constitution";
+import { getAppEcosystemMap } from "@/lib/ai-ecosystem";
 
 // Mark as dynamic to avoid build-time pre-rendering issues with environment variables
 export const dynamic = "force-dynamic";
@@ -72,37 +73,26 @@ export async function POST(req: NextRequest) {
                     .join("\n");
                 portfolioContext = `
 
-[사용자의 현재 포트폴리오]
+[사용자 상태: 로그인 ✅ | 포트폴리오 ✅]
 ${holdings}
 
-위 포트폴리오 정보를 참고하여, 사용자의 보유 종목에 대해 구체적으로 언급하며 조언해주세요. 예를 들어 "삼성전자 포지션이 크시네요" 또는 "테슬라 평균가가 좀 높으신 편이에요" 같이 개인화된 대화를 해주세요.`;
+위 포트폴리오 정보를 참고하여, 사용자의 보유 종목에 대해 구체적으로 언급하며 조언해주세요.
+포트폴리오 분석을 요청받으면 절대 "어떤 종목을 갖고 계신가요?"라고 되묻지 말고 위 데이터를 사용하세요.`;
             } else {
                 // Logged in but empty portfolio
                 portfolioContext = `
 
-[사용자의 포트폴리오 상태]
-현재 사용자는 로그인은 했으나 포트폴리오를 아직 등록하지 않은 상태입니다.
-
-[⛔️ 필수 지침 - 절대 위반 금지]
-포트폴리오 명시적 분석 요청 시: 사용자가 "내 포트폴리오 분석해줘", "진단해줘" 등 자신의 자산에 대한 분석을 명시적으로 요청할 경우, 절대로 "어떤 종목을 가지고 계신가요?"라고 되묻거나 채팅창에서 정보를 입력받으려 하지 마세요. 반드사 당신의 페르소나 성향에 맞는 톤앤매너로 포트폴리오 데이터가 비어있음을 안내하고 종목 등록을 권유하세요. 답변의 맨 마지막 줄에 반드시 다음 태그를 포함하여 버튼을 생성하세요: [ACTION:CREATE_PORTFOLIO]
-
-일반적인 질문(시황/철학 등) 답변 시: 개인화된 분석이나 포트폴리오 기반 조언이 곁들여지면 유용할 것이라 판단되는 경우, 질문에 대한 답변(투자 철학, 시장 전망 등)을 먼저 충실히 제공하세요. 그 후 마지막에 자연스럽게 현재 포트폴리오가 비어있음을 언급하며 종목 등록을 권장하세요. 답변의 맨 마지막 줄에 반드시 다음 태그를 포함하여 버튼을 생성하세요: [ACTION:CREATE_PORTFOLIO]
-`;
+[사용자 상태: 로그인 ✅ | 포트폴리오 ❌ (미등록)]
+포트폴리오 분석을 명시적으로 요청한 경우에만 [ACTION:PORTFOLIO:create]를 사용하세요.
+그 외에는 App Ecosystem Map의 다른 도구들을 자율적으로 활용하세요.`;
             }
         } else {
             // Not logged in
             portfolioContext = `
 
-[사용자의 포트폴리오 상태]
-현재 사용자는 로그인하지 않은 상태입니다.
-
-[⛔️ 필수 지침 - 절대 위반 금지]
-비로그인 유저의 포트폴리오 분석 요청 시: 사용자가 "내 포트폴리오 분석해줘" 등 자신의 자산 분석을 명시적으로 요청할 경우, 당신의 페르소나 성향에 100% 동기화된 톤앤매너로 포트폴리오 데이터가 없어서 분석해드릴 수 없음을 창의적으로 설명하세요. 평범한 말투는 절대 금지합니다. 간단한 회원가입으로 나만의 포트폴리오를 만들고 맞춤형 분석을 받아보라는 내용을 패르소나 철학을 담아 매력적으로 권유하세요. 답변의 맨 마지막 줄에 정확히 다음 태그를 출력하세요: [ACTION:LOGIN]
-
-일반적인 질문 답변 중 포트폴리오 피드백이 필요한 경우: 질문에 대한 답변(투자 철학, 시장 전망 등)을 먼저 충실히 제공하세요. 마지막에 자연스럽게 비로그인 상태임을 언급하며 회원가입 및 포트폴리오 구성을 권장하세요. 답변의 맨 마지막 줄에 정확히 다음 태그를 출력하세요: [ACTION:LOGIN]
-
-🚨 공통 주의사항: 태그를 '회원가입하러 가기' 등으로 번역하지 마세요. 오직 [ACTION:LOGIN] 라고만 출력해야 버튼이 정상적으로 작동합니다.
-`;
+[사용자 상태: 비로그인 (게스트)]
+포트폴리오 분석을 명시적으로 요청한 경우에만 [ACTION:LOGIN]을 사용하세요.
+그 외에는 App Ecosystem Map의 다른 도구들을 자율적으로 활용하세요.`;
         }
 
         // 질문에서 종목 추출 (포트폴리오에 없어도 데이터 가져오기 위함)
@@ -124,7 +114,15 @@ ${holdings}
             // 시장 데이터 실패해도 채팅은 계속 진행
         }
 
-        // Build system message: Constitution > Shared Instructions > Persona > Dynamic Context (Portfolio, Market)
+        // Build system message: Constitution > Shared Instructions > Persona > Dynamic Context (Portfolio, Market) > Ecosystem Map
+        const ecosystemMap = getAppEcosystemMap();
+
+        // First-message CTA guarantee: ensure at least 1 action tag in the very first response
+        const userMessageCount = messages.filter((m: { role: string }) => m.role === "user").length;
+        const firstMessageCTA = userMessageCount <= 1
+            ? `\n\n[🎯 첫 답변 규칙] 이 대화의 첫 번째 답변입니다. 유저가 앱의 다양한 기능을 발견할 수 있도록, 반드시 1개 이상의 [ACTION:...] 태그를 답변 마지막에 포함하세요. 맥락과 가장 관련 있는 도구를 자연스럽게 제안하세요.`
+            : "";
+
         const systemMessage = `${LAZY_RICH_CONSTITUTION}
 
 ═══ [핵심 인공지능 지침] ═══
@@ -143,7 +141,9 @@ ${holdings}
 ${mentor.systemPrompt}
 
 ${portfolioContext}
-${marketDataContext}`;
+${marketDataContext}
+
+${ecosystemMap}${firstMessageCTA}`;
 
         // Save user message to database
         if (sessionId && messages.length > 0) {
