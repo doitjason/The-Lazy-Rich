@@ -12,6 +12,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { updateNickname } from "@/lib/community";
+import { Input } from "@/components/ui/input";
 
 export function ProfileSettings() {
     const { currency, setCurrency } = useCurrency();
@@ -20,10 +22,47 @@ export function ProfileSettings() {
     const router = useRouter();
 
     const [mounted, setMounted] = useState(false);
+    
+    // Nickname Edit State
+    const [isEditingNickname, setIsEditingNickname] = useState(false);
+    const [newNickname, setNewNickname] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+    const [nicknameError, setNicknameError] = useState("");
+
+    const { userProfile, refreshProfile } = useAuth();
 
     useEffect(() => {
         setMounted(true);
-    }, []);
+        if (userProfile) {
+            setNewNickname(userProfile.name);
+        }
+    }, [userProfile]);
+
+    const handleSaveNickname = async () => {
+        if (!user || !userProfile) return;
+        if (!newNickname.trim() || newNickname === userProfile.name) {
+            setIsEditingNickname(false);
+            return;
+        }
+
+        if (newNickname.length < 2 || newNickname.length > 20) {
+            setNicknameError("닉네임은 2~20자 사이여야 합니다.");
+            return;
+        }
+
+        setIsSaving(true);
+        setNicknameError("");
+
+        const result = await updateNickname(user.id, newNickname.trim());
+        
+        if (result.success) {
+            await refreshProfile();
+            setIsEditingNickname(false);
+        } else {
+            setNicknameError(result.error || "변경에 실패했습니다.");
+        }
+        setIsSaving(false);
+    };
 
     const container = {
         hidden: { opacity: 0 },
@@ -64,13 +103,59 @@ export function ProfileSettings() {
                     )}
                 </div>
                 <div>
-                    <h2 className="text-2xl font-bold">
-                        {user ? (user.user_metadata?.full_name || user.email?.split("@")[0] || "사용자") : "게스트"}
-                    </h2>
-                    {user && (
+                    {!isEditingNickname ? (
+                        <div className="flex items-center justify-center gap-2">
+                             <h2 className="text-2xl font-bold">
+                                {userProfile?.name || "게스트"}
+                            </h2>
+                            {user && (
+                                <button 
+                                    onClick={() => setIsEditingNickname(true)}
+                                    className="p-1 hover:bg-muted rounded-full transition-colors text-muted-foreground"
+                                >
+                                    <Sparkles className="h-4 w-4" />
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center gap-2 max-w-[200px] mx-auto">
+                            <Input 
+                                value={newNickname}
+                                onChange={(e) => {
+                                    setNewNickname(e.target.value);
+                                    setNicknameError("");
+                                }}
+                                className="h-9 text-center font-bold text-lg focus-visible:ring-primary/20"
+                                autoFocus
+                            />
+                            {nicknameError && <p className="text-[10px] text-red-500 font-medium">{nicknameError}</p>}
+                            <div className="flex gap-2">
+                                <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="h-7 text-xs"
+                                    onClick={() => {
+                                        setIsEditingNickname(false);
+                                        setNewNickname(userProfile?.name || "");
+                                        setNicknameError("");
+                                    }}
+                                >
+                                    취소
+                                </Button>
+                                <Button 
+                                    size="sm" 
+                                    className="h-7 text-xs font-bold"
+                                    onClick={handleSaveNickname}
+                                    disabled={isSaving}
+                                >
+                                    {isSaving ? "저장 중..." : "저장"}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                    {user && !isEditingNickname && (
                         <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
                     )}
-
                 </div>
             </motion.div>
 

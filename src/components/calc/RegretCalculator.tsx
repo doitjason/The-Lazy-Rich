@@ -55,6 +55,7 @@ export function RegretCalculator() {
     const [isCalculated, setIsCalculated] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isHighlighting, setIsHighlighting] = useState(false);
     const resultRef = useRef<HTMLDivElement>(null);
 
     const searchParams = useSearchParams();
@@ -69,10 +70,9 @@ export function RegretCalculator() {
             ? `${formatCompactNumber(result.investmentType === "DCA" ? result.originalAmount : result.initialInvestment)}원`
             : `$${formatCompactNumber(result.investmentType === "DCA" ? result.originalAmount : result.initialInvestment)}`;
 
-        let valueStr = formatCurrency(result.currentValue);
-        if (currency === "KRW" && !valueStr.includes("원")) {
-            valueStr += "원";
-        }
+        let valueStr = currency === "KRW" 
+            ? `약 ${formatCompactNumber(result.currentValue)}원`
+            : `약 $${formatCompactNumber(result.currentValue)}`;
 
         const timeStr = result.period.replace("Y", "년 전");
         const cleanTicker = result.ticker.replace(".KS", "");
@@ -87,7 +87,7 @@ export function RegretCalculator() {
             shareText = `${timeStr}에 내가 ${result.name}(${cleanTicker}) 사지 말자고 했제~? ${actionText} 지금 ${valueStr}에 수익률이 ${formattedReturnRate}%... 😢😢😢`;
         }
 
-        shareText += `\n\n지금 했제 계산기에서 다른 종목들도 확인해보세요!`;
+        shareText += `\n\n지금 했제 계산기에서 다른 종목들도 확인해보세요!\n\n`;
 
         const shareUrl = new URL(window.location.href);
         shareUrl.searchParams.set("ticker", result.ticker);
@@ -422,8 +422,14 @@ export function RegretCalculator() {
         const calcedResult = calculateCore(rawData, newType, newAmt, period);
         setResult(calcedResult);
 
-        // Let it stay at the bottom, because the user just clicked there, 
-        // they want to see the numbers switch!
+        // Highlight effect
+        setIsHighlighting(true);
+        setTimeout(() => setIsHighlighting(false), 2000);
+
+        // Scroll back up to see the new results
+        if (resultRef.current) {
+            resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     };
 
     return (
@@ -660,8 +666,9 @@ export function RegretCalculator() {
 
                                         return (
                                             <h2 className={cn(
-                                                "font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-700 whitespace-nowrap px-2 pb-2 text-center w-full",
-                                                fontSizeClass
+                                                "font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-700 whitespace-nowrap px-2 pb-2 text-center w-full transition-all",
+                                                fontSizeClass,
+                                                isHighlighting && "animate-pulse scale-105"
                                             )}>
                                                 {formattedValue}
                                             </h2>
@@ -673,7 +680,11 @@ export function RegretCalculator() {
                                     {/* 1. Total Profit */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
                                         <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground">총 수익률</span>
-                                        <span className={`text-[13px] sm:text-lg font-black flex items-center justify-center gap-0.5 ${result.returnRate >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
+                                        <span className={cn(
+                                            "text-[13px] sm:text-lg font-black flex items-center justify-center gap-0.5 whitespace-nowrap transition-all",
+                                            result.returnRate >= 0 ? "text-red-500" : "text-blue-500",
+                                            isHighlighting && "animate-bounce scale-110"
+                                        )}>
                                             {result.returnRate >= 0 ? "+" : ""}
                                             {result.returnRate >= 10000
                                                 ? formatCompactNumber(result.returnRate)
@@ -841,14 +852,14 @@ export function RegretCalculator() {
                                                     if (active && payload && payload.length) {
                                                         const data = payload[0].payload;
                                                         return (
-                                                            <div className="bg-foreground/90 dark:bg-black/90 p-3 rounded-xl shadow-xl border border-black/5 dark:border-foreground/10 text-xs sm:text-sm backdrop-blur-md">
-                                                                <p className="mb-1 font-bold">{label}</p>
+                                                            <div className="bg-white/90 dark:bg-zinc-900/90 p-3 rounded-xl shadow-2xl border border-black/5 dark:border-white/10 text-xs sm:text-sm backdrop-blur-md">
+                                                                <p className="mb-1 font-semibold text-foreground">{label}</p>
                                                                 <div className="space-y-1">
-                                                                    <p className="text-muted-foreground">
-                                                                        가치: <span className="font-bold text-emerald-500">{formatCurrency(data.value)}</span>
+                                                                    <p className="text-muted-foreground font-medium">
+                                                                        가치: <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(data.value)}</span>
                                                                     </p>
-                                                                    <p className="text-muted-foreground">
-                                                                        주가: <span className="font-medium text-current">{formatCompactNumber(data.stockPrice)}</span>
+                                                                    <p className="text-muted-foreground font-medium">
+                                                                        주가: <span className="text-foreground">{formatCompactNumber(data.stockPrice)}</span>
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -873,7 +884,7 @@ export function RegretCalculator() {
                                 </div>
 
                                 {/* 💡 다음 단계 추천 (Next Steps) */}
-                                <div className="mt-12 pt-10 border-t border-foreground/[0.03] w-full">
+                                <div className="mt-6 pt-4 border-t border-foreground/[0.03] w-full">
                                     <div className="relative mb-8 group">
                                         {/* Premium Subtle Glow Background (Not a pill) */}
                                         <div className="absolute -left-6 -top-6 w-32 h-32 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.06] blur-[40px] rounded-full pointer-events-none" />
@@ -888,7 +899,7 @@ export function RegretCalculator() {
                                             </div>
 
                                             <div className="flex flex-col">
-                                                <h3 className="text-[17px] font-black tracking-tight text-black dark:text-white flex items-center gap-2">
+                                                <h3 className="text-[17px] font-bold tracking-tight text-black dark:text-white flex items-center gap-2">
                                                     결과를 중심으로 다음 단계 추천!
                                                 </h3>
                                             </div>
@@ -896,6 +907,24 @@ export function RegretCalculator() {
                                     </div>
 
                                     <div className="flex flex-col gap-4 w-full">
+                                        {/* 0. Share Results (Moved to top with natural UI) */}
+                                        <button
+                                            onClick={handleShare}
+                                            className="group relative flex items-center justify-between p-4 rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 hover:border-emerald-500/30 transition-all text-left shadow-[0_4px_15px_rgba(16,185,129,0.02)] hover:shadow-[0_8px_25px_rgba(16,185,129,0.08)] w-full overflow-hidden"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/[0.03] to-transparent group-hover:from-emerald-500/[0.08] transition-all" />
+                                            <div className="flex items-center gap-4 relative z-10">
+                                                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all shrink-0 shadow-inner">
+                                                    <Share2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[14px] font-bold text-foreground group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">친구에게 결과 공유하기</div>
+                                                    <div className="text-[11px] text-muted-foreground mt-1 whitespace-nowrap overflow-hidden text-ellipsis opacity-80">사자고 했제? 수익률 자랑해보세요</div>
+                                                </div>
+                                            </div>
+                                            <span className="relative z-10 text-muted-foreground/30 group-hover:text-emerald-500 transition-all text-lg font-light translate-x-0 group-hover:translate-x-1">→</span>
+                                        </button>
+
                                         {/* 1. Switch Mode */}
                                         <button
                                             onClick={handleSwitchMode}
@@ -1035,15 +1064,7 @@ export function RegretCalculator() {
                             </CardContent>
                         </Card>
                     )}
-                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-center mt-6">
-                        <Button
-                            onClick={handleShare}
-                            className="w-full sm:flex-1 max-w-sm h-14 text-base font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-xl shadow-emerald-500/20 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2"
-                        >
-                            <Share2 className="w-5 h-5 text-white" />
-                            <span>친구에게 결과 공유하기</span>
-                        </Button>
-                    </div>
+
 
                     <div className="pb-8" />
                 </div>

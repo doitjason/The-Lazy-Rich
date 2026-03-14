@@ -11,36 +11,91 @@ type AuthResult = {
     error?: string;
 };
 
+export type UserProfile = {
+    id: string;
+    email?: string;
+    name: string;
+    avatar_url: string;
+    is_anonymous?: boolean; // True if using default nickname
+};
+
 type AuthContextType = {
     user: User | null;
+    userProfile: UserProfile | null;
     session: Session | null;
     loading: boolean;
     signUpWithEmail: (email: string, password: string) => Promise<AuthResult>;
     signInWithEmail: (email: string, password: string) => Promise<AuthResult>;
     signInWithGoogle: () => Promise<void>;
     signOut: () => Promise<void>;
+    refreshProfile: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
     user: null,
+    userProfile: null,
     session: null,
     loading: true,
     signUpWithEmail: async () => ({ success: false }),
     signInWithEmail: async () => ({ success: false }),
     signInWithGoogle: async () => { },
     signOut: async () => { },
+    refreshProfile: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const updateUserState = async (currentUser: User | null) => {
+        setUser(currentUser);
+        if (currentUser) {
+            // First set default from metadata
+            const metadata = currentUser.user_metadata || {};
+            const defaultProfile = {
+                id: currentUser.id,
+                email: currentUser.email,
+                name: metadata.full_name || metadata.name || currentUser.email?.split('@')[0] || "익명의 투자자",
+                avatar_url: metadata.avatar_url || metadata.picture || "",
+            };
+            setUserProfile(defaultProfile);
+
+            // Then try to fetch from profiles table for the nickname
+            try {
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('nickname, avatar_url')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (profile && !error) {
+                    setUserProfile({
+                        ...defaultProfile,
+                        name: profile.nickname,
+                        avatar_url: profile.avatar_url || defaultProfile.avatar_url,
+                    });
+                }
+            } catch (err) {
+                console.error("Error fetching profile:", err);
+            }
+        } else {
+            setUserProfile(null);
+        }
+    };
+
+    const refreshProfile = async () => {
+        if (user) {
+            await updateUserState(user);
+        }
+    };
 
     useEffect(() => {
         // Check active session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
-            setUser(session?.user ?? null);
+            updateUserState(session?.user ?? null);
             setLoading(false);
         });
 
@@ -49,7 +104,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
-            setUser(session?.user ?? null);
+            updateUserState(session?.user ?? null);
             setLoading(false);
         });
 
@@ -63,7 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         if (data.session) {
             setSession(data.session);
-            setUser(data.session.user);
+            updateUserState(data.session.user);
         }
         return { success: true };
     };
@@ -75,7 +130,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         if (data.session) {
             setSession(data.session);
-            setUser(data.session.user);
+            updateUserState(data.session.user);
         }
         return { success: true };
     };
@@ -95,19 +150,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const signOut = async () => {
         await supabase.auth.signOut();
-        setUser(null);
+        updateUserState(null);
         setSession(null);
     };
 
     return (
         <AuthContext.Provider value={{
             user,
+            userProfile,
             session,
             loading,
             signUpWithEmail,
             signInWithEmail,
             signInWithGoogle,
-            signOut
+            signOut,
+            refreshProfile
         }}>
             {children}
         </AuthContext.Provider>

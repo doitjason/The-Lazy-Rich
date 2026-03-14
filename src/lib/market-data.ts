@@ -1954,6 +1954,11 @@ export async function fetchEnrichedPortfolio(tickers: string[]): Promise<Record<
                             ?? fund?.yield
                             ?? stats?.yield;
 
+                        // Fallback: If yield is missing but rate exists (Common for KR stocks/ETFs on Yahoo)
+                        if (!dividendYield && detail?.dividendRate && quote.price > 0) {
+                            dividendYield = (detail.dividendRate as number) / quote.price;
+                        }
+
                         beta = stats?.beta ?? detail?.beta ?? fund?.beta3Year; // ETF beta fallback
 
                         // Fundamental Metrics
@@ -2044,12 +2049,19 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
 
                     history.forEach((e: any) => {
                         if (e.dividends) {
+                            const dateStr = formatDate(new Date(e.date));
+                            // Estimate payment date if missing (Usually 30 days later, 100 days for KR)
+                            const isKr = queryTicker.endsWith(".KS") || queryTicker.endsWith(".KQ");
+                            const payDate = new Date(e.date);
+                            payDate.setDate(payDate.getDate() + (isKr ? 100 : 30));
+                            
                             events.push({
                                 ticker: ticker,
-                                date: formatDate(new Date(e.date)),
+                                date: dateStr,
                                 amount: e.dividends,
-                                currency: currency, // Add currency
-                                exDate: formatDate(new Date(e.date))
+                                currency: currency,
+                                exDate: dateStr,
+                                paymentDate: formatDate(payDate)
                             });
                         }
                     });
@@ -2166,12 +2178,18 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
                                             projectedAmount = comparableEvent.amount;
                                         }
 
+                                        // Estimate payment date for projection
+                                        const isKr = queryTicker.endsWith(".KS") || queryTicker.endsWith(".KQ");
+                                        const payDateObj = new Date(nextDate);
+                                        payDateObj.setDate(payDateObj.getDate() + (isKr ? 100 : 30));
+
                                         events.push({
                                             ticker: ticker,
                                             date: nextDateStr,
                                             amount: projectedAmount,
                                             currency: lastEvent.currency || currency,
-                                            exDate: nextDateStr, // Use same date for exDate estimation
+                                            exDate: nextDateStr,
+                                            paymentDate: formatDate(payDateObj),
                                             isEstimated: true
                                         });
                                     }

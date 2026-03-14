@@ -6,6 +6,7 @@ import { QuoteCard } from "@/components/insights/QuoteCard";
 import { MarketContext } from "@/components/insights/MarketContext";
 import { RecommendedBooks } from "@/components/insights/RecommendedBooks";
 import { ColumnList } from "@/components/insights/ColumnList";
+import { CommunityFeed } from "@/components/community/CommunityFeed";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -13,23 +14,17 @@ function InsightsContent() {
     const searchParams = useSearchParams();
     const [selectedTab, setSelectedTab] = useState<"market" | "blog" | "community" | "recommended">("community");
 
-    // Load tab from URL param or sessionStorage
+    // Load tab from URL param
     useEffect(() => {
         const urlTab = searchParams.get("tab");
         if (urlTab && ["market", "blog", "community", "recommended"].includes(urlTab)) {
             setSelectedTab(urlTab as any);
-        } else {
-            const savedTab = sessionStorage.getItem("insightsTab");
-            if (savedTab) {
-                setSelectedTab(savedTab as any);
-            }
         }
     }, [searchParams]);
 
-    // Save the active tab to sessionStorage whenever it changes
+    // Update active tab
     const handleTabChange = (tab: "market" | "blog" | "community" | "recommended") => {
         setSelectedTab(tab);
-        sessionStorage.setItem("insightsTab", tab);
     };
 
     return (
@@ -87,8 +82,8 @@ function InsightsContent() {
                 )}
 
                 {selectedTab === "community" && (
-                    <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground border border-dashed rounded-2xl bg-muted/20">
-                        <p>👥 투자자들과 의견을 나누는 공간이 곧 열립니다.</p>
+                    <div className="pt-2">
+                        <CommunityFeed />
                     </div>
                 )}
 

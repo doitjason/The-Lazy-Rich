@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import {
     Popover,
     PopoverContent,
@@ -120,12 +121,15 @@ const PRESETS = [
 ];
 
 export function PortfolioRegretCalculator() {
+    const searchParams = useSearchParams();
     const { currency, exchangeRate, formatCurrency, formatCompactNumber } = useCurrency();
     const { user } = useAuth();
     const { items, fetchPortfolio } = usePortfolioStore();
     const resultRef = useRef<HTMLDivElement>(null);
 
     const [assets, setAssets] = useState<PortfolioAsset[]>([{ ticker: "", weight: 100 }]);
+    const [shouldAutoCalculate, setShouldAutoCalculate] = useState(false);
+    const [hasInitializedParams, setHasInitializedParams] = useState(false);
     const [amount, setAmount] = useState<number>(currency === "KRW" ? 10000000 : 10000);
     const [period, setPeriod] = useState<string>("10Y");
     const [rebalancePeriod, setRebalancePeriod] = useState<"monthly" | "semi-annually" | "annually" | "none">("annually");
@@ -134,6 +138,47 @@ export function PortfolioRegretCalculator() {
     const [selectedPreset, setSelectedPreset] = useState<string>("내 포트폴리오");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Parse URL params
+    useEffect(() => {
+        if (!searchParams) return;
+
+        const pAssets = searchParams.get('assets');
+        const pPeriod = searchParams.get('period');
+        const pAmount = searchParams.get('amount');
+
+        if (pAssets) {
+            const assetParts = pAssets.split(';');
+            const parsedAssets = assetParts.map(part => {
+                const [ticker, weight] = part.split(',');
+                return { ticker, weight: Number(weight) || 0 };
+            });
+            if (parsedAssets.length > 0) {
+                setAssets(parsedAssets);
+                setSelectedPreset("커스텀");
+            }
+        }
+
+        if (pPeriod) setPeriod(pPeriod);
+        if (pAmount) {
+            const numAmount = Number(pAmount);
+            if (!isNaN(numAmount)) setAmount(numAmount);
+        }
+
+        if (pAssets) {
+            setShouldAutoCalculate(true);
+        }
+        setHasInitializedParams(true);
+    }, [searchParams]);
+
+    // Auto calculate trigger
+    useEffect(() => {
+        if (shouldAutoCalculate && assets.some(a => a.ticker)) {
+            setShouldAutoCalculate(false);
+            onCalculate();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shouldAutoCalculate, assets]);
 
     // Auto scroll to result
     useEffect(() => {

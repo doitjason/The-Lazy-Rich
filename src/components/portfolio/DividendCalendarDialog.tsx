@@ -11,6 +11,7 @@ import { getDividendCalendar } from "@/app/actions/portfolio-actions";
 import { PortfolioItem } from "@/store/usePortfolioStore";
 import { DividendEvent } from "@/lib/market-types";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface DividendCalendarDialogProps {
     open: boolean;
@@ -22,6 +23,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
     const [currentDate, setCurrentDate] = useState(new Date());
     const [events, setEvents] = useState<DividendEvent[]>([]);
     const [loading, setLoading] = useState(false);
+    const { currency: displayCurrency, exchangeRate, formatCurrency: contextFormatCurrency } = useCurrency();
 
     // Fetch Dividend Data
     useEffect(() => {
@@ -47,56 +49,61 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
         }));
 
         events.forEach(event => {
-            const date = new Date(event.date);
+            const targetDateStr = event.paymentDate || event.date;
+            const date = new Date(targetDateStr);
             const month = date.getMonth(); // 0-11
 
-            // Aggregate quantity for this ticker from the items list
-            // Items are already unique by ticker in the store usually, but let's be safe.
             const tickerItems = items.filter(i => i.ticker === event.ticker);
             const quantity = tickerItems.reduce((sum, i) => sum + i.quantity, 0);
 
             if (quantity > 0) {
-                // Ensure we only count future/projected events appropriately or sum all known valid ones for an annual view
-                // For a "Jan-Dec" view, we typically sum up all expected dividends for the calendar year
-                // But since our data might span multiple years or be past/future mixture:
-                // Let's filter for the *current calendar year* or *next 12 months*?
-                // The prompt says "1월~12월별 배당금 막대 그래프" (Jan-Dec Bar Chart).
-                // Usually this means a Calendar Year view. Let's use the year of currentDate.
                 if (date.getFullYear() === currentDate.getFullYear()) {
-                    data[month].total += event.amount * quantity;
+                    // Convert event amount to display currency
+                    let amountInDisplayCurrency = event.amount;
+                    if (event.currency === "USD" && displayCurrency === "KRW") {
+                        amountInDisplayCurrency = event.amount * exchangeRate;
+                    } else if (event.currency === "KRW" && displayCurrency === "USD") {
+                        amountInDisplayCurrency = event.amount / exchangeRate;
+                    }
+                    data[month].total += amountInDisplayCurrency * quantity;
                 }
             }
         });
 
         return data;
-    }, [events, items, currentDate]);
+    }, [events, items, currentDate, displayCurrency, exchangeRate]);
 
     // Filter events for the selected month
     const selectedMonthEvents = useMemo(() => {
         return events.filter(event => {
-            const date = new Date(event.date);
+            const targetDateStr = event.paymentDate || event.date;
+            const date = new Date(targetDateStr);
             return date.getMonth() === currentDate.getMonth() &&
                 date.getFullYear() === currentDate.getFullYear();
         }).map(event => {
             const quantity = items.filter(i => i.ticker === event.ticker).reduce((sum, i) => sum + i.quantity, 0);
+            
+            // Calculate total in native currency for detail line
+            const totalNative = quantity * event.amount;
+            
+            // Calculate total in display currency for aggregate sum
+            let totalInDisplay = totalNative;
+            if (event.currency === "USD" && displayCurrency === "KRW") {
+                totalInDisplay = totalNative * exchangeRate;
+            } else if (event.currency === "KRW" && displayCurrency === "USD") {
+                totalInDisplay = totalNative / exchangeRate;
+            }
+
             return {
                 ...event,
                 quantity: quantity,
-                totalAmount: quantity * event.amount
+                totalAmount: totalNative,
+                totalInDisplay: totalInDisplay
             };
         });
-    }, [events, items, currentDate]);
+    }, [events, items, currentDate, displayCurrency, exchangeRate]);
 
-    const totalMonthDividend = selectedMonthEvents.reduce((acc, curr) => acc + curr.totalAmount, 0);
-
-    // Determine currency for total
-    // If all items in this month have the same currency, use it. Otherwise default to USD.
-    const monthCurrency = useMemo(() => {
-        if (selectedMonthEvents.length === 0) return "USD";
-        const firstCurrency = selectedMonthEvents[0].currency;
-        const allSame = selectedMonthEvents.every(e => e.currency === firstCurrency);
-        return allSame ? firstCurrency : "USD";
-    }, [selectedMonthEvents]);
+    const totalMonthDividend = selectedMonthEvents.reduce((acc, curr) => acc + curr.totalInDisplay, 0);
 
     const nextMonth = () => {
         setCurrentDate(prev => {
@@ -177,7 +184,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                                                 <div className="bg-black/90 border border-white/10 p-2 rounded-lg text-xs shadow-xl backdrop-blur-md">
                                                     <div className="font-bold mb-1">{data.label}</div>
                                                     <div className="text-emerald-400 font-medium">
-                                                        {formatCurrency(data.total)}
+                                                        {contextFormatCurrency(data.total)}
                                                     </div>
                                                 </div>
                                             );
@@ -212,7 +219,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                             {currentDate.getMonth() + 1}월 예상 배당 총액 <span className="text-[10px] opacity-60 font-normal">(세전)</span>
                         </span>
                         <span className="text-lg font-bold text-emerald-400">
-                            {formatCurrency(totalMonthDividend, monthCurrency)}
+                            {contextFormatCurrency(totalMonthDividend)}
                         </span>
                     </div>
 
