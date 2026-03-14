@@ -699,7 +699,7 @@ export function CompoundCalculator() {
                                         stroke="#10B981"
                                         fill="url(#colorTotal)"
                                         strokeWidth={2}
-                                        animationDuration={5000}
+                                        animationDuration={4000}
                                         animationEasing="ease-in-out"
                                     />
                                     <Area

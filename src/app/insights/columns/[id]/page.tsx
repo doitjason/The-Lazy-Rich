@@ -9,6 +9,7 @@ import { fetchNaverBook } from "@/lib/naver-books";
 import { SITE_CONFIG } from "@/lib/constants";
 import { getColumnContent } from "@/lib/mdx";
 import { MDXRemote } from "next-mdx-remote/rsc";
+import { AdSlot } from "@/components/insights/AdSlot";
 import React from "react";
 
 interface PageProps {
@@ -38,8 +39,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         openGraph: {
             title: column.title,
             description: column.subtitle,
+            type: "article",
+            url: `https://thelazyrich.me/insights/columns/${column.id}`,
+            images: [
+                {
+                    url: "/logo.png", // Fallback if no specific column image
+                    width: 1200,
+                    height: 630,
+                    alt: column.title,
+                }
+            ],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: column.title,
+            description: column.subtitle,
+            images: ["/logo.png"],
         },
     };
+
 }
 
 // Helper to render text with Markdown-style links [text](url) - reused for manual text if needed
@@ -390,16 +408,7 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
 
                         {/* In-article Ad Slot */}
                         {index < bodyParts.length - 1 && (
-                            <div className="py-4">
-                                <div className="border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-6 flex items-center justify-center bg-transparent relative overflow-hidden">
-                                    <div className="absolute inset-0 bg-gray-50 dark:bg-white/[0.02] bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] opacity-70" />
-                                    <span className="text-[11px] text-gray-400 dark:text-white/30 font-medium tracking-wide relative z-10 flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
-                                        본문 내 광고 영역 {bodyParts.length > 2 ? index + 1 : ""}
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
-                                    </span>
-                                </div>
-                            </div>
+                            <AdSlot placement="in-article" index={index} />
                         )}
                     </div>
                 ))}
@@ -438,14 +447,7 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                 )}
 
                 {/* Bottom Ad Slot */}
-                <div className="border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-6 flex items-center justify-center bg-transparent relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gray-50 dark:bg-white/[0.02] bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#374151_1px,transparent_1px)] [background-size:16px_16px] opacity-70" />
-                    <span className="text-[11px] text-gray-400 dark:text-white/30 font-medium tracking-wide relative z-10 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50" />
-                        하단 광고 영역
-                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500/50" />
-                    </span>
-                </div>
+                <AdSlot placement="bottom" />
 
                 {/* Investment Disclaimer */}
                 <div className="border-t border-gray-200 dark:border-white/5 pt-5 mt-2">

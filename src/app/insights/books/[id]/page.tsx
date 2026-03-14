@@ -41,11 +41,27 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         title: `${book.title} 리뷰 | 올바른 장기투자`,
         description: book.description,
         openGraph: {
-            title: book.title,
+            title: `${book.title} 리뷰`,
             description: book.description,
-            images: [ogImage],
+            type: "article",
+            url: `https://thelazyrich.me/insights/books/${book.id}`,
+            images: [
+                {
+                    url: ogImage || "/logo.png",
+                    width: 800,
+                    height: 1200,
+                    alt: book.title,
+                }
+            ],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title: `${book.title} 리뷰`,
+            description: book.description,
+            images: [ogImage || "/logo.png"],
         },
     };
+
 }
 
 export default async function BookDetailPage({ params, searchParams }: PageProps) {

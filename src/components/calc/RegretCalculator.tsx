@@ -876,7 +876,7 @@ export function RegretCalculator() {
                                                 fillOpacity={1}
                                                 fill="url(#colorValue)"
                                                 isAnimationActive={true}
-                                                animationDuration={5000}
+                                                animationDuration={4000}
                                                 animationEasing="ease-in-out"
                                             />
                                         </AreaChart>

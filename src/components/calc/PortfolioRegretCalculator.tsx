@@ -1189,7 +1189,7 @@ export function PortfolioRegretCalculator() {
                                             fill="url(#colorValue)"
                                             strokeWidth={3}
                                             activeDot={{ r: 6, strokeWidth: 0, fill: '#fff' }}
-                                            animationDuration={5000}
+                                            animationDuration={4000}
                                             animationEasing="ease-in-out"
                                         />
                                     </AreaChart>
