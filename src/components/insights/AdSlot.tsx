@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
  */
 
 interface AdSlotProps {
-    placement: "in-article" | "bottom";
+    placement: "in-feed" | "in-article" | "bottom";
     className?: string;
     index?: number;
 }
@@ -27,11 +27,15 @@ export function AdSlot({ placement, className = "", index }: AdSlotProps) {
     }
 
     const placementLabels = {
+        "in-feed": "In-feed 광고 영역",
         "in-article": `본문 내 광고 영역 ${index !== undefined ? index + 1 : ""}`,
         "bottom": "하단 광고 영역",
     };
 
-    const dotColor = placement === "in-article" ? "bg-emerald-500/50" : "bg-blue-500/50";
+    const dotColor = 
+        placement === "in-article" ? "bg-emerald-500/50" : 
+        placement === "in-feed" ? "bg-amber-500/50" : "bg-blue-500/50";
+
 
     return (
         <div className={cn("py-4", className)}>
