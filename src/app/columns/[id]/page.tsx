@@ -40,7 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             title: column.title,
             description: column.subtitle,
             type: "article",
-            url: `https://thelazyrich.me/insights/columns/${column.id}`,
+            url: `https://thelazyrich.me/columns/${column.id}`,
             images: [
                 {
                     url: "/logo.png", // Fallback if no specific column image
@@ -320,7 +320,7 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                         dateModified: column.publishedAt,
                         mainEntityOfPage: {
                             "@type": "WebPage",
-                            "@id": `${SITE_CONFIG.url}/insights/columns/${column.id}`,
+                            "@id": `${SITE_CONFIG.url}/columns/${column.id}`,
                         },
                         articleSection: column.categoryLabel,
                         keywords: column.tags.join(", "),
@@ -362,7 +362,7 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                     </h2>
 
                     <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 dark:text-white/35 font-medium">
-                        <Link href="/insights/about" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">{column.author}</Link>
+                        <Link href="/about" className="hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors">{column.author}</Link>
                         <span>·</span>
                         <Clock className="w-3 h-3" />
                         <span>{column.readTime}분 읽기</span>
@@ -425,7 +425,7 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                         </div>
                         <div className="space-y-3">
                             {relatedBooks.map((book) => (
-                                <Link key={book.id} href={`/insights/books/${book.id}`} className="block">
+                                <Link key={book.id} href={`/books/${book.id}`} className="block">
                                     <div className="bg-gray-50 dark:bg-white/[0.03] backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-4 flex gap-4 items-center group hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors">
                                         <div className="w-10 h-14 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-gray-200 dark:border-white/10 flex items-center justify-center flex-shrink-0 text-lg overflow-hidden relative">
                                             {book.coverUrl ? (
@@ -459,7 +459,7 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                 {/* Prev / Next Navigation */}
                 <div className="flex gap-3 pt-2">
                     {prevColumn ? (
-                        <Link href={`/insights/columns/${prevColumn.id}`} className="flex-1 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-2xl p-4 group hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors">
+                        <Link href={`/columns/${prevColumn.id}`} className="flex-1 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-2xl p-4 group hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors">
                             <span className="text-[10px] text-gray-400 dark:text-white/30 font-bold uppercase tracking-wider">이전 칼럼</span>
                             <p className="text-[13px] font-bold text-gray-500 dark:text-white/60 mt-1 line-clamp-1 group-hover:text-gray-700 dark:group-hover:text-white/80 transition-colors">{prevColumn.title}</p>
                         </Link>
@@ -467,7 +467,7 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                         <div className="flex-1" />
                     )}
                     {nextColumn ? (
-                        <Link href={`/insights/columns/${nextColumn.id}`} className="flex-1 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-2xl p-4 text-right group hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors">
+                        <Link href={`/columns/${nextColumn.id}`} className="flex-1 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-2xl p-4 text-right group hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors">
                             <span className="text-[10px] text-gray-400 dark:text-white/30 font-bold uppercase tracking-wider">다음 칼럼</span>
                             <p className="text-[13px] font-bold text-gray-500 dark:text-white/60 mt-1 line-clamp-1 group-hover:text-gray-700 dark:group-hover:text-white/80 transition-colors">{nextColumn.title}</p>
                         </Link>

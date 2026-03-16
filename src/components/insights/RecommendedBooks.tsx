@@ -47,7 +47,7 @@ function BookCardItem({ book, idx, coverData }: BookCardItemProps) {
     const authorName = coverData?.author?.replace(/\|/g, ", ") || book.author;
 
     return (
-        <Link href={`/insights/books/${book.id}`} className="block">
+        <Link href={`/books/${book.id}`} className="block">
             <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -215,7 +215,7 @@ export function RecommendedBooks() {
                 {filteredBooks.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-white/40 border border-gray-200 dark:border-white/5 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02]">
                         <span className="text-4xl mb-3">🔍</span>
-                        <p className="text-sm font-medium">해당 난이도의 추천 도서가 준비 중입니다.</p>
+                        <p className="text-sm font-medium">새로운 추천 도서가 곧 업데이트될 예정입니다.</p>
                     </div>
                 )}
             </div>

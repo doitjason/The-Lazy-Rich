@@ -11,11 +11,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
         '',
         '/calc',
         '/portfolio',
-        '/insights',
+        '',
         '/profile',
         '/privacy',
         '/terms',
-        '/insights/about',
+        '/about',
         '/profile/about',
     ].map((route) => ({
         url: `${baseUrl}${route}`,
@@ -26,7 +26,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // Dynamic routes for Columns
     const columnRoutes = COLUMNS.map((column) => ({
-        url: `${baseUrl}/insights/columns/${column.id}`,
+        url: `${baseUrl}/columns/${column.id}`,
         lastModified: new Date(),
         changeFrequency: 'weekly' as const,
         priority: 0.6,
@@ -34,7 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // Dynamic routes for Books
     const bookRoutes = RECOMMENDED_BOOKS.map((book) => ({
-        url: `${baseUrl}/insights/books/${book.id}`,
+        url: `${baseUrl}/books/${book.id}`,
         lastModified: new Date(),
         changeFrequency: 'weekly' as const,
         priority: 0.6,

@@ -1,136 +1,106 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { MentorSelector } from "@/components/mentor/MentorSelector";
-import { ChatInterface } from "@/components/mentor/ChatInterface";
-import { AIMentor, getMentorById } from "@/lib/ai-mentors";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSearchParams } from "next/navigation";
+import { QuoteCard } from "@/components/insights/QuoteCard";
+import { MarketContext } from "@/components/insights/MarketContext";
+import { RecommendedBooks } from "@/components/insights/RecommendedBooks";
+import { ColumnList } from "@/components/insights/ColumnList";
+import { CommunityFeed } from "@/components/community/CommunityFeed";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
-function GuruPageContent() {
+function InsightsContent() {
     const searchParams = useSearchParams();
-    const router = useRouter();
+    const [selectedTab, setSelectedTab] = useState<"market" | "blog" | "community" | "recommended">("blog");
 
-    const [selectedMentor, setSelectedMentor] = useState<AIMentor | null>(null);
-    const [sessionId, setSessionId] = useState<string | null>(null);
-    const [prefetchedMessages, setPrefetchedMessages] = useState<any[] | undefined>(undefined);
-    const [initialMessage, setInitialMessage] = useState<string | undefined>(undefined);
-    const { user } = useAuth();
-
-    // Create a new chat session when mentor is selected
-    const handleMentorSelect = async (mentor: AIMentor) => {
-        setSelectedMentor(mentor);
-
-        if (user) {
-            try {
-                const response = await fetch("/api/chat/sessions", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        userId: user.id,
-                        mentorId: mentor.id,
-                    }),
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setSessionId(data.session?.id || null);
-                    if (data.messages) {
-                        setPrefetchedMessages(data.messages);
-                    }
-                }
-            } catch (error) {
-                console.error("Failed to create session:", error);
-            }
+    // Load tab from URL param
+    useEffect(() => {
+        const urlTab = searchParams.get("tab");
+        if (urlTab && ["market", "blog", "community", "recommended"].includes(urlTab)) {
+            setSelectedTab(urlTab as any);
         }
+    }, [searchParams]);
+
+    // Update active tab
+    const handleTabChange = (tab: "market" | "blog" | "community" | "recommended") => {
+        setSelectedTab(tab);
     };
 
-    // Handle auto-selection based on URL query param
-    useEffect(() => {
-        const action = searchParams.get("action");
-        const mentorId = searchParams.get("mentor") || searchParams.get("persona");
-        const queryMessage = searchParams.get("q");
-
-        if (mentorId) {
-            const autoMentor = getMentorById(mentorId);
-            if (autoMentor && (!selectedMentor || selectedMentor.id !== mentorId)) {
-                // If switching mentors, reset everything first
-                if (selectedMentor && selectedMentor.id !== mentorId) {
-                    setSelectedMentor(null);
-                    setSessionId(null);
-                    setInitialMessage(undefined);
-                }
-
-                // Clean the URL so refreshing doesn't keep triggering it
-                router.replace("/", { scroll: false });
-
-                let msg = "";
-                if (action === "analyze_portfolio") {
-                    msg = "내 포트폴리오를 분석해주세요";
-                } else if (queryMessage) {
-                    msg = queryMessage;
-                }
-
-                if (msg) {
-                    setInitialMessage(msg);
-                    handleMentorSelect(autoMentor);
-                } else {
-                    handleMentorSelect(autoMentor);
-                }
-            }
-        }
-    }, [searchParams, selectedMentor, router]);
-
-    // Scroll to top when view changes
-    useEffect(() => {
-        // Ensure scroll reset happens after the DOM has likely updated for the new view
-        const timer = setTimeout(() => {
-            window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-            document.body.scrollTo({ top: 0, left: 0, behavior: "instant" });
-        }, 0);
-        return () => clearTimeout(timer);
-    }, [selectedMentor]);
-
-    // Reset session when going back
-    const handleBack = () => {
-        setSelectedMentor(null);
-        setSessionId(null);
-        setInitialMessage(undefined);
-    };
     return (
-        <div 
-            className={selectedMentor 
-                ? "fixed left-0 right-0 top-0 max-w-md mx-auto flex flex-col px-4 pt-4 pb-3 bg-background z-40" 
-                : "flex min-h-screen flex-col p-4 max-w-md mx-auto pb-24"
-            }
-            style={selectedMentor ? { bottom: "calc(4rem + env(safe-area-inset-bottom))" } : undefined}
-        >
-            {selectedMentor ? (
-                <ChatInterface
-                    mentor={selectedMentor}
-                    onBack={handleBack}
-                    userId={user?.id}
-                    sessionId={sessionId || undefined}
-                    initialHistory={prefetchedMessages}
-                    initialMessage={initialMessage}
-                />
-            ) : (
-                <>
-                    <header className="pt-8 pb-6">
-                        <h1 className="text-3xl font-bold tracking-tight">AI 멘토</h1>
-                        <p className="text-muted-foreground">당신만의 AI 멘토와 대화하세요.</p>
-                    </header>
-                    <MentorSelector onSelect={handleMentorSelect} />
-                </>
-            )}
+        <div className="flex min-h-screen flex-col p-4 max-w-md mx-auto space-y-8 pb-24">
+            <header className="pt-8">
+                <h1 className="text-3xl font-bold tracking-tight">인사이트</h1>
+                <p className="text-muted-foreground">시장을 꿰뚫어보는 통찰력</p>
+            </header>
+
+            {/* Navigation Tabs */}
+            <div className="flex items-center justify-between w-full gap-1 pb-2">
+                {[
+                    { id: "blog", label: "블로그" },
+                    { id: "recommended", label: "추천 도서" },
+                    { id: "market", label: "시장 상황" },
+                    { id: "community", label: "커뮤니티" },
+                ].map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => handleTabChange(tab.id as any)}
+                        className={cn(
+                            "flex-1 py-3 px-1 rounded-full text-[11px] min-[350px]:text-[12px] min-[390px]:text-[13px] sm:text-sm font-black tracking-tight whitespace-nowrap transition-all duration-300 relative overflow-hidden group/tab",
+                            selectedTab === tab.id
+                                ? "text-white"
+                                : "text-muted-foreground hover:text-foreground bg-white/50 dark:bg-white/5 border border-white/20 dark:border-white/10 backdrop-blur-sm"
+                        )}
+                    >
+                        {selectedTab === tab.id && (
+                            <motion.div
+                                layoutId="activeTabInsights"
+                                className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-600 -z-10"
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                            />
+                        )}
+                        <span className="relative z-10 w-full text-center block">
+                            {tab.label}
+                        </span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Content Area */}
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 min-h-[400px]">
+                {selectedTab === "market" && (
+                    <div className="space-y-8">
+                        <QuoteCard />
+                        <MarketContext />
+                    </div>
+                )}
+
+                {selectedTab === "blog" && (
+                    <div className="space-y-4 pt-2">
+                        <ColumnList />
+                    </div>
+                )}
+
+                {selectedTab === "community" && (
+                    <div className="pt-2">
+                        <CommunityFeed />
+                    </div>
+                )}
+
+                {selectedTab === "recommended" && (
+                    <div className="space-y-4 pt-2">
+                        <RecommendedBooks />
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
 
-export default function Home() {
+export default function InsightsPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">AI 멘토 로딩 중...</div>}>
-            <GuruPageContent />
+        <Suspense fallback={<div className="text-center py-20 opacity-50">Loading...</div>}>
+            <InsightsContent />
         </Suspense>
     );
 }

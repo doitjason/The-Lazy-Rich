@@ -10,7 +10,7 @@ import { AdSlot } from "./AdSlot";
 // ─── Featured Card ────────────────────────────────────────
 function FeaturedColumnCard({ column }: { column: Column }) {
     return (
-        <Link href={`/insights/columns/${column.id}`} className="block">
+        <Link href={`/columns/${column.id}`} className="block">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -65,7 +65,7 @@ function FeaturedColumnCard({ column }: { column: Column }) {
 // ─── Regular Column Card ──────────────────────────────────
 function ColumnCard({ column, idx }: { column: Column; idx: number }) {
     return (
-        <Link href={`/insights/columns/${column.id}`} className="block">
+        <Link href={`/columns/${column.id}`} className="block">
             <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -220,7 +220,7 @@ export function ColumnList() {
                 {filteredColumns.length === 0 && !showFeatured && (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-white/40 border border-gray-200 dark:border-white/5 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02]">
                         <span className="text-4xl mb-3">🔍</span>
-                        <p className="text-sm font-medium">해당 카테고리의 칼럼이 준비 중입니다.</p>
+                        <p className="text-sm font-medium">새로운 인사이트가 곧 업데이트될 예정입니다.</p>
                     </div>
                 )}
             </div>

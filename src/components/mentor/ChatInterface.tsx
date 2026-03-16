@@ -528,7 +528,7 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
                                                     case "column": {
                                                         const col = COLUMNS.find(c => c.id === action.id);
                                                         return (
-                                                            <button key={idx} onClick={() => router.push(`/insights/columns/${action.id}?from=guru`)} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/15 dark:to-teal-500/15 border border-emerald-500/20 dark:border-emerald-400/20 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
+                                                            <button key={idx} onClick={() => router.push(`/columns/${action.id}?from=guru`)} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/15 dark:to-teal-500/15 border border-emerald-500/20 dark:border-emerald-400/20 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
                                                                 <div className="flex items-center gap-2.5">
                                                                     <div className="h-8 w-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                                                                         <BookOpen className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
@@ -545,7 +545,7 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
                                                     case "book": {
                                                         const book = RECOMMENDED_BOOKS.find(b => b.id === action.id);
                                                         return (
-                                                            <button key={idx} onClick={() => router.push(`/insights/books/${action.id}?from=guru`)} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 dark:from-violet-500/15 dark:to-fuchsia-500/15 border border-violet-500/20 dark:border-violet-400/20 hover:border-violet-500/40 hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300">
+                                                            <button key={idx} onClick={() => router.push(`/books/${action.id}?from=guru`)} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 dark:from-violet-500/15 dark:to-fuchsia-500/15 border border-violet-500/20 dark:border-violet-400/20 hover:border-violet-500/40 hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300">
                                                                 <div className="flex items-center gap-2.5">
                                                                     <div className="h-8 w-8 rounded-lg bg-violet-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                                                                         <BookOpen className="h-4 w-4 text-violet-600 dark:text-violet-400" />
@@ -561,7 +561,7 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
                                                     }
                                                     case "market":
                                                         return (
-                                                            <button key={idx} onClick={() => router.push("/insights?tab=market&from=guru")} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-sky-500/10 dark:from-cyan-500/15 dark:to-sky-500/15 border border-cyan-500/20 dark:border-cyan-400/20 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-300">
+                                                            <button key={idx} onClick={() => router.push("?tab=market&from=guru")} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-sky-500/10 dark:from-cyan-500/15 dark:to-sky-500/15 border border-cyan-500/20 dark:border-cyan-400/20 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-300">
                                                                 <div className="flex items-center gap-2.5">
                                                                     <div className="h-8 w-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                                                                         <TrendingUp className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
@@ -712,7 +712,7 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
                             <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
                             <span className="text-muted-foreground text-xs font-medium">
                                 {initialMessage 
-                                    ? (initialMessage.includes("내 포트폴리오") ? "포트폴리오 분석 준비 중..." : "AI 멘토가 질문을 분석 중입니다...") 
+                                    ? (initialMessage.includes("내 포트폴리오") ? "포트폴리오 분석을 수행하고 있습니다..." : "AI 멘토가 질문을 분석하고 있습니다...") 
                                     : "대화 기록을 불러오는 중..."}
                             </span>
                         </div>

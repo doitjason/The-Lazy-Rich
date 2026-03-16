@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             title: `${book.title} 리뷰`,
             description: book.description,
             type: "article",
-            url: `https://thelazyrich.me/insights/books/${book.id}`,
+            url: `https://thelazyrich.me/books/${book.id}`,
             images: [
                 {
                     url: ogImage || "/logo.png",
@@ -121,7 +121,7 @@ export default async function BookDetailPage({ params, searchParams }: PageProps
                         reviewBody: book.description,
                         mainEntityOfPage: {
                             "@type": "WebPage",
-                            "@id": `${SITE_CONFIG.url}/insights/books/${book.id}`,
+                            "@id": `${SITE_CONFIG.url}/books/${book.id}`,
                         },
                     }),
                 }}

@@ -193,7 +193,7 @@ export default function AboutEditorPage() {
                 {/* Back to Insights */}
                 <div className="flex justify-center">
                     <Link
-                        href="/insights"
+                        href="/"
                         className="inline-flex items-center gap-2 text-sm font-bold text-emerald-500/60 hover:text-emerald-400 transition-colors"
                     >
                         ← 인사이트로 돌아가기

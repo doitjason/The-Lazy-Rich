@@ -70,11 +70,6 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <head>
         <meta name="naver-site-verification" content="02fca866070cd76f8d7ec03e32bb2fb30a90dea7" />
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9935065185301028"
-          crossOrigin="anonymous"
-        ></script>
       </head>
       <body
         className={cn(

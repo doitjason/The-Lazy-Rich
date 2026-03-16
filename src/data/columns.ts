@@ -27,6 +27,22 @@ export const CATEGORY_OPTIONS = [
 
 export const COLUMNS: Column[] = [
     {
+        id: "exchange-rate-1500-shock",
+        title: "환율 1,500원 시대의 생존법: 공포라는 숫자 이면의 기회",
+        subtitle: "트라우마를 자극하는 고환율 쇼크, 장기 투자자가 평정심을 유지해야 하는 본질적인 이유",
+        category: "market",
+        categoryLabel: "시장 해부",
+        categoryColor: "text-blue-400",
+        categoryBg: "bg-blue-500/10",
+        thumbnailEmoji: "💸",
+        author: "The Lazy Rich 에디터",
+        publishedAt: "2026-03-16",
+        readTime: 8,
+        tags: ["환율", "거시경제", "자산배분", "달러투자"],
+        featured: true,
+        relatedBookIds: ["psychology-of-money", "principles"],
+    },
+    {
         id: "oil-shock-noise-filtering",
         title: "포화 속에서도 굴러가는 복리의 시계: 유가 쇼크라는 노이즈를 이기는 성숙함",
         subtitle: "이란 사태와 유가 100달러 돌파, 공포에 휩쓸리지 않고 내 자산을 지키는 심리적 방패",

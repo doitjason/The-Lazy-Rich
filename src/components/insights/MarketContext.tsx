@@ -47,7 +47,7 @@ export function MarketContext() {
         } catch { /* ignore */ }
 
         // 2. Cache miss → fetch from new cached API route
-        fetch("/api/insights/market-data")
+        fetch("/api/market-data")
             .then(res => res.ok ? res.json() : null)
             .then((res) => {
                 if (res) {
@@ -142,7 +142,7 @@ export function MarketContext() {
             icon: Gauge,
             explanation: (
                 <>
-                    투자자들이 가장 두려워하는 지표, 일명 <Link href="/insights/columns/vix-fear-index" className="text-emerald-500 font-bold underline underline-offset-4 hover:text-emerald-600 transition-colors">'변동성 지수(Volatility Index)', 일명 VIX입니다.</Link> 향후 30일간 지수의 기대 변동성을 수치화한 것으로, 수치가 높을수록 시장의 공포가 극에 달했음을 시사합니다.
+                    투자자들이 가장 두려워하는 지표, 일명 <Link href="/columns/vix-fear-index" className="text-emerald-500 font-bold underline underline-offset-4 hover:text-emerald-600 transition-colors">'변동성 지수(Volatility Index)', 일명 VIX입니다.</Link> 향후 30일간 지수의 기대 변동성을 수치화한 것으로, 수치가 높을수록 시장의 공포가 극에 달했음을 시사합니다.
                 </>
             ),
             criteria: [

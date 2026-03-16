@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 
 const items = [
     {
-        label: "AI 멘토",
-        icon: Bot,
+        label: "인사이트",
+        icon: Lightbulb,
         href: "/",
     },
     {
@@ -17,14 +17,14 @@ const items = [
         href: "/calc",
     },
     {
+        label: "AI 멘토",
+        icon: Bot,
+        href: "/mentor",
+    },
+    {
         label: "포트폴리오",
         icon: PieChart,
         href: "/portfolio",
-    },
-    {
-        label: "인사이트",
-        icon: Lightbulb,
-        href: "/insights",
     },
     {
         label: "내 정보",
