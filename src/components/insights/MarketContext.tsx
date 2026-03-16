@@ -47,7 +47,7 @@ export function MarketContext() {
         } catch { /* ignore */ }
 
         // 2. Cache miss → fetch from new cached API route
-        fetch("/api/market-data")
+        fetch("/api/insights/market-data")
             .then(res => res.ok ? res.json() : null)
             .then((res) => {
                 if (res) {

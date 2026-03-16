@@ -180,6 +180,28 @@ export default function AboutEditorPage() {
                     </div>
                 </div>
 
+                {/* Contact Information */}
+                <div>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="relative flex items-center justify-center">
+                            <span className="absolute w-5 h-5 bg-emerald-500/20 rounded-full animate-ping" />
+                            <span className="relative w-2 h-5 bg-emerald-500 rounded-full" />
+                        </div>
+                        <h3 className="font-black text-base text-white tracking-tight">
+                            문의하기
+                        </h3>
+                    </div>
+                    <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex items-center justify-between group hover:bg-white/5 transition-colors">
+                        <div className="space-y-1">
+                            <p className="text-[12px] text-white/40 font-medium">에디터 팀 이메일</p>
+                            <p className="text-[15px] text-white/90 font-bold">{SITE_CONFIG.supportEmail}</p>
+                        </div>
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-white/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                            ✉️
+                        </div>
+                    </div>
+                </div>
+
                 {/* Disclaimer */}
                 <div className="border-t border-white/5 pt-5">
                     <p className="text-[11px] text-white/20 leading-relaxed font-medium break-keep">
