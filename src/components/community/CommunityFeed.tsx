@@ -15,13 +15,14 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { SocialLoginButtons } from "@/components/profile/SocialLoginButtons";
 
 // Determine Ad placement frequency
 // We start with 7-10 (let's say 8 for simplicity as per phase 1 docs)
 const AD_FREQUENCY = 8;
 
 export function CommunityFeed() {
-    const { userProfile, signInWithGoogle } = useAuth();
+    const { userProfile } = useAuth();
     const [posts, setPosts] = useState<Post[]>([]);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
@@ -142,18 +143,14 @@ export function CommunityFeed() {
                         </DialogDescription>
                     </DialogHeader>
                     
-                    <div className="mt-2 flex justify-end gap-2">
-                        <Button variant="ghost" onClick={() => setShowAuthModal(false)}>
-                            취소
-                        </Button>
+                    <div className="mt-4 flex flex-col gap-3">
+                        <SocialLoginButtons onLoginStart={() => setShowAuthModal(false)} />
                         <Button 
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold"
-                            onClick={() => {
-                                setShowAuthModal(false);
-                                signInWithGoogle();
-                            }}
+                            variant="ghost" 
+                            className="w-full text-muted-foreground text-xs"
+                            onClick={() => setShowAuthModal(false)}
                         >
-                            구글로 빠른 로그인
+                            나중에 하기
                         </Button>
                     </div>
                 </DialogContent>

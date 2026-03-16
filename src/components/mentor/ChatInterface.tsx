@@ -32,6 +32,7 @@ interface ChatInterfaceProps {
 import Link from "next/link";
 import { PlusCircle, LogIn, Calculator, BookOpen, TrendingUp, PieChart, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { SocialLoginButtons } from "../profile/SocialLoginButtons";
 
 // ─── Action Tag Types ────────────────────────────────────────
 interface ParsedAction {
@@ -97,7 +98,6 @@ const getQuickSuggestions = (mentorId: string, language: SupportedLanguage): str
 
 export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistory, initialMessage }: ChatInterfaceProps) {
     const { currency } = useCurrency();
-    const { signInWithGoogle } = useAuth();
     const router = useRouter();
 
     // Determine language from currency setting
@@ -607,18 +607,7 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
                                                     case "login":
                                                         return (
                                                             <div key={idx}>
-                                                                <button onClick={async () => { await signInWithGoogle(); }} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/15 dark:to-teal-500/15 border border-emerald-500/20 dark:border-emerald-400/20 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
-                                                                    <div className="flex items-center gap-2.5">
-                                                                        <div className="h-8 w-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                                                            <LogIn className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                                                        </div>
-                                                                        <div className="min-w-0">
-                                                                            <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">🚀 간편하게 시작하기</p>
-                                                                            <p className="text-[10px] text-emerald-600/70 dark:text-emerald-400/60">로그인하고 맞춤형 투자 분석을 받아보세요</p>
-                                                                        </div>
-                                                                        <Sparkles className="h-3.5 w-3.5 text-emerald-500/50 ml-auto flex-shrink-0 group-hover:text-emerald-500 transition-colors" />
-                                                                    </div>
-                                                                </button>
+                                                                                                                                 <SocialLoginButtons />
                                                                 <p className="mt-1.5 text-[10px] text-muted-foreground/60 leading-tight text-center px-2">
                                                                     안전한 로그인을 위해 보안 인증 서버(supabase.co)로 연결됩니다.<br />
                                                                     안심하고 계속하셔도 좋습니다.

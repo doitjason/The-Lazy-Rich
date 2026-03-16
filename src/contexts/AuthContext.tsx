@@ -27,6 +27,7 @@ type AuthContextType = {
     signUpWithEmail: (email: string, password: string) => Promise<AuthResult>;
     signInWithEmail: (email: string, password: string) => Promise<AuthResult>;
     signInWithGoogle: () => Promise<void>;
+    signInWithKakao: () => Promise<void>;
     signOut: () => Promise<void>;
     refreshProfile: () => Promise<void>;
 };
@@ -39,6 +40,7 @@ const AuthContext = createContext<AuthContextType>({
     signUpWithEmail: async () => ({ success: false }),
     signInWithEmail: async () => ({ success: false }),
     signInWithGoogle: async () => { },
+    signInWithKakao: async () => { },
     signOut: async () => { },
     refreshProfile: async () => { },
 });
@@ -148,6 +150,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
     };
 
+    const signInWithKakao = async () => {
+        await supabase.auth.signInWithOAuth({
+            provider: "kakao",
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            },
+        });
+    };
+
     const signOut = async () => {
         await supabase.auth.signOut();
         updateUserState(null);
@@ -163,6 +174,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             signUpWithEmail,
             signInWithEmail,
             signInWithGoogle,
+            signInWithKakao,
             signOut,
             refreshProfile
         }}>
