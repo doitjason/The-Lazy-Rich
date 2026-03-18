@@ -976,7 +976,7 @@ export function RegretCalculator() {
                                                 ? `과거 성과가 좋았는데 (${result.returnRate.toFixed(1)}%)`
                                                 : `과거 성과가 아쉬웠는데 (${result.returnRate.toFixed(1)}%)`;
                                             const queryText = encodeURIComponent(`${cleanTicker}의 ${perfDesc}, 앞으로의 미래 전망에 대해 진단해 주세요`);
-                                            const guruUrl = `/?mentor=${personaId}&q=${queryText}`;
+                                            const guruUrl = `/mentor?mentor=${personaId}&q=${queryText}`;
 
                                             return (
                                                 <a
@@ -989,7 +989,7 @@ export function RegretCalculator() {
                                                             <span className="text-xl leading-none">{mentorEmoji}</span>
                                                         </div>
                                                         <div>
-                                                            <div className="text-[14px] font-bold text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">AI 멘토와 이어서 대화하기</div>
+                                                            <div className="text-[14px] font-bold text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">AI 투자 멘토와 이어서 대화하기</div>
                                                             <div className="text-[11px] text-muted-foreground mt-1 whitespace-nowrap overflow-hidden text-ellipsis opacity-80">"{cleanTicker}의 미래 전망은 어떨까요?"</div>
                                                         </div>
                                                     </div>

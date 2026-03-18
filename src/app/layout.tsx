@@ -8,6 +8,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AnalyticsManager } from "@/components/analytics/AnalyticsManager";
+import { Agentation } from "agentation";
 import { Suspense } from "react";
 
 const inter = Inter({
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
     default: "The Lazy Rich | 올바른 장기투자를 위한 AI 투자 컴패니언",
     template: "%s | The Lazy Rich"
   },
-  description: "The Lazy Rich는 데이터 기반 투자 인사이트, 포트폴리오 관리, AI 멘토링을 통해 당신의 단단한 장기투자를 돕습니다.",
+  description: "The Lazy Rich는 데이터 기반 투자 인사이트, 포트폴리오 관리, AI 투자 멘토링을 통해 당신의 단단한 장기투자를 돕습니다.",
   manifest: "/manifest.json",
   openGraph: {
     type: "website",
@@ -29,13 +30,13 @@ export const metadata: Metadata = {
     url: "https://thelazyrich.me",
     siteName: "The Lazy Rich",
     title: "The Lazy Rich | 올바른 장기투자를 위한 AI 투자 컴패니언",
-    description: "데이터 기반 투자 인사이트, 포트폴리오 관리, AI 멘토링을 통해 당신의 단단한 장기투자를 돕습니다.",
+    description: "데이터 기반 투자 인사이트, 포트폴리오 관리, AI 투자 멘토링을 통해 당신의 단단한 장기투자를 돕습니다.",
     images: ["/logo.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: "The Lazy Rich | 올바른 장기투자를 위한 AI 투자 컴패니언",
-    description: "데이터 기반 투자 인사이트, 포트폴리오 관리, AI 멘토링을 통해 당신의 단단한 장기투자를 돕습니다.",
+    description: "데이터 기반 투자 인사이트, 포트폴리오 관리, AI 투자 멘토링을 통해 당신의 단단한 장기투자를 돕습니다.",
     images: ["/logo.png"],
   },
   verification: {
@@ -92,6 +93,9 @@ export default function RootLayout({
                 {children}
               </main>
               <BottomNav />
+              {process.env.NODE_ENV !== "production" && (
+                <Agentation endpoint="http://localhost:4747" />
+              )}
             </ThemeProvider>
           </CurrencyProvider>
         </AuthProvider>

@@ -12,9 +12,30 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { updateNickname } from "@/lib/community";
 import { Input } from "@/components/ui/input";
 import { SocialLoginButtons } from "./SocialLoginButtons";
+import { updateNickname, updateAvatar } from "@/lib/community";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+
+const AVATAR_PRESETS = [
+    { label: "곰", emoji: "🐻", color: "bg-amber-100" },
+    { label: "고양이", emoji: "🐱", color: "bg-orange-100" },
+    { label: "강아지", emoji: "🐶", color: "bg-yellow-100" },
+    { label: "여우", emoji: "🦊", color: "bg-orange-50" },
+    { label: "판다", emoji: "🐼", color: "bg-gray-100" },
+    { label: "코알라", emoji: "🐨", color: "bg-slate-100" },
+    { label: "사자", emoji: "🦁", color: "bg-yellow-50" },
+    { label: "호랑이", emoji: "🐯", color: "bg-orange-100" },
+    { label: "토끼", emoji: "🐰", color: "bg-pink-50" },
+    { label: "원숭이", emoji: "🐵", color: "bg-stone-100" },
+];
 
 export function ProfileSettings() {
     const { currency, setCurrency } = useCurrency();
@@ -29,6 +50,7 @@ export function ProfileSettings() {
     const [newNickname, setNewNickname] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [nicknameError, setNicknameError] = useState("");
+    const [showAvatarDialog, setShowAvatarDialog] = useState(false);
 
     const { userProfile, refreshProfile } = useAuth();
 
@@ -65,6 +87,31 @@ export function ProfileSettings() {
         setIsSaving(false);
     };
 
+    const handleSelectAvatar = async (avatarUrl: string) => {
+        if (!user) return;
+        setIsSaving(true);
+        const result = await updateAvatar(user.id, avatarUrl);
+        if (result.success) {
+            await refreshProfile();
+            setShowAvatarDialog(false);
+        }
+        setIsSaving(false);
+    };
+
+    const handleResetAvatar = async () => {
+        if (!user) return;
+        setIsSaving(true);
+        // Using social metadata or empty string to indicate reset
+        const metadata = user.user_metadata || {};
+        const socialAvatar = metadata.avatar_url || metadata.picture || "";
+        const result = await updateAvatar(user.id, socialAvatar);
+        if (result.success) {
+            await refreshProfile();
+            setShowAvatarDialog(false);
+        }
+        setIsSaving(false);
+    };
+
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -89,16 +136,56 @@ export function ProfileSettings() {
         >
             {/* Header */}
             <motion.div variants={item} className="flex flex-col items-center text-center space-y-4 pt-4">
-                <div className="relative">
-                    <div className="h-24 w-24 rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-emerald-500/30 flex items-center justify-center border-2 border-primary/20 shadow-2xl overflow-hidden backdrop-blur-sm">
-                        {user?.user_metadata?.avatar_url ? (
-                            <img src={user.user_metadata.avatar_url} alt="Profile" className="h-full w-full object-cover" />
-                        ) : (
-                            <User className="h-10 w-10 text-primary" />
-                        )}
-                    </div>
+                <div className="relative group">
+                    <Dialog open={showAvatarDialog} onOpenChange={setShowAvatarDialog}>
+                        <DialogTrigger asChild>
+                            <button className="relative block h-24 w-24 rounded-full bg-gradient-to-br from-primary/30 via-primary/10 to-emerald-500/30 border-2 border-primary/20 shadow-2xl overflow-hidden backdrop-blur-sm transition-transform active:scale-95 group">
+                                {userProfile?.avatar_url && userProfile.avatar_url.includes('http') ? (
+                                    <img src={userProfile.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="h-full w-full flex items-center justify-center text-4xl">
+                                        {userProfile?.avatar_url || <User className="h-10 w-10 text-primary" />}
+                                    </div>
+                                )}
+                                {user && (
+                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Sparkles className="h-6 w-6 text-white" />
+                                    </div>
+                                )}
+                            </button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-xs rounded-2xl p-6 bg-white/95 dark:bg-black/90 backdrop-blur-xl border-white/20">
+                            <DialogHeader>
+                                <DialogTitle className="text-lg font-bold">프로필 이미지 변경</DialogTitle>
+                                <DialogDescription className="text-xs">
+                                    나를 표현할 동물 이모지를 선택해보세요.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid grid-cols-5 gap-3 pt-4">
+                                {AVATAR_PRESETS.map((avatar) => (
+                                    <button
+                                        key={avatar.emoji}
+                                        onClick={() => handleSelectAvatar(avatar.emoji)}
+                                        className={`h-12 w-12 rounded-xl ${avatar.color} dark:bg-white/5 flex items-center justify-center text-2xl hover:scale-110 active:scale-95 transition-transform shadow-sm`}
+                                    >
+                                        {avatar.emoji}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="pt-6">
+                                <Button 
+                                    variant="outline" 
+                                    className="w-full text-xs h-10 border-dashed"
+                                    onClick={handleResetAvatar}
+                                    disabled={isSaving}
+                                >
+                                    원래 이미지(소셜)로 되돌리기
+                                </Button>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                     {user && (
-                        <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-primary border-4 border-background flex items-center justify-center">
+                        <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-primary border-4 border-background flex items-center justify-center pointer-events-none">
                             <Sparkles className="h-3 w-3 text-white fill-current" />
                         </div>
                     )}

@@ -65,10 +65,10 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
 
                 </div>
             </PopoverTrigger>
-            <PopoverContent className="w-72 text-xs bg-black/95 border-white/10 backdrop-blur-xl text-white p-4">
+            <PopoverContent className="w-72 text-xs bg-white/95 dark:bg-black/95 border-border dark:border-white/10 backdrop-blur-xl text-foreground dark:text-white/90 p-4">
                 <div className="space-y-4">
                     <div>
-                        <h4 className="font-bold text-sm text-white mb-1 flex items-center gap-2">
+                        <h4 className="font-bold text-sm text-foreground dark:text-white mb-1 flex items-center gap-2">
                             🛡️ 포트폴리오 방어력 (Correlation Guard)
                         </h4>
                         <p className="opacity-70 leading-relaxed">
@@ -81,7 +81,7 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
                             <span className="opacity-80">보유 자산군</span>
                             <span className="font-bold">{assetCount}개 종목 / {sectorCount}개 섹터</span>
                         </div>
-                        <div className="h-px bg-white/10" />
+                        <div className="h-px bg-border dark:bg-white/10" />
                         <div className="flex justify-between items-center">
                             <span className="opacity-80">최대 집중 섹터</span>
                             <span className={cn("font-bold", topSector.percent > 40 ? "text-rose-400" : "text-emerald-400")}>
@@ -96,7 +96,7 @@ export function DiversificationCard({ score, assetCount, sectorCount, topSector,
                         </div>
                     </div>
 
-                    <div className="pt-2 border-t border-white/10 opacity-70 italic text-[10px]">
+                    <div className="pt-2 border-t border-border dark:border-white/10 opacity-70 italic text-[10px]">
                         {score < 50
                             ? "Tip: 기술주 외에 채권, 금, 배당주 등을 섞어 방어력을 높이세요."
                             : "Tip: 훌륭한 분산입니다. 하락장에서도 비교적 안정적일 것입니다."}

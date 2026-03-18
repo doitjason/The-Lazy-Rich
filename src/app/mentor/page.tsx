@@ -62,7 +62,7 @@ function GuruPageContent() {
                 }
 
                 // Clean the URL so refreshing doesn't keep triggering it
-                router.replace("/", { scroll: false });
+                router.replace("/mentor", { scroll: false });
 
                 let msg = "";
                 if (action === "analyze_portfolio") {
@@ -117,8 +117,8 @@ function GuruPageContent() {
             ) : (
                 <>
                     <header className="pt-8 pb-6">
-                        <h1 className="text-3xl font-bold tracking-tight">AI 멘토</h1>
-                        <p className="text-muted-foreground">당신만의 AI 멘토와 대화하세요.</p>
+                        <h1 className="text-3xl font-bold tracking-tight">AI 투자 멘토</h1>
+                        <p className="text-muted-foreground">당신만의 AI 투자 멘토와 대화하세요.</p>
                     </header>
                     <MentorSelector onSelect={handleMentorSelect} />
                 </>
@@ -129,7 +129,7 @@ function GuruPageContent() {
 
 export default function Home() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">AI 멘토 로딩 중...</div>}>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">AI 투자 멘토 로딩 중...</div>}>
             <GuruPageContent />
         </Suspense>
     );

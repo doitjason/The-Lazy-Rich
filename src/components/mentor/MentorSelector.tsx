@@ -89,14 +89,14 @@ export function MentorSelector({ onSelect }: MentorSelectorProps) {
                 <button
                     onClick={() => paginate(-1)}
                     className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md border border-black/10 dark:border-white/30 flex items-center justify-center text-foreground/80 dark:text-foreground/60 hover:bg-white dark:hover:bg-white/40 hover:text-foreground transition-all active:scale-90 shadow-sm"
-                    aria-label="이전 AI 멘토"
+                    aria-label="이전 AI 투자 멘토"
                 >
                     <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                     onClick={() => paginate(1)}
                     className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full bg-white/80 dark:bg-white/10 backdrop-blur-md border border-black/10 dark:border-white/30 flex items-center justify-center text-foreground/80 dark:text-foreground/60 hover:bg-white dark:hover:bg-white/40 hover:text-foreground transition-all active:scale-90 shadow-sm"
-                    aria-label="다음 AI 멘토"
+                    aria-label="다음 AI 투자 멘토"
                 >
                     <ChevronRight className="h-5 w-5" />
                 </button>
@@ -209,7 +209,7 @@ export function MentorSelector({ onSelect }: MentorSelectorProps) {
             <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg py-2 px-3 flex items-center gap-2 mx-6">
                 <AlertTriangle className="h-3 w-3 text-amber-500 flex-shrink-0" />
                 <p className="text-[9px] text-amber-700 dark:text-amber-400 leading-tight">
-                    AI 멘토는 가상의 캐릭터이며, 투자 권유가 아닙니다. 책임은 전적으로 본인에게 있습니다.
+                    AI 투자 멘토는 가상의 캐릭터이며, 투자 권유가 아닙니다. 책임은 전적으로 본인에게 있습니다.
                 </p>
             </div>
         </div >

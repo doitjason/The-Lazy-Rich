@@ -148,10 +148,12 @@ export function Composer({ currentUser, onRequireLogin, onPostCreated }: Compose
             <div className="flex gap-3">
                 <div className="flex-shrink-0">
                     <div className="h-10 w-10 text-[10px] rounded-full overflow-hidden bg-muted flex items-center justify-center font-bold text-muted-foreground ring-1 ring-border/50">
-                        {currentUser?.avatar_url ? (
+                        {currentUser?.avatar_url && currentUser.avatar_url.includes('http') ? (
                             <img src={currentUser.avatar_url} alt={currentUser.name} className="h-full w-full object-cover" />
                         ) : (
-                            currentUser?.name?.charAt(0).toUpperCase() || "익"
+                            <div className="text-xl">
+                                {currentUser?.avatar_url || currentUser?.name?.charAt(0).toUpperCase() || "익"}
+                            </div>
                         )}
                     </div>
                 </div>

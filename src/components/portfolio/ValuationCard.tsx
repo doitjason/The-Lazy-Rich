@@ -104,10 +104,10 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
                 </div>
             </PopoverTrigger>
 
-            <PopoverContent className="w-72 text-xs bg-black/90 border-white/10 backdrop-blur-xl text-white/90 p-4">
+            <PopoverContent className="w-72 text-xs bg-white/95 dark:bg-black/95 border-border dark:border-white/10 backdrop-blur-xl text-foreground dark:text-white/90 p-4">
                 <div className="space-y-4">
                     <div>
-                        <h4 className="font-bold text-sm text-white mb-1 flex items-center gap-2">
+                        <h4 className="font-bold text-sm text-foreground dark:text-white mb-1 flex items-center gap-2">
                             🔍 가치 & 펀더멘털 종합 진단
                         </h4>
                         <p className="opacity-70 leading-relaxed">
@@ -135,14 +135,14 @@ export function ValuationCard({ portfolioPer, portfolioRoe, roeCoverage }: Valua
                                 • {roePercent.toFixed(1)}%: {roeStatus.label}
                             </div>
                             {roeCoverage < 90 && (
-                                <div className="mt-1 text-[10px] text-rose-400">
+                            <div className="mt-1 text-[10px] text-rose-500 dark:text-rose-400">
                                     * 전체 자산의 {Math.round(roeCoverage)}%만 반영됨 (채권/원자재 제외)
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="pt-2 border-t border-white/10 opacity-70 italic text-[10px]">
+                    <div className="pt-2 border-t border-border dark:border-white/10 opacity-70 italic text-[10px]">
                         "좋은 기업(High ROE)을 적당한 가격(Fair PER)에 사는 것이 위대한 투자입니다."
                     </div>
                 </div>

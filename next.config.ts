@@ -24,6 +24,25 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
+      // Redirect old AI Mentor links (which were at the root) to the new /mentor path
+      {
+        source: "/",
+        has: [{ type: "query", key: "mentor" }],
+        destination: "/mentor",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "query", key: "persona" }],
+        destination: "/mentor",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "query", key: "action", value: "analyze_portfolio" }],
+        destination: "/mentor",
+        permanent: true,
+      },
     ];
   },
   async headers() {

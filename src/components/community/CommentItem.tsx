@@ -17,10 +17,12 @@ export function CommentItem({ comment }: CommentItemProps) {
             {/* Avatar Column */}
             <div className="flex flex-col items-center gap-2 flex-shrink-0 pt-0.5">
                 <div className="h-8 w-8 text-[9px] rounded-full overflow-hidden bg-muted flex items-center justify-center font-bold text-muted-foreground ring-1 ring-border/50">
-                    {comment.user_avatar ? (
+                    {comment.user_avatar && comment.user_avatar.includes('http') ? (
                         <img src={comment.user_avatar} alt={comment.user_name} className="h-full w-full object-cover" />
                     ) : (
-                        comment.user_name.charAt(0).toUpperCase()
+                        <div className="text-xl">
+                            {comment.user_avatar || comment.user_name.charAt(0).toUpperCase()}
+                        </div>
                     )}
                 </div>
             </div>

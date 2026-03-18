@@ -205,10 +205,12 @@ export function FeedItem({ post, currentUser, onRequireLogin, onDelete }: FeedIt
             {/* Avatar Column */}
             <div className="flex flex-col items-center gap-2 flex-shrink-0">
                 <div className="h-10 w-10 text-[10px] rounded-full overflow-hidden bg-muted flex items-center justify-center font-bold text-muted-foreground ring-1 ring-border/50">
-                    {post.user_avatar ? (
+                    {post.user_avatar && post.user_avatar.includes('http') ? (
                         <img src={post.user_avatar} alt={post.user_name} className="h-full w-full object-cover" />
                     ) : (
-                        post.user_name.charAt(0).toUpperCase()
+                        <div className="text-xl">
+                            {post.user_avatar || post.user_name.charAt(0).toUpperCase()}
+                        </div>
                     )}
                 </div>
                 {/* Visual Thread Line (Active when comments open) */}
@@ -361,10 +363,12 @@ export function FeedItem({ post, currentUser, onRequireLogin, onDelete }: FeedIt
                         {/* Comment Composer */}
                         <div className="flex gap-2 items-start mt-2 px-2 sm:px-0">
                             <div className="h-8 w-8 text-[9px] rounded-full overflow-hidden bg-muted flex items-center justify-center font-bold text-muted-foreground ring-1 ring-border/50 flex-shrink-0">
-                                {currentUser?.avatar_url ? (
+                                {currentUser?.avatar_url && currentUser.avatar_url.includes('http') ? (
                                     <img src={currentUser.avatar_url} alt={currentUser.name} className="h-full w-full object-cover" />
                                 ) : (
-                                    currentUser?.name?.charAt(0).toUpperCase() || "익"
+                                    <div className="text-lg">
+                                        {currentUser?.avatar_url || currentUser?.name?.charAt(0).toUpperCase() || "익"}
+                                    </div>
                                 )}
                             </div>
                             <div className="flex flex-col flex-1 min-w-0 bg-muted/30 rounded-2xl p-2 ring-1 ring-border/50 focus-within:ring-border/80 transition-shadow">

@@ -370,7 +370,7 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
             <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-lg py-1.5 px-3 mb-3 flex items-center justify-center gap-1.5 opacity-90">
                 <AlertTriangle className="h-3 w-3 text-amber-600 dark:text-amber-500 flex-shrink-0" />
                 <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-tight font-medium text-center">
-                    AI 멘토는 가상의 캐릭터이며 투자 권유가 아닙니다. 모든 투자 책임은 본인에게 있습니다.
+                    AI 투자 멘토는 가상의 캐릭터이며 투자 권유가 아닙니다. 모든 투자 책임은 본인에게 있습니다.
                 </p>
             </div>
 
@@ -701,7 +701,7 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
                             <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
                             <span className="text-muted-foreground text-xs font-medium">
                                 {initialMessage 
-                                    ? (initialMessage.includes("내 포트폴리오") ? "포트폴리오 분석을 수행하고 있습니다..." : "AI 멘토가 질문을 분석하고 있습니다...") 
+                                    ? (initialMessage.includes("내 포트폴리오") ? "포트폴리오 분석을 수행하고 있습니다..." : "AI 투자 멘토가 질문을 분석하고 있습니다...") 
                                     : "대화 기록을 불러오는 중..."}
                             </span>
                         </div>

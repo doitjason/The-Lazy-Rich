@@ -247,7 +247,24 @@ export async function updateNickname(userId: string, newNickname: string): Promi
     return { success: true };
 }
 
-// 7. Delete Post
+// 7. Update User Avatar (Profile)
+export async function updateAvatar(userId: string, avatarUrl: string): Promise<{ success: boolean; error?: string }> {
+    const supabase = createClient();
+
+    const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+        .eq('id', userId);
+
+    if (error) {
+        console.error("Error updating avatar:", error);
+        return { success: false, error: "프로필 이미지 변경 중 오류가 발생했습니다." };
+    }
+
+    return { success: true };
+}
+
+// 8. Delete Post
 export async function deletePost(postId: string, userId: string): Promise<boolean> {
     const supabase = createClient();
     

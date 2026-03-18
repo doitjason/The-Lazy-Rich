@@ -1,5 +1,5 @@
 /**
- * AI 멘토별 시장 데이터 Fetcher
+ * AI 투자 멘토별 시장 데이터 Fetcher
  * 각 페르소나 성향에 맞는 시장 데이터를 Yahoo Finance에서 가져옵니다.
  * 캐싱 레이어를 통해 중복 API 호출을 방지합니다.
  */
@@ -349,7 +349,7 @@ export function commonDataToPrompt(data: CommonMarketData, mentorId: string): st
     };
 
     return `[🌍 공통 시장 대시보드 (Real-time Market Dashboard)]
-이 데이터는 모든 AI 멘토가 동일하게 참조하는 팩트 기반의 공통 지표입니다. 
+이 데이터는 모든 AI 투자 멘토가 동일하게 참조하는 팩트 기반의 공통 지표입니다. 
 분석 시 아래 지표들을 최우선으로 반영하되, 당신(${mName})의 투자 철학에 맞춰 해석하세요.
 
 1. 📊 [시장 지수] 전체적 흐름 (전일 변동 & 200일 장기 추세)
@@ -1593,7 +1593,7 @@ export async function fetchPriceHistory(symbol: string): Promise<number[]> {
 
 // [Deleted legacy fetchCommonMarketData]
 
-// ─── AI 멘토별 시장 해석 렌즈 ───
+// ─── AI 투자 멘토별 시장 해석 렌즈 ───
 
 function getMentorMarketLens(mentorId: string): string {
     const commonInstruction = `
@@ -1755,7 +1755,7 @@ ${mentorLens}
 위 실시간 데이터를 당신의 투자 철학과 위 해석 렌즈에 따라 분석하고, 구체적 수치를 인용하며 답변하세요.`;
 }
 
-// AI 멘토별 성향에 맞는 기간 수익률 문자열 생성
+// AI 투자 멘토별 성향에 맞는 기간 수익률 문자열 생성
 function getMentorHistoryString(history: HistoryMetrics | null, mentorId: string): string {
     if (!history) return "";
     const p = (n: number | null) => n !== null ? `${(n * 100).toFixed(2)}% ` : "N/A";
@@ -1785,12 +1785,12 @@ export async function getMentorMarketContext(
     userTickers: string[]
 ): Promise<string> {
     try {
-        // Step 1: 공통 시장 데이터 (모든 AI 멘토 공통) + AI 멘토별 해석 렌즈
+        // Step 1: 공통 시장 데이터 (모든 AI 투자 멘토 공통) + AI 투자 멘토별 해석 렌즈
         const commonData = await fetchCommonMarketData();
         // New common data formatter
         const commonPrompt = commonData ? commonDataToPrompt(commonData, mentorId) : "";
 
-        // Step 2: AI 멘토별 전문 데이터
+        // Step 2: AI 투자 멘토별 전문 데이터
         let specializedPrompt = "";
 
         switch (mentorId) {
@@ -1876,7 +1876,7 @@ export async function getMentorMarketContext(
             }
         }
 
-        // Step 3: 차트 생성을 위한 과거 데이터 주입 (모든 AI 멘토 공통, 요청된 티커 대상)
+        // Step 3: 차트 생성을 위한 과거 데이터 주입 (모든 AI 투자 멘토 공통, 요청된 티커 대상)
         let chartContext = "";
         if (userTickers.length > 0) {
             const uniqueTickers = Array.from(new Set(userTickers.map(t => resolveKoreanTicker(t)))).slice(0, 3); // 최대 3개

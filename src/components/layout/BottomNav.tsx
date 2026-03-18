@@ -17,7 +17,7 @@ const items = [
         href: "/calc",
     },
     {
-        label: "AI 멘토",
+        label: "AI 투자 멘토",
         icon: Bot,
         href: "/mentor",
     },
