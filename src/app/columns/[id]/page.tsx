@@ -93,6 +93,22 @@ const getTextContent = (node: any): string => {
 
 // MDX Components mapping the same styles as before
 const mdxComponents = {
+    h1: ({ children }: { children?: React.ReactNode }) => (
+        <h1 className="flex items-center gap-2 mt-10 mb-5">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0" />
+            <span className="text-[20px] sm:text-[22px] font-black text-gray-900 dark:text-white tracking-tight">
+                {children}
+            </span>
+        </h1>
+    ),
+    h2: ({ children }: { children?: React.ReactNode }) => (
+        <h2 className="flex items-center gap-2 mt-9 mb-4">
+            <span className="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0" />
+            <span className="text-[18px] sm:text-[19px] font-black text-gray-900 dark:text-white tracking-tight">
+                {children}
+            </span>
+        </h2>
+    ),
     h3: ({ children }: { children?: React.ReactNode }) => (
         <h3 className="flex items-center gap-2 mt-8 mb-3">
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full flex-shrink-0" />

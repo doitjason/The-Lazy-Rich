@@ -561,7 +561,7 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
                                                     }
                                                     case "market":
                                                         return (
-                                                            <button key={idx} onClick={() => router.push("?tab=market&from=guru")} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-sky-500/10 dark:from-cyan-500/15 dark:to-sky-500/15 border border-cyan-500/20 dark:border-cyan-400/20 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-300">
+                                                            <button key={idx} onClick={() => router.push("/?tab=market&from=guru")} className="group w-full text-left p-3 rounded-xl bg-gradient-to-r from-cyan-500/10 to-sky-500/10 dark:from-cyan-500/15 dark:to-sky-500/15 border border-cyan-500/20 dark:border-cyan-400/20 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/5 transition-all duration-300">
                                                                 <div className="flex items-center gap-2.5">
                                                                     <div className="h-8 w-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                                                                         <TrendingUp className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />

@@ -26,6 +26,11 @@ description: 최신 투자 트렌드 분석 및 가이드라인 준수 칼럼 �
 ### Step 5: 스타일 및 무결성 검증 (Final Audit)
 - **Skill 실행**: `column_auditor` 스킬을 호출하여 전체 결과물에 대한 최종 오딧(Audit)을 수행한다.
 - 수치 오차, 스타일 위반, 법적 면책 조항 누락 등이 발견되면 즉시 수정한다.
+- 검수 결과를 [스타일 준수 / 수치 정합성 / 링크 동작] 항목별로 요약하여 보고한다.
 
-### Step 6: 최종 승인 및 보고 (Report)
-- 모든 검증을 마친 후 유저에게 최종 칼럼 전문을 보고한다.
+### Step 6: 데이터 등록 (Data Registration)
+- 작성된 칼럼이 웹사이트 목록에 노출되도록 `src/data/columns.ts` 내 `COLUMNS` 배열의 최상단에 새로운 칼럼 객체를 추가한다.
+- `id`, `title`, `subtitle`, `category`, `thumbnailEmoji`, `publishedAt` 등 모든 메타데이터를 일관성 있게 작성한다.
+
+### Step 7: 최종 승인 및 보고 (Final Report)
+- 모든 등록 과정을 마친 후 유저에게 최종 칼럼 전문과 배포 완료 사실을 보고한다.
