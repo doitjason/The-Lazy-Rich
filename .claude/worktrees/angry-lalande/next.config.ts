@@ -1,0 +1,83 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  async redirects() {
+    return [
+      {
+        source: "/insights/columns/:id",
+        destination: "/columns/:id",
+        permanent: true,
+      },
+      {
+        source: "/insights/books/:id",
+        destination: "/books/:id",
+        permanent: true,
+      },
+      {
+        source: "/insights/about",
+        destination: "/about",
+        permanent: true,
+      },
+      {
+        source: "/insights",
+        destination: "/",
+        permanent: true,
+      },
+      // Redirect old AI Mentor links (which were at the root) to the new /mentor path
+      {
+        source: "/",
+        has: [{ type: "query", key: "mentor" }],
+        destination: "/mentor",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "query", key: "persona" }],
+        destination: "/mentor",
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "query", key: "action", value: "analyze_portfolio" }],
+        destination: "/mentor",
+        permanent: true,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;

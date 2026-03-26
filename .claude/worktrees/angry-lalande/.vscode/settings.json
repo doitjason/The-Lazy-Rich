@@ -1,0 +1,12 @@
+{
+    "css.customData": [
+        "./css_custom_data.json"
+    ],
+    "scss.customData": [
+        "./css_custom_data.json"
+    ],
+    "less.customData": [
+        "./css_custom_data.json"
+    ],
+    "css.lint.unknownAtRules": "ignore"
+}
