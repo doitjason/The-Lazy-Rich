@@ -27,6 +27,22 @@ export const CATEGORY_OPTIONS = [
 
 export const COLUMNS: Column[] = [
     {
+        id: "4-percent-rule-rediscovery",
+        title: "4% 룰의 재발견: 은퇴 후 자산이 무한히 늘어나는 인출의 기술",
+        subtitle: "하락장에서도 평온함을 잃지 않는 은퇴 생활비 공식과 인덱스 투자가 주는 최후의 안식처",
+        category: "guide",
+        categoryLabel: "실전 가이드",
+        categoryColor: "text-emerald-400",
+        categoryBg: "bg-emerald-500/10",
+        thumbnailEmoji: "🧘",
+        author: "The Lazy Rich 에디터",
+        publishedAt: "2026-03-27",
+        readTime: 8,
+        tags: ["4%룰", "은퇴설계", "자산인출", "S&P500", "가드레일"],
+        featured: true,
+        relatedBookIds: ["stocks-for-the-long-run", "four-pillars"],
+    },
+    {
         id: "emergency-cash-value",
         title: "비상금의 진짜 가치: 왜 현금은 쓰레기가 아닐까?",
         subtitle: "100% 주식 투자의 치명적 위험과 계좌를 살리는 가장 강력한 기회 비용 옵션",
