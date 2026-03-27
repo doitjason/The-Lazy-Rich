@@ -10,6 +10,7 @@ export interface StockQuote {
     fiftyTwoWeekLow?: number;
     fiftyDayAverage?: number;
     twoHundredDayAverage?: number;
+    drawdownFrom52WeekHigh?: number; // % 단위 하락률
 }
 
 export interface EnrichedPortfolioItem extends StockQuote {
@@ -36,6 +37,17 @@ export interface MarketIndicator {
     low52?: number;
     ma50?: number;
     ma200?: number;
+    drawdownFrom52WeekHigh?: number; // % 단위 하락률
+}
+
+export interface HistoryMetrics {
+    change1W: number | null;
+    change1M: number | null;
+    change3M: number | null;
+    change6M: number | null;
+    change1Y: number | null;
+    changeYTD: number | null;
+    dropFromHigh: number | null;
 }
 
 // 공통 시장 데이터 (모든 페르소나 공유)
@@ -107,6 +119,7 @@ export interface CommonMarketData {
         interestRateTrend: "Rising" | "Falling" | "Flat"; // Interest Rate Trend (vs 50MA)
         summary: string; // AI Generated Advice
     };
+    sp500History: HistoryMetrics | null; // S&P 500 과거 수익률
 }
 
 // ─── 페르소나별 데이터 인터페이스 ───

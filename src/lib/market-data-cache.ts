@@ -1,8 +1,11 @@
+import { createClient } from "@supabase/supabase-js";
+
 /**
- * Market Data Cache
- * 서버 메모리 기반 TTL 캐시로 Yahoo Finance API 호출을 최소화합니다.
- * - 종목 데이터: 5분 TTL
- * - 시장 지표: 10분 TTL
+ * Market Data Cache (Hybrid Memory + Supabase)
+ * 서버 메모리 기반 TTL 캐시와 Supabase 영구 저장소를 함께 사용하여
+ * Vercel Cold Start 시의 캐시 상실을 방지하고 Yahoo Finance API 호출을 효율화합니다.
+ * - 지표 데이터: 1시간 TTL
+ * - 과거/ATH 데이터: 30일 TTL
  */
 
 interface CacheEntry<T> {
@@ -10,65 +13,90 @@ interface CacheEntry<T> {
     expiry: number;
 }
 
+// Supabase 클라이언트 초기화 (비용 방어를 위해 서버측 환경변수 사용)
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 class MarketDataCache {
     private cache: Map<string, CacheEntry<unknown>> = new Map();
 
-    // TTL in milliseconds
+    // Default TTL in milliseconds
     static readonly STOCK_TTL = 60 * 60 * 1000;   // 1시간 (Prompt Caching 최적화)
     static readonly MARKET_TTL = 60 * 60 * 1000;  // 1시간 (Prompt Caching 최적화)
+    static readonly LONG_TERM_TTL = 30 * 24 * 60 * 60 * 1000; // 30일 (ATH/정적 데이터용)
 
     /**
-     * 캐시에서 데이터 조회 (만료 시 null 반환)
+     * 캐시에서 데이터 조회 (비동기)
      */
-    get<T>(key: string): T | null {
+    async get<T>(key: string): Promise<T | null> {
+        // 1. 메모리 캐시 확인
         const entry = this.cache.get(key);
-        if (!entry) return null;
-
-        if (Date.now() > entry.expiry) {
+        if (entry) {
+            if (Date.now() < entry.expiry) {
+                return entry.data as T;
+            }
             this.cache.delete(key);
-            return null;
         }
 
-        return entry.data as T;
+        // 2. Supabase 영구 캐시 확인 (Vercel Cold Start 대응)
+        try {
+            const { data, error } = await supabase
+                .from("market_data_cache")
+                .select("*")
+                .eq("id", key)
+                .single();
+
+            if (data && !error) {
+                const expiry = new Date(data.expiry).getTime();
+                if (Date.now() < expiry) {
+                    // 메모리에 다시 적재 후 반환
+                    this.cache.set(key, { data: data.data, expiry: expiry });
+                    return data.data as T;
+                } else {
+                    // 만료된 데이터 삭제 (백그라운드)
+                    supabase.from("market_data_cache").delete().eq("id", key).then();
+                }
+            }
+        } catch (e) {
+            console.warn(`Cache lookup failure for ${key}:`, e);
+        }
+
+        return null;
     }
 
     /**
-     * 캐시에 데이터 저장
+     * 캐시에 데이터 저장 (비동기)
      */
-    set<T>(key: string, data: T, ttl: number): void {
-        this.cache.set(key, {
-            data,
-            expiry: Date.now() + ttl,
-        });
+    async set<T>(key: string, data: T, ttlMs: number): Promise<void> {
+        const expiry = Date.now() + ttlMs;
+        
+        // 1. 메모리 저장
+        this.cache.set(key, { data, expiry });
+
+        // 2. Supabase 저장 (Upsert)
+        try {
+            await supabase.from("market_data_cache").upsert({
+                id: key,
+                data: data as any,
+                expiry: new Date(expiry).toISOString(),
+                created_at: new Date().toISOString()
+            });
+        } catch (e) {
+            console.error(`Persistent cache set failure for ${key}:`, e);
+        }
     }
 
     /**
      * 특정 키 삭제
      */
-    delete(key: string): void {
+    async delete(key: string): Promise<void> {
         this.cache.delete(key);
-    }
-
-    /**
-     * 만료된 항목 일괄 정리
-     */
-    cleanup(): void {
-        const now = Date.now();
-        for (const [key, entry] of this.cache.entries()) {
-            if (now > entry.expiry) {
-                this.cache.delete(key);
-            }
-        }
-    }
-
-    /**
-     * 캐시 크기 반환
-     */
-    get size(): number {
-        return this.cache.size;
+        await supabase.from("market_data_cache").delete().eq("id", key);
     }
 }
 
-// 싱글톤 인스턴스 (서버 프로세스 수명 동안 유지)
+// 싱글톤 인스턴스
 export const marketCache = new MarketDataCache();
 export { MarketDataCache };

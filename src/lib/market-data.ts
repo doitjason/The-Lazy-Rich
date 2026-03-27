@@ -6,7 +6,7 @@
 
 import YahooFinance from "yahoo-finance2";
 import { marketCache, MarketDataCache } from "./market-data-cache";
-import { StockQuote, EnrichedPortfolioItem, CommonMarketData, MarketIndicator, SageData, HeroData, ArchitectData, SpeculatorData, FatherData, DividendCalendarData, BenchmarkHistoryData } from "./market-types";
+import { StockQuote, EnrichedPortfolioItem, CommonMarketData, MarketIndicator, SageData, HeroData, ArchitectData, SpeculatorData, FatherData, DividendCalendarData, BenchmarkHistoryData, HistoryMetrics } from "./market-types";
 
 const yahooFinance = new YahooFinance();
 
@@ -18,8 +18,8 @@ const yahooFinance = new YahooFinance();
 // ─── 공통 시장 데이터 (Common Context) ───
 
 export async function fetchCommonMarketData(): Promise<CommonMarketData | null> {
-    const cacheKey = "common:market-context";
-    const cached = marketCache.get<CommonMarketData>(cacheKey);
+    const cacheKey = "common:market-context:v3"; // v3로 업그레이드
+    const cached = await marketCache.get<CommonMarketData>(cacheKey);
     if (cached) return cached;
 
     try {
@@ -32,7 +32,10 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
             "BTC-USD", "^RUT", // Crypto & Small Cap
             "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA" // M7
         ];
-        const quotes = await Promise.all(symbols.map(s => fetchQuote(s)));
+        const [quotes, sp500History] = await Promise.all([
+            Promise.all(symbols.map(s => fetchQuote(s))),
+            calculateHistoryMetrics()
+        ]) as [(StockQuote | null)[], HistoryMetrics | null];
 
         const getQuote = (sym: string) => quotes.find(q => q?.symbol === sym);
 
@@ -206,7 +209,8 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                     changePercent: snp500.changePercent,
                     ma50: snp500.fiftyDayAverage,
                     ma200: snp500.twoHundredDayAverage,
-                    high52: snp500.fiftyTwoWeekHigh
+                    high52: snp500.fiftyTwoWeekHigh,
+                    drawdownFrom52WeekHigh: snp500.drawdownFrom52WeekHigh
                 },
                 nasdaq: {
                     symbol: "^IXIC",
@@ -216,7 +220,8 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                     changePercent: nasdaq?.changePercent ?? 0,
                     ma50: nasdaq?.fiftyDayAverage,
                     ma200: nasdaq?.twoHundredDayAverage,
-                    high52: nasdaq?.fiftyTwoWeekHigh
+                    high52: nasdaq?.fiftyTwoWeekHigh,
+                    drawdownFrom52WeekHigh: nasdaq?.drawdownFrom52WeekHigh
                 },
                 dow: {
                     symbol: "^DJI",
@@ -226,7 +231,8 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                     changePercent: dow?.changePercent ?? 0,
                     ma50: dow?.fiftyDayAverage,
                     ma200: dow?.twoHundredDayAverage,
-                    high52: dow?.fiftyTwoWeekHigh
+                    high52: dow?.fiftyTwoWeekHigh,
+                    drawdownFrom52WeekHigh: dow?.drawdownFrom52WeekHigh
                 },
                 russell2000: {
                     symbol: "^RUT",
@@ -236,17 +242,18 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                     changePercent: rut?.changePercent ?? 0,
                     ma50: rut?.fiftyDayAverage,
                     ma200: rut?.twoHundredDayAverage,
-                    high52: rut?.fiftyTwoWeekHigh
+                    high52: rut?.fiftyTwoWeekHigh,
+                    drawdownFrom52WeekHigh: rut?.drawdownFrom52WeekHigh
                 },
             },
             m7: {
-                aapl: { symbol: "AAPL", name: "Apple", price: aapl?.price ?? 0, change: aapl?.change ?? 0, changePercent: aapl?.changePercent ?? 0 },
-                msft: { symbol: "MSFT", name: "Microsoft", price: msft?.price ?? 0, change: msft?.change ?? 0, changePercent: msft?.changePercent ?? 0 },
-                googl: { symbol: "GOOGL", name: "Alphabet", price: googl?.price ?? 0, change: googl?.change ?? 0, changePercent: googl?.changePercent ?? 0 },
-                amzn: { symbol: "AMZN", name: "Amazon", price: amzn?.price ?? 0, change: amzn?.change ?? 0, changePercent: amzn?.changePercent ?? 0 },
-                tsla: { symbol: "TSLA", name: "Tesla", price: tsla?.price ?? 0, change: tsla?.change ?? 0, changePercent: tsla?.changePercent ?? 0 },
-                meta: { symbol: "META", name: "Meta", price: meta?.price ?? 0, change: meta?.change ?? 0, changePercent: meta?.changePercent ?? 0 },
-                nvda: { symbol: "NVDA", name: "Nvidia", price: nvda?.price ?? 0, change: nvda?.change ?? 0, changePercent: nvda?.changePercent ?? 0 },
+                aapl: { symbol: "AAPL", name: "Apple", price: aapl?.price ?? 0, change: aapl?.change ?? 0, changePercent: aapl?.changePercent ?? 0, high52: aapl?.fiftyTwoWeekHigh, drawdownFrom52WeekHigh: aapl?.drawdownFrom52WeekHigh },
+                msft: { symbol: "MSFT", name: "Microsoft", price: msft?.price ?? 0, change: msft?.change ?? 0, changePercent: msft?.changePercent ?? 0, high52: msft?.fiftyTwoWeekHigh, drawdownFrom52WeekHigh: msft?.drawdownFrom52WeekHigh },
+                googl: { symbol: "GOOGL", name: "Alphabet", price: googl?.price ?? 0, change: googl?.change ?? 0, changePercent: googl?.changePercent ?? 0, high52: googl?.fiftyTwoWeekHigh, drawdownFrom52WeekHigh: googl?.drawdownFrom52WeekHigh },
+                amzn: { symbol: "AMZN", name: "Amazon", price: amzn?.price ?? 0, change: amzn?.change ?? 0, changePercent: amzn?.changePercent ?? 0, high52: amzn?.fiftyTwoWeekHigh, drawdownFrom52WeekHigh: amzn?.drawdownFrom52WeekHigh },
+                tsla: { symbol: "TSLA", name: "Tesla", price: tsla?.price ?? 0, change: tsla?.change ?? 0, changePercent: tsla?.changePercent ?? 0, high52: tsla?.fiftyTwoWeekHigh, drawdownFrom52WeekHigh: tsla?.drawdownFrom52WeekHigh },
+                meta: { symbol: "META", name: "Meta", price: meta?.price ?? 0, change: meta?.change ?? 0, changePercent: meta?.changePercent ?? 0, high52: meta?.fiftyTwoWeekHigh, drawdownFrom52WeekHigh: meta?.drawdownFrom52WeekHigh },
+                nvda: { symbol: "NVDA", name: "Nvidia", price: nvda?.price ?? 0, change: nvda?.change ?? 0, changePercent: nvda?.changePercent ?? 0, high52: nvda?.fiftyTwoWeekHigh, drawdownFrom52WeekHigh: nvda?.drawdownFrom52WeekHigh },
             },
             macro: {
                 vix: vix.price,
@@ -296,11 +303,12 @@ export async function fetchCommonMarketData(): Promise<CommonMarketData | null> 
                 kostolanyPhase,
                 summary,
                 interestRateTrend, // Added to output
-            }
+            },
+            sp500History
         };
 
-        const DAY_TTL = 24 * 60 * 60 * 1000;
-        marketCache.set(cacheKey, data, DAY_TTL);
+        const DAY_TTL = MarketDataCache.MARKET_TTL; // 1시간으로 변경
+        await marketCache.set(cacheKey, data, DAY_TTL);
         return data;
 
     } catch (error) {
@@ -357,6 +365,7 @@ export function commonDataToPrompt(data: CommonMarketData, mentorId: string): st
    나스닥 (Tech): ${data.indices.nasdaq.price.toFixed(2)} (${formatChangePercent(data.indices.nasdaq.changePercent)})${formatTrend(data.indices.nasdaq)}
    다우존스 (Blue Chip): ${data.indices.dow.price.toFixed(2)} (${formatChangePercent(data.indices.dow.changePercent)})${formatTrend(data.indices.dow)}
    러셀 2000 (Small Cap): ${data.indices.russell2000.price.toFixed(2)} (${formatChangePercent(data.indices.russell2000.changePercent)})${formatTrend(data.indices.russell2000)} → ${data.indices.russell2000.changePercent > 0.5 ? "온기 확산 긍정적" : "대형주 쏠림 주의"}
+   ${getMentorHistoryString(data.sp500History, mentorId)}
 
 2. 🌏 [거시 경제] 긴 시계열 밸류에이션
    10년물 국채금리: ${data.macro.tenYearBondYield.toFixed(2)}% (52주 최고: ${formatNum(data.macro.tnxHigh52, "%")})${data.macro.tnxDistanceMA200 !== null ? ` | 장기추세: ${data.macro.tnxDistanceMA200 > 0 ? "상승" : "하락"} (200일선 대비 ${data.macro.tnxDistanceMA200 > 0 ? "+" : ""}${data.macro.tnxDistanceMA200.toFixed(1)}%)` : ""}
@@ -472,11 +481,27 @@ export function extractTickersFromMessage(message: string): string[] {
     return Array.from(found);
 }
 
+/**
+ * 메시지에서 날짜(YYYY-MM-DD, YYYY년 MM월 DD일 등)를 추출합니다.
+ */
+export function extractDatesFromMessage(message: string): string[] {
+    const dateRegex = /(\d{4})[-년\.\/]\s?(\d{1,2})[-월\.\/]\s?(\d{1,2})일?/g;
+    const matches = message.matchAll(dateRegex);
+    const results: string[] = [];
+    for (const match of matches) {
+        const year = match[1];
+        const month = match[2].padStart(2, '0');
+        const day = match[3].padStart(2, '0');
+        results.push(`${year}-${month}-${day}`);
+    }
+    return Array.from(new Set(results));
+}
+
 // ─── 기본 Quote 가져오기 (캐싱 포함) ───
 
 async function fetchQuote(symbol: string): Promise<StockQuote | null> {
     const cacheKey = `quote:${symbol} `;
-    const cached = marketCache.get<StockQuote>(cacheKey);
+    const cached = await marketCache.get<StockQuote>(cacheKey);
     if (cached) return cached;
 
     try {
@@ -495,12 +520,13 @@ async function fetchQuote(symbol: string): Promise<StockQuote | null> {
             fiftyTwoWeekLow: (quote.fiftyTwoWeekLow as number) || undefined,
             fiftyDayAverage: (quote.fiftyDayAverage as number) || undefined,
             twoHundredDayAverage: (quote.twoHundredDayAverage as number) || undefined,
+            drawdownFrom52WeekHigh: quote.fiftyTwoWeekHigh ? ((quote.regularMarketPrice as number - (quote.fiftyTwoWeekHigh as number)) / (quote.fiftyTwoWeekHigh as number)) * 100 : undefined,
             // Volume for internal logic
             volume: (quote.regularMarketVolume as number) || undefined,
             averageDailyVolume3Month: (quote.averageDailyVolume3Month as number) || undefined,
-        } as StockQuote & { volume?: number; averageDailyVolume3Month?: number };
+        } as StockQuote & { volume?: number; averageDailyVolume3Month?: number; drawdownFrom52WeekHigh?: number };
 
-        marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
+        await marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
         return data;
     } catch (error) {
         console.error(`[MarketData] Failed to fetch quote for ${symbol}: `, error);
@@ -517,7 +543,7 @@ async function fetchSummary(
     modules: SummaryModule[]
 ): Promise<Record<string, unknown> | null> {
     const cacheKey = `summary:${symbol}:${modules.join(",")} `;
-    const cached = marketCache.get<Record<string, unknown>>(cacheKey);
+    const cached = await marketCache.get<Record<string, unknown>>(cacheKey);
     if (cached) return cached;
 
     try {
@@ -530,7 +556,7 @@ async function fetchSummary(
         const hasData = modules.some(m => result && result[m]);
 
         if (hasData) {
-            marketCache.set(cacheKey, result, MarketDataCache.STOCK_TTL);
+            await marketCache.set(cacheKey, result, MarketDataCache.STOCK_TTL);
         } else {
             console.warn(`[MarketData] Empty summary for ${symbol}, skipping cache.`);
         }
@@ -555,7 +581,7 @@ function resolveKoreanTicker(ticker: string): string {
 
 async function calculateRSI(symbol: string, period: number = 14): Promise<number | null> {
     const cacheKey = `rsi:${symbol}:${period} `;
-    const cached = marketCache.get<number>(cacheKey);
+    const cached = await marketCache.get<number>(cacheKey);
     if (cached !== null) return cached;
 
     try {
@@ -592,10 +618,49 @@ async function calculateRSI(symbol: string, period: number = 14): Promise<number
         const rs = avgGain / avgLoss;
         const rsi = Math.round((100 - (100 / (1 + rs))) * 100) / 100;
 
-        marketCache.set(cacheKey, rsi, MarketDataCache.STOCK_TTL);
+        await marketCache.set(cacheKey, rsi, MarketDataCache.STOCK_TTL);
         return rsi;
     } catch (error) {
         console.error(`[MarketData] RSI calculation failed for ${symbol}: `, error);
+        return null;
+    }
+}
+
+/**
+ * 특정 날짜의 종가를 가져옵니다. (캐싱 적용)
+ * @param symbol 티커명
+ * @param dateStr 날짜 문자열 (YYYY-MM-DD)
+ */
+export async function fetchHistoricalPrice(symbol: string, dateStr: string): Promise<number | null> {
+    const cacheKey = `historical:${symbol}:${dateStr}`;
+    const cached = await marketCache.get<number>(cacheKey);
+    if (cached !== null) return cached;
+
+    try {
+        const targetDate = new Date(dateStr);
+        // 휴장일 등을 대비해 3일치 데이터를 가져온 후 가장 가까운 날 선택
+        const startDate = new Date(targetDate);
+        startDate.setDate(startDate.getDate() - 2); 
+        const endDate = new Date(targetDate);
+        endDate.setDate(endDate.getDate() + 1);
+
+        const result = await yahooFinance.historical(symbol, {
+            period1: startDate,
+            period2: endDate,
+            interval: "1d",
+        });
+
+        if (result && result.length > 0) {
+            // 가장 마지막(최신) 데이터 혹은 날짜가 일치하는 데이터 선택
+            const close = result[result.length - 1].close || result[result.length - 1].adjClose;
+            if (close) {
+                await marketCache.set(cacheKey, close, MarketDataCache.LONG_TERM_TTL); // 과거 데이터는 30일간 캐싱
+                return close;
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error(`[MarketData] Historical fetch failed for ${symbol} on ${dateStr}:`, error);
         return null;
     }
 }
@@ -795,7 +860,7 @@ export async function fetchHeroData(ticker: string): Promise<HeroData | null> {
  */
 export async function fetchArchitectData(): Promise<ArchitectData> {
     const cacheKey = "architect:market-indicators";
-    const cached = marketCache.get<ArchitectData>(cacheKey);
+    const cached = await marketCache.get<ArchitectData>(cacheKey);
     if (cached) return cached;
 
     const symbolsInfo = [
@@ -847,7 +912,7 @@ export async function fetchArchitectData(): Promise<ArchitectData> {
         sphbPrice: getPrice("SPHB"),
         splvPrice: getPrice("SPLV")
     };
-    marketCache.set(cacheKey, data, MarketDataCache.MARKET_TTL);
+    await marketCache.set(cacheKey, data, MarketDataCache.MARKET_TTL);
     return data;
 }
 
@@ -1105,7 +1170,7 @@ export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorDat
     const symbol = resolveKoreanTicker(ticker);
 
     const cacheKey = `speculator:${symbol} `;
-    const cached = marketCache.get<SpeculatorData>(cacheKey);
+    const cached = await marketCache.get<SpeculatorData>(cacheKey);
     if (cached) return cached;
 
     try {
@@ -1176,7 +1241,7 @@ export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorDat
             obvTrend: obv
         };
 
-        marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
+        await marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
         return data;
     } catch (error) {
         console.error(`[MarketData] Speculator fetch failed for ${symbol}: `, error);
@@ -1190,7 +1255,7 @@ export async function fetchSpeculatorData(ticker: string): Promise<SpeculatorDat
  */
 export async function fetchFatherData(): Promise<FatherData> {
     const cacheKey = "father:market-data";
-    const cached = marketCache.get<FatherData>(cacheKey);
+    const cached = await marketCache.get<FatherData>(cacheKey);
     if (cached) return cached;
 
     // 시장 지수
@@ -1276,7 +1341,7 @@ export async function fetchFatherData(): Promise<FatherData> {
     }
 
     const data: FatherData = { indicators, etfData };
-    marketCache.set(cacheKey, data, MarketDataCache.MARKET_TTL);
+    await marketCache.set(cacheKey, data, MarketDataCache.MARKET_TTL);
     return data;
 }
 
@@ -1309,10 +1374,7 @@ function formatLargeNum(n: number | null): string {
 }
 
 export function sageDataToPrompt(data: SageData): string {
-    // 추가 지표 계산: 고점 대비 낙폭
-    const dropFromHigh = data.fiftyTwoWeekHigh
-        ? ((data.quote.price - data.fiftyTwoWeekHigh) / data.fiftyTwoWeekHigh) * 100
-        : null;
+    const dropFromHigh = data.quote.drawdownFrom52WeekHigh ?? null;
 
     const insiderText = data.netInsiderBuy
         ? `${formatNum(data.netInsiderBuy)}주 ${data.netInsiderBuy > 0 ? "순매수(긍정)" : "순매도(부정)"} `
@@ -1494,15 +1556,7 @@ ${etfLines.join("\n")}
 // 공통 시장 데이터 (모든 페르소나 공통)
 // ═══════════════════════════════════════════════════════
 
-interface HistoryMetrics {
-    change1W: number | null;
-    change1M: number | null;
-    change3M: number | null;
-    change6M: number | null;
-    change1Y: number | null;
-    changeYTD: number | null;
-    dropFromHigh: number | null;
-}
+// [HistoryMetrics interface moved to market-types.ts]
 
 interface CommonMarketSnapshot {
     indicators: MarketIndicator[];
@@ -1512,6 +1566,9 @@ interface CommonMarketSnapshot {
 
 // S&P 500 과거 데이터 계산 (캐싱됨)
 async function calculateHistoryMetrics(): Promise<HistoryMetrics | null> {
+    const cacheKey = "sp500:history-metrics";
+    const cached = await marketCache.get<HistoryMetrics>(cacheKey);
+    if (cached) return cached;
     try {
         const symbol = "^GSPC";
         const endDate = new Date();
@@ -1547,7 +1604,7 @@ async function calculateHistoryMetrics(): Promise<HistoryMetrics | null> {
         const maxPrice = Math.max(...closes.slice(-252)); // 최근 약 1년
         const dropFromHigh = ((currentPrice - maxPrice) / maxPrice);
 
-        return {
+        const result: HistoryMetrics = {
             change1W: getChange(5),   // 약 1주 (5 거래일)
             change1M: getChange(21),  // 약 1개월
             change3M: getChange(63),  // 약 3개월
@@ -1556,6 +1613,8 @@ async function calculateHistoryMetrics(): Promise<HistoryMetrics | null> {
             changeYTD,
             dropFromHigh,
         };
+        await marketCache.set(cacheKey, result, MarketDataCache.MARKET_TTL); // 1시간 캐싱
+        return result;
     } catch (e) {
         console.error("Failed to calculate history metrics:", e);
         return null;
@@ -1566,7 +1625,7 @@ async function calculateHistoryMetrics(): Promise<HistoryMetrics | null> {
 // 최적화: 날짜 생략하고 가격만 나열하여 토큰 절약
 export async function fetchPriceHistory(symbol: string): Promise<number[]> {
     const cacheKey = `history:30d:v2:${symbol}`;
-    const cached = marketCache.get<number[]>(cacheKey);
+    const cached = await marketCache.get<number[]>(cacheKey);
     if (cached) return cached;
 
     try {
@@ -1583,7 +1642,7 @@ export async function fetchPriceHistory(symbol: string): Promise<number[]> {
         // 최근 30개 종가만 추출
         const data = result.slice(-30).map(item => Number(item.close.toFixed(2)));
 
-        marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
+        await marketCache.set(cacheKey, data, MarketDataCache.STOCK_TTL);
         return data;
     } catch (e) {
         console.warn(`Failed to fetch history for ${symbol}`, e);
@@ -1648,117 +1707,16 @@ ${commonInstruction}
     }
 }
 
-function commonMarketSnapshotToPrompt(snapshot: CommonMarketSnapshot, mentorId: string): string {
-    const { indicators, yieldCurveSpread } = snapshot;
-    if (indicators.length === 0) return "";
 
-    // 페르소나별 공통 지표 다이어트 (선별)
-    let indexSymbols: string[] = [];
-    let sectorSymbols: string[] = [];
-    let rateSymbols: string[] = [];
-    let commoditySymbols: string[] = [];
-    let showMacroComments = true;
-
-    if (mentorId === "sage") {
-        indexSymbols = ["^GSPC", "^DJI", "^VIX"];
-        sectorSymbols = [];
-        rateSymbols = ["^TNX"]; // 가치평가용 10년물 참조
-        commoditySymbols = ["GC=F"]; // 안전자산 금 정도만
-        showMacroComments = false;
-    } else if (mentorId === "hero") {
-        indexSymbols = ["^IXIC", "^RUT", "^SOX", "^VIX"]; // 나스닥, 중소형, 반도체 위주
-        sectorSymbols = ["XLK"];
-        rateSymbols = [];
-        commoditySymbols = ["BTC-USD"]; // 위험 선호도 파악용
-        showMacroComments = false;
-    } else if (mentorId === "architect") {
-        indexSymbols = ["^GSPC", "^IXIC", "^DJI", "^RUT", "^SOX", "^VIX"];
-        sectorSymbols = ["XLK", "XLE", "XLF"];
-        rateSymbols = ["^TNX", "^TYX", "^IRX"];
-        commoditySymbols = ["DX-Y.NYB", "GC=F", "HG=F", "CL=F", "BTC-USD"];
-        showMacroComments = true;
-    } else if (mentorId === "father") {
-        // 아버지는 이미 전문 데이터에 인덱스와 ETF가 꽉 차있음. 거시 지표는 완전 배제.
-        const mentorLens = getMentorMarketLens(mentorId);
-        return `[📡 실시간 시장 현황]\n${getMentorHistoryString(snapshot.sp500History, mentorId)}\n${mentorLens}\n\n위 데이터를 당신의 투자 철학과 해석 렌즈에 따라 분석하세요.`;
-    }
-
-    const formatLine = (i: MarketIndicator) => {
-        let details = "";
-        if (i.high52) {
-            const drop = ((i.price - i.high52) / i.high52) * 100;
-            if (drop < -10) details += ` | 고점대비 ${drop.toFixed(1)}% `;
-        }
-        if (i.ma200) {
-            const trend = i.price > i.ma200 ? "상승추세" : "하락추세";
-            if (Math.abs((i.price - i.ma200) / i.ma200) > 0.05) {
-                details += ` | ${trend} `;
-            }
-        }
-        if (i.symbol === "^VIX") {
-            return `  🚨 ${i.name}: ${i.price.toLocaleString()} (${i.price >= 20 ? "불안" : "안정"})`;
-        }
-        return `  ${i.name}: ${i.price.toLocaleString()} (${i.changePercent >= 0 ? "+" : ""}${i.changePercent.toFixed(2)}%)${details} `;
-    };
-
-    const indexLines = indicators.filter((i) => indexSymbols.includes(i.symbol)).map(formatLine);
-    const sectorLines = indicators.filter((i) => sectorSymbols.includes(i.symbol)).map(formatLine);
-    const rateLines = indicators.filter((i) => rateSymbols.includes(i.symbol)).map(formatLine);
-    const commodityLines = indicators.filter((i) => commoditySymbols.includes(i.symbol)).map(formatLine);
-
-    // 해석 코멘트 생성 (매크로 중시 멘토용)
-    const comments: string[] = [];
-    if (showMacroComments) {
-        const vix = indicators.find((i) => i.symbol === "^VIX");
-        if (vix) {
-            if (vix.price >= 30) comments.push("🔴 VIX 30+: 시장 극단적 공포");
-            else if (vix.price >= 20) comments.push("🟠 VIX 20+: 시장 불안 심리 감지");
-            else if (vix.price <= 12) comments.push("🟢 VIX 12 이하: 시장 안정/낙관");
-        }
-        if (yieldCurveSpread !== null) {
-            if (yieldCurveSpread < 0) comments.push(`🔴 장단기 금리 역전(${yieldCurveSpread} % p): 경기침체 경고 신호`);
-            else if (yieldCurveSpread < 0.5) comments.push(`🟡 장단기 금리차 협소(${yieldCurveSpread} % p): 경기 둔화 우려`);
-            else comments.push(`🟢 장단기 금리차 정상(${yieldCurveSpread} % p): 경기 확장 구간`);
-        }
-        const dxy = indicators.find((i) => i.symbol === "DX-Y.NYB");
-        if (dxy) {
-            if (dxy.price >= 105) comments.push("💪 달러 강세 (DXY 105+): 위험자산 부담");
-            else if (dxy.price <= 95) comments.push("📉 달러 약세 (DXY 95-): 유동성 호재");
-        }
-        const oil = indicators.find((i) => i.symbol === "CL=F");
-        if (oil && oil.price >= 90) comments.push("🔥 유가 급등 ($90+): 인플레 재점화 우려");
-    }
-    // Hero 추가 코멘트
-    if (mentorId === "hero") {
-        const btc = indicators.find((i) => i.symbol === "BTC-USD");
-        if (btc && btc.changePercent > 5) comments.push("🚀 코인/위험자산 선호 심리 강세 중");
-    }
-
-    const commentSection = comments.length > 0 ? `\n\n📌 팩트 기반 시장 요약: \n${comments.join("\n")} ` : "";
-
-    const mentorLens = getMentorMarketLens(mentorId);
-
-    const sections = [];
-    if (indexLines.length > 0) sections.push(`주요 지수:\n${indexLines.join("\n")}`);
-    if (sectorLines.length > 0) sections.push(`섹터 동향:\n${sectorLines.join("\n")}`);
-    if (rateLines.length > 0) sections.push(`금리:\n${rateLines.join("\n")}\n${yieldCurveSpread !== null && mentorId === 'architect' ? `  장단기 금리차(10Y - 3M): ${yieldCurveSpread}%p` : ""}`);
-    if (commodityLines.length > 0) sections.push(`원자재·통화·자산:\n${commodityLines.join("\n")}`);
-
-    return `[📡 실시간 시장 현황]
-
-${sections.join("\n\n")}
-${commentSection}
-
-${getMentorHistoryString(snapshot.sp500History, mentorId)}
-${mentorLens}
-
-위 실시간 데이터를 당신의 투자 철학과 위 해석 렌즈에 따라 분석하고, 구체적 수치를 인용하며 답변하세요.`;
-}
 
 // AI 투자 멘토별 성향에 맞는 기간 수익률 문자열 생성
 function getMentorHistoryString(history: HistoryMetrics | null, mentorId: string): string {
     if (!history) return "";
-    const p = (n: number | null) => n !== null ? `${(n * 100).toFixed(2)}% ` : "N/A";
+    const p = (n: number | null) => {
+        if (n === null) return "N/A";
+        const val = n * 100;
+        return `${val > 0 ? "+" : ""}${val.toFixed(2)}%`;
+    };
 
     switch (mentorId) {
         case "speculator": // 단기 추세
@@ -2023,7 +1981,7 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
 
     // Cache key
     const cacheKey = `dividends:${uniqueTickers.sort().join(",")}`;
-    const cached = marketCache.get<DividendCalendarData>(cacheKey);
+    const cached = await marketCache.get<DividendCalendarData>(cacheKey);
     if (cached) return cached;
 
     // Helper to format date
@@ -2212,7 +2170,7 @@ export async function fetchDividendCalendar(tickers: string[]): Promise<Dividend
     );
 
     events.sort((a, b) => b.date.localeCompare(a.date));
-    marketCache.set(cacheKey, events, 24 * 60 * 60);
+    await marketCache.set(cacheKey, events, 24 * 60 * 60 * 1000); // ms 단위로 변경
     return events;
 }
 

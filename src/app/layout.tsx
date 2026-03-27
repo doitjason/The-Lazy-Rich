@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Metadata } from "next";
+import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/layout/BottomNav";
@@ -11,9 +11,11 @@ import { AnalyticsManager } from "@/components/analytics/AnalyticsManager";
 import { Agentation } from "agentation";
 import { Suspense } from "react";
 
-const inter = Inter({
+const pretendard = localFont({
+  src: "../../public/fonts/PretendardVariable.woff2",
+  display: "swap",
+  weight: "45 920",
   variable: "--font-sans",
-  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -75,7 +77,7 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased",
-          inter.variable
+          pretendard.variable
         )}
       >
         <Suspense fallback={null}>

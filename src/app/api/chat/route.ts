@@ -3,7 +3,7 @@ import OpenAI from "openai";
 import { getMentorById } from "@/lib/ai-mentors";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { getMentorMarketContext, extractTickersFromMessage } from "@/lib/market-data";
+import { getMentorMarketContext, extractTickersFromMessage, extractDatesFromMessage, fetchHistoricalPrice } from "@/lib/market-data";
 import { LAZY_RICH_CONSTITUTION } from "@/constants/constitution";
 import { getAppEcosystemMap } from "@/lib/ai-ecosystem";
 
@@ -108,6 +108,23 @@ ${holdings}
             const mentorData = await getMentorMarketContext(mentorId, allTickers);
             if (mentorData) {
                 marketDataContext = `\n\n${mentorData}`;
+            }
+
+            // 추가: 날짜 감지 및 과거 데이터 조회
+            const questionDates = extractDatesFromMessage(lastMessage.content || "");
+            if (questionDates.length > 0 && allTickers.length > 0) {
+                let historicalContext = "\n\n[📜 과거 데이터 조회 결과]";
+                for (const date of questionDates) {
+                    for (const ticker of allTickers.slice(0, 3)) { // 너무 많으면 토큰 낭비이므로 상위 3개만
+                        const price = await fetchHistoricalPrice(ticker, date);
+                        if (price) {
+                            historicalContext += `\n- ${ticker} (${date}): ${price.toLocaleString()} USD (종가 기준)`;
+                        }
+                    }
+                }
+                if (historicalContext !== "\n\n[📜 과거 데이터 조회 결과]") {
+                    marketDataContext += historicalContext;
+                }
             }
         } catch (error) {
             console.error("[Chat] Market data fetch failed (non-blocking):", error);

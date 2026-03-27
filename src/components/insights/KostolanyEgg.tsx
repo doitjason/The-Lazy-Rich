@@ -103,44 +103,65 @@ export function KostolanyEgg({ currentPhase, interestRateTrend }: KostolanyEggPr
                     </g>
 
                     {/* Current Phase Indicator Glow */}
-                    {currentPhase !== "Neutral" && (
-                        <motion.path
-                            layoutId="indicator"
-                            d={getPhasePath(currentPhase)}
-                            fill="currentColor"
-                            className={cn(
-                                "transition-colors duration-500 filter blur-[20px] opacity-30 dark:opacity-40",
-                                currentPhase.startsWith("A") ? "text-emerald-500" : "text-rose-500"
-                            )}
-                        />
-                    )}
+                    <motion.path
+                        layoutId="indicator"
+                        d={getPhasePath(currentPhase)}
+                        fill="currentColor"
+                        className={cn(
+                            "transition-colors duration-500 filter blur-[20px] opacity-30 dark:opacity-40",
+                            currentPhase === "Neutral" 
+                                ? "text-zinc-500" 
+                                : currentPhase.startsWith("A") ? "text-emerald-500" : "text-rose-500"
+                        )}
+                    />
 
                     {/* Current Phase Icon/Text in SVG */}
-                    {currentPhase !== "Neutral" && (
-                        <motion.g
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                        >
-                            <circle
-                                cx={getPhaseCenter(currentPhase).x}
-                                cy={getPhaseCenter(currentPhase).y}
-                                r="12"
-                                className={cn(
-                                    "filter drop-shadow-[0_0_8px_rgba(0,0,0,0.2)]",
-                                    currentPhase.startsWith("A") ? "fill-emerald-500" : "fill-rose-500"
-                                )}
-                            />
-                            <text
-                                x={getPhaseCenter(currentPhase).x}
-                                y={getPhaseCenter(currentPhase).y + 4}
-                                className="text-[10px] font-black fill-white"
-                                textAnchor="middle"
-                            >
-                                {currentPhase}
-                            </text>
-                        </motion.g>
-                    )}
+                    <motion.g
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                        key={currentPhase}
+                    >
+                        {currentPhase === "Neutral" ? (
+                            <g className="opacity-80">
+                                <circle
+                                    cx={getPhaseCenter(currentPhase).x}
+                                    cy={getPhaseCenter(currentPhase).y}
+                                    r="10"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    className="text-zinc-500/30 dark:text-zinc-400/30 animate-pulse"
+                                />
+                                <circle
+                                    cx={getPhaseCenter(currentPhase).x}
+                                    cy={getPhaseCenter(currentPhase).y}
+                                    r="4"
+                                    className="fill-zinc-500 dark:fill-zinc-400"
+                                />
+                            </g>
+                        ) : (
+                            <>
+                                <circle
+                                    cx={getPhaseCenter(currentPhase).x}
+                                    cy={getPhaseCenter(currentPhase).y}
+                                    r="12"
+                                    className={cn(
+                                        "filter drop-shadow-[0_0_8px_rgba(0,0,0,0.2)]",
+                                        currentPhase.startsWith("A") ? "fill-emerald-500" : "fill-rose-500"
+                                    )}
+                                />
+                                <text
+                                    x={getPhaseCenter(currentPhase).x}
+                                    y={getPhaseCenter(currentPhase).y + 4}
+                                    className="text-[10px] font-black fill-white"
+                                    textAnchor="middle"
+                                >
+                                    {currentPhase}
+                                </text>
+                            </>
+                        )}
+                    </motion.g>
                 </svg>
 
                 {/* Floating Labels around the egg */}
@@ -211,6 +232,7 @@ export function KostolanyEgg({ currentPhase, interestRateTrend }: KostolanyEggPr
 
 // Helpers for SVG positioning
 function getPhasePath(phase: string) {
+    if (phase === "Neutral") return "M80,125 A20,20 0 1,0 120,125 A20,20 0 1,0 80,125";
     if (phase === "A3") return "M80,30 C100,20 120,30 140,50 L100,90 Z";
     if (phase === "B1") return "M120,30 C140,40 160,60 175,90 L100,90 Z";
     if (phase === "A2") return "M30,120 C25,140 30,160 40,180 L100,150 Z";

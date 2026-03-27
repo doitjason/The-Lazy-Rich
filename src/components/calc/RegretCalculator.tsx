@@ -679,16 +679,16 @@ export function RegretCalculator() {
                                 <div className="grid grid-cols-3 gap-1 sm:gap-4 gap-y-8 mt-8 w-full max-w-3xl mx-auto">
                                     {/* 1. Total Profit */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
-                                        <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground">총 수익률</span>
+                                        <span className="opacity-80 text-[13px] sm:text-sm font-bold tracking-tight mb-1.5 text-muted-foreground whitespace-nowrap">총 수익률</span>
                                         <span className={cn(
-                                            "text-[13px] sm:text-lg font-black flex items-center justify-center gap-0.5 whitespace-nowrap transition-all",
+                                            "text-[15px] sm:text-xl font-black flex items-center justify-center gap-0.5 whitespace-nowrap transition-all",
                                             result.returnRate >= 0 ? "text-red-500" : "text-blue-500",
                                             isHighlighting && "animate-bounce scale-110"
                                         )}>
                                             {result.returnRate >= 0 ? "+" : ""}
                                             {result.returnRate >= 10000
                                                 ? formatCompactNumber(result.returnRate)
-                                                : result.returnRate.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+                                                : Number(result.returnRate.toFixed(1)).toLocaleString()
                                             }%
                                         </span>
                                     </div>
@@ -697,12 +697,12 @@ export function RegretCalculator() {
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
-                                                <div className="flex items-center gap-0.5 sm:gap-1 mb-1 whitespace-nowrap">
-                                                    <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">연평균 수익률</span>
+                                                <div className="flex items-center gap-0.5 sm:gap-1 mb-1.5 whitespace-nowrap">
+                                                    <span className="opacity-80 text-[13px] sm:text-sm font-bold tracking-tight text-muted-foreground whitespace-nowrap">연평균 수익률</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40 shrink-0" />
                                                 </div>
-                                                <span className={`text-[13px] sm:text-lg font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
-                                                    {result.cagr >= 0 ? "+" : ""}{result.cagr.toFixed(1)}%
+                                                <span className={`text-[15px] sm:text-xl font-black ${result.cagr >= 0 ? "text-red-500" : "text-blue-500"}`} style={{ whiteSpace: "nowrap" }}>
+                                                    {result.cagr >= 0 ? "+" : ""}{Number(result.cagr.toFixed(1)).toLocaleString()}%
                                                 </span>
                                             </div>
                                         </PopoverTrigger>
@@ -716,12 +716,12 @@ export function RegretCalculator() {
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
-                                                <div className="flex items-center gap-0.5 sm:gap-1 mb-1 whitespace-nowrap">
-                                                    <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">최대 낙폭(MDD)</span>
+                                                <div className="flex items-center gap-0.5 sm:gap-1 mb-1.5 whitespace-nowrap">
+                                                    <span className="opacity-80 text-[13px] sm:text-sm font-bold tracking-tight text-muted-foreground whitespace-nowrap">최대 낙폭(MDD)</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40 shrink-0" />
                                                 </div>
-                                                <span className="text-[13px] sm:text-lg font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
-                                                    -{result.mdd.toFixed(1)}%
+                                                <span className="text-[15px] sm:text-xl font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
+                                                    -{Number(result.mdd.toFixed(1)).toLocaleString()}%
                                                 </span>
                                             </div>
                                         </PopoverTrigger>
@@ -749,16 +749,16 @@ export function RegretCalculator() {
 
                                     {/* 4. Quantity */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
-                                        <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground">보유 수량</span>
-                                        <span className="text-[13px] sm:text-lg font-black text-foreground/70" style={{ whiteSpace: "nowrap" }}>
+                                        <span className="opacity-80 text-[13px] sm:text-sm font-bold tracking-tight mb-1.5 text-muted-foreground whitespace-nowrap">보유 수량</span>
+                                        <span className="text-[15px] sm:text-xl font-black text-foreground/70" style={{ whiteSpace: "nowrap" }}>
                                             약 {Math.round(result.quantity).toLocaleString()}주
                                         </span>
                                     </div>
 
                                     {/* 5. Avg Price */}
                                     <div className="flex flex-col items-center justify-center min-w-0 py-2">
-                                        <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight mb-1 text-muted-foreground whitespace-nowrap">당시 평단가</span>
-                                        <span className="text-[13px] sm:text-lg font-black text-foreground/70" style={{ whiteSpace: "nowrap" }}>
+                                        <span className="opacity-80 text-[13px] sm:text-sm font-bold tracking-tight mb-1.5 text-muted-foreground whitespace-nowrap">당시 평단가</span>
+                                        <span className="text-[15px] sm:text-xl font-black text-foreground/70" style={{ whiteSpace: "nowrap" }}>
                                             {(() => {
                                                 const val = Math.round(result.avgPrice);
                                                 if (currency === "KRW") {
@@ -782,12 +782,12 @@ export function RegretCalculator() {
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <div className="flex flex-col items-center justify-center min-w-0 py-2 cursor-help transition-opacity hover:opacity-80">
-                                                <div className="flex items-center gap-0.5 sm:gap-1 mb-1 whitespace-nowrap">
-                                                    <span className="opacity-70 text-[11px] sm:text-xs font-semibold tracking-tighter sm:tracking-tight text-muted-foreground">고점 대비 하락</span>
+                                                <div className="flex items-center gap-0.5 sm:gap-1 mb-1.5 whitespace-nowrap">
+                                                    <span className="opacity-80 text-[13px] sm:text-sm font-bold tracking-tight text-muted-foreground whitespace-nowrap">고점 대비 하락</span>
                                                     <HelpCircle className="w-3 h-3 opacity-40 shrink-0" />
                                                 </div>
-                                                <span className="text-[13px] sm:text-lg font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
-                                                    {result.dropFromAth.toFixed(1)}%
+                                                <span className="text-[15px] sm:text-xl font-black text-blue-500" style={{ whiteSpace: "nowrap" }}>
+                                                    {Number(result.dropFromAth.toFixed(1)).toLocaleString()}%
                                                 </span>
                                             </div>
                                         </PopoverTrigger>
@@ -817,17 +817,15 @@ export function RegretCalculator() {
                                                 tickLine={false}
                                                 axisLine={false}
                                                 interval="preserveStartEnd"
-                                                minTickGap={30}
+                                                minTickGap={60}
                                                 tickFormatter={(value) => {
                                                     try {
                                                         const date = new Date(value);
                                                         if (isNaN(date.getTime())) return value;
 
-                                                        const now = new Date();
-                                                        const diffYears = now.getFullYear() - date.getFullYear();
-
-                                                        if (diffYears <= 0) return "현재";
-                                                        return `${diffYears}년전`;
+                                                        const year = date.getFullYear();
+                                                        const month = date.getMonth() + 1;
+                                                        return `${year}년 ${month}월`;
                                                     } catch {
                                                         return value;
                                                     }
@@ -1029,7 +1027,7 @@ export function RegretCalculator() {
                                                         >
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <span className="text-[14px] shrink-0">📈</span>
-                                                                <span className="text-[12px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">과거 수익률 그대로</span>
+                                                                <span className="text-[12px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">과거 수익률 그대로 반영</span>
                                                             </div>
                                                             <div className="flex items-center gap-2 shrink-0">
                                                                 <span className="text-[11px] font-extrabold bg-emerald-500/10 dark:bg-emerald-500/20 px-2.5 py-1 rounded-lg tabular-nums">약 {Math.round(cagr)}%</span>
@@ -1042,7 +1040,7 @@ export function RegretCalculator() {
                                                         >
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <span className="text-[14px] shrink-0">📉</span>
-                                                                <span className="text-[12px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">보수적인 관점 (50%)</span>
+                                                                <span className="text-[12px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">과거 수익률 보수적 반영 (50%)</span>
                                                             </div>
                                                             <div className="flex items-center gap-2 shrink-0">
                                                                 <span className="text-[11px] font-extrabold bg-amber-500/10 dark:bg-amber-500/20 px-2.5 py-1 rounded-lg tabular-nums">약 {Math.round(conservativeCagr)}%</span>

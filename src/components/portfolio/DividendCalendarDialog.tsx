@@ -105,18 +105,18 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
 
     const totalMonthDividend = selectedMonthEvents.reduce((acc, curr) => acc + curr.totalInDisplay, 0);
 
-    const nextMonth = () => {
+    const nextYear = () => {
         setCurrentDate(prev => {
             const next = new Date(prev);
-            next.setMonth(prev.getMonth() + 1);
+            next.setFullYear(prev.getFullYear() + 1);
             return next;
         });
     };
 
-    const prevMonth = () => {
+    const prevYear = () => {
         setCurrentDate(prev => {
             const prevDate = new Date(prev);
-            prevDate.setMonth(prev.getMonth() - 1);
+            prevDate.setFullYear(prev.getFullYear() - 1);
             return prevDate;
         });
     };
@@ -148,13 +148,13 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
 
                 {/* 1. Calendar Navigator */}
                 <div className="flex items-center justify-between px-4 py-2 bg-muted/30 border-y border-white/5">
-                    <Button variant="ghost" size="icon" onClick={prevMonth} className="h-8 w-8 hover:bg-white/10 rounded-full">
+                    <Button variant="ghost" size="icon" onClick={prevYear} className="h-8 w-8 hover:bg-white/10 rounded-full">
                         <ChevronLeft className="w-5 h-5" />
                     </Button>
                     <div className="text-lg font-bold tabular-nums">
-                        {currentDate.getFullYear()}년 {currentDate.getMonth() + 1}월
+                        {currentDate.getFullYear()}년
                     </div>
-                    <Button variant="ghost" size="icon" onClick={nextMonth} className="h-8 w-8 hover:bg-white/10 rounded-full">
+                    <Button variant="ghost" size="icon" onClick={nextYear} className="h-8 w-8 hover:bg-white/10 rounded-full">
                         <ChevronRight className="w-5 h-5" />
                     </Button>
                 </div>
@@ -167,10 +167,10 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                         </div>
                     ) : (
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={monthlyChartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                            <BarChart data={monthlyChartData} margin={{ top: 10, right: 8, left: 8, bottom: 0 }}>
                                 <XAxis
                                     dataKey="label"
-                                    tick={{ fontSize: 10, fill: '#888' }}
+                                    tick={{ fontSize: 9, fill: '#888', fontWeight: 500 }}
                                     axisLine={false}
                                     tickLine={false}
                                     interval={0}
@@ -202,7 +202,7 @@ export function DividendCalendarDialog({ open, onOpenChange, items }: DividendCa
                                     {monthlyChartData.map((entry, index) => (
                                         <Cell
                                             key={`cell-${index}`}
-                                            fill={entry.month === currentDate.getMonth() + 1 ? '#10b981' : '#3f3f46'}
+                                            fill={entry.month === currentDate.getMonth() + 1 ? '#10b981' : '#10b98133'}
                                             className="transition-all duration-300 hover:opacity-80"
                                         />
                                     ))}
