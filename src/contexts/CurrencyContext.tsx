@@ -69,10 +69,13 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
     const formatCompactNumber = (value: number) => {
         if (currency === "KRW") {
-            const format = (num: number) => num.toLocaleString(undefined, { maximumFractionDigits: 1 });
+            const format = (num: number, digits = 1) => num.toLocaleString(undefined, { 
+                maximumFractionDigits: digits,
+                minimumFractionDigits: 0
+            });
             if (value >= 1000000000000) return `${format(value / 1000000000000)}조`;
             if (value >= 100000000) return `${format(value / 100000000)}억`;
-            if (value >= 10000) return `${format(value / 10000)}만`;
+            if (value >= 10000) return `${format(value / 10000, 0)}만`;
             return value.toLocaleString();
         } else {
             return new Intl.NumberFormat("en-US", {

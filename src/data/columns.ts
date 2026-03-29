@@ -27,6 +27,22 @@ export const CATEGORY_OPTIONS = [
 
 export const COLUMNS: Column[] = [
     {
+        id: "isa-legal-tax-reduction",
+        title: "ISA 계좌의 재발견: 대한민국 직장인이 '합법적으로' 세금을 안 내는 유일한 방법",
+        subtitle: "비과세 1,000만 원 시대의 생존 전략과 인덱스 투자자를 위한 최고의 절세 방패",
+        category: "guide",
+        categoryLabel: "실전 가이드",
+        categoryColor: "text-emerald-400",
+        categoryBg: "bg-emerald-500/10",
+        thumbnailEmoji: "🛡️",
+        author: "The Lazy Rich 에디터",
+        publishedAt: "2026-03-29",
+        readTime: 8,
+        tags: ["ISA", "절세", "비과세", "인덱스투자", "세금"],
+        featured: true,
+        relatedBookIds: ["psychology-of-money", "little-book"],
+    },
+    {
         id: "4-percent-rule-rediscovery",
         title: "4% 룰의 재발견: 은퇴 후 자산이 무한히 늘어나는 인출의 기술",
         subtitle: "하락장에서도 평온함을 잃지 않는 은퇴 생활비 공식과 인덱스 투자가 주는 최후의 안식처",
