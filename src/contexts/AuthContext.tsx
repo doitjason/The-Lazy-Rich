@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session, AuthError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { trackMetaEvent } from "@/lib/analytics";
+import { InAppBrowserModal } from "@/components/auth/InAppBrowserModal";
 
 const supabase = createClient();
 
@@ -51,6 +52,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
+    const [inAppWarningOpen, setInAppWarningOpen] = useState(false);
 
     const updateUserState = async (currentUser: User | null) => {
         setUser(currentUser);
@@ -159,6 +161,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const signInWithGoogle = async () => {
+        const ua = typeof window !== "undefined" ? (navigator.userAgent || navigator.vendor || (window as any).opera) : "";
+        const isInApp = /KAKAOTALK|Instagram|NAVER|Line|FBAN|FBAV/i.test(ua);
+        
+        if (isInApp) {
+            setInAppWarningOpen(true);
+            return;
+        }
+
         await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
@@ -200,6 +210,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             refreshProfile
         }}>
             {children}
+            <InAppBrowserModal open={inAppWarningOpen} onOpenChange={setInAppWarningOpen} />
         </AuthContext.Provider>
     );
 };

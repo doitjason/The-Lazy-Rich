@@ -102,33 +102,48 @@ ${holdings}
         // 포트폴리오 종목 + 질문 종목 합치기 (중복 제거, 질문한 종목 우선)
         const allTickers = Array.from(new Set([...questionTickers, ...userTickers].map(t => t.trim())));
 
+        // 💡 UX 향상 및 속도 최적화: 마켓 데이터 Lazy Execution (조건부 로딩)
+        // 유저 질문에 특정 시장/투자 관련 뉘앙스가 있을 때만 데이터를 로딩합니다.
+        const marketKeywords = ["시장", "시황", "주식", "주가", "전망", "금리", "환율", "비트코인", "투자", "포트폴리오", "펀드", "섹터", "배당", "매수", "매도", "수익", "어때", "분석", "종목"];
+        const messageUpper = (lastMessage.content || "").toUpperCase();
+        const hasMarketKeyword = marketKeywords.some(kw => messageUpper.includes(kw.toUpperCase()));
+        
+        // 질의에서 명시적으로 언급한 티커가 있거나, 투자 관련 키워드가 있을 경우에만 조회
+        // 이를 통해 평상시 인사나 단순 문의에 대한 응답 속도를 비약적으로 높입니다.
+        const shouldFetchMarketData = questionTickers.length > 0 || hasMarketKeyword;
+
         // Fetch persona-specific market data (캐싱 적용)
         let marketDataContext = "";
-        try {
-            const mentorData = await getMentorMarketContext(mentorId, allTickers);
-            if (mentorData) {
-                marketDataContext = `\n\n${mentorData}`;
-            }
+        
+        if (shouldFetchMarketData) {
+            try {
+                const mentorData = await getMentorMarketContext(mentorId, allTickers);
+                if (mentorData) {
+                    marketDataContext = `\n\n${mentorData}`;
+                }
 
-            // 추가: 날짜 감지 및 과거 데이터 조회
-            const questionDates = extractDatesFromMessage(lastMessage.content || "");
-            if (questionDates.length > 0 && allTickers.length > 0) {
-                let historicalContext = "\n\n[📜 과거 데이터 조회 결과]";
-                for (const date of questionDates) {
-                    for (const ticker of allTickers.slice(0, 3)) { // 너무 많으면 토큰 낭비이므로 상위 3개만
-                        const price = await fetchHistoricalPrice(ticker, date);
-                        if (price) {
-                            historicalContext += `\n- ${ticker} (${date}): ${price.toLocaleString()} USD (종가 기준)`;
+                // 추가: 날짜 감지 및 과거 데이터 조회
+                const questionDates = extractDatesFromMessage(lastMessage.content || "");
+                if (questionDates.length > 0 && allTickers.length > 0) {
+                    let historicalContext = "\n\n[📜 과거 데이터 조회 결과]";
+                    for (const date of questionDates) {
+                        for (const ticker of allTickers.slice(0, 3)) { // 너무 많으면 토큰 낭비이므로 상위 3개만
+                            const price = await fetchHistoricalPrice(ticker, date);
+                            if (price) {
+                                historicalContext += `\n- ${ticker} (${date}): ${price.toLocaleString()} USD (종가 기준)`;
+                            }
                         }
                     }
+                    if (historicalContext !== "\n\n[📜 과거 데이터 조회 결과]") {
+                        marketDataContext += historicalContext;
+                    }
                 }
-                if (historicalContext !== "\n\n[📜 과거 데이터 조회 결과]") {
-                    marketDataContext += historicalContext;
-                }
+            } catch (error) {
+                console.error("[Chat] Market data fetch failed (non-blocking):", error);
+                // 시장 데이터 실패해도 채팅은 계속 진행
             }
-        } catch (error) {
-            console.error("[Chat] Market data fetch failed (non-blocking):", error);
-            // 시장 데이터 실패해도 채팅은 계속 진행
+        } else {
+            console.log("[ChatAPI] ⚡ 최적화: 단순 일상 대화로 간주하여 Market Data 로딩 건너뜀 (Latency 이득 확보)");
         }
 
         // Build system message: Constitution > Shared Instructions > Persona > Dynamic Context (Portfolio, Market) > Ecosystem Map
@@ -162,17 +177,18 @@ ${marketDataContext}
 
 ${ecosystemMap}${firstMessageCTA}`;
 
-        // Save user message to database
+        // Save user message to database (Non-blocking으로 변경하여 OpenAI 응답을 기다리게 하지 않음)
         if (sessionId && messages.length > 0) {
             const lastUserMessage = messages[messages.length - 1];
             if (lastUserMessage.role === "user") {
-                const { error: saveError } = await supabase.from("chat_messages").insert({
+                supabase.from("chat_messages").insert({
                     session_id: sessionId,
                     role: "user",
                     content: lastUserMessage.content,
+                }).then(({ error: saveError }) => {
+                    if (saveError) console.error("[ChatAPI] User message save error:", saveError.message);
+                    else console.log("[ChatAPI] User message saved to DB");
                 });
-                if (saveError) console.error("[ChatAPI] User message save error:", saveError.message);
-                else console.log("[ChatAPI] User message saved to DB");
             }
         }
 
