@@ -20,7 +20,7 @@ export function AnalyticsManager() {
     const META_PIXEL_ID = "3038083086378797";
 
     useEffect(() => {
-        if (!pathname || process.env.NODE_ENV !== "production") return;
+        if (!pathname) return;
 
         // Track Page View for GA4
         if (typeof window.gtag === "function") {
@@ -35,18 +35,16 @@ export function AnalyticsManager() {
         }
     }, [pathname, searchParams]);
 
-    if (process.env.NODE_ENV !== "production") return null;
-
     return (
         <>
             {/* Google Analytics (GA4) */}
             <Script
-                strategy="afterInteractive"
+                strategy="lazyOnload"
                 src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
             />
             <Script
                 id="google-analytics"
-                strategy="afterInteractive"
+                strategy="lazyOnload"
                 dangerouslySetInnerHTML={{
                     __html: `
                         window.dataLayer = window.dataLayer || [];
@@ -62,7 +60,7 @@ export function AnalyticsManager() {
             {/* Meta Pixel */}
             <Script
                 id="meta-pixel"
-                strategy="afterInteractive"
+                strategy="lazyOnload"
                 dangerouslySetInnerHTML={{
                     __html: `
                         !function(f,b,e,v,n,t,s)

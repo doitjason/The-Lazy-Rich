@@ -8,6 +8,7 @@ import { StockSearchInput } from "@/components/ui/StockSearchInput";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePortfolioStore } from "@/store/usePortfolioStore";
+import { trackMetaEvent } from "@/lib/analytics";
 
 interface AddStockDialogProps {
     open: boolean;
@@ -39,6 +40,13 @@ export function AddStockDialog({ open, onOpenChange }: AddStockDialogProps) {
             );
 
             if (success) {
+                // 종목 추가 성공 트래킹 (P0 #3)
+                trackMetaEvent('AddToCart', {
+                    content_name: newTicker,
+                    content_type: 'stock',
+                    content_ids: [newTicker],
+                });
+
                 setNewTicker("");
                 setNewQuantity("");
                 setNewAvgPrice("");

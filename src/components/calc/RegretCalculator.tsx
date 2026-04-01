@@ -12,6 +12,7 @@ import { StockSearchInput } from "@/components/ui/StockSearchInput";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { trackMetaEvent } from "@/lib/analytics";
 
 interface RegretResult {
     ticker: string;
@@ -397,6 +398,11 @@ export function RegretCalculator() {
             const calcedResult = calculateCore(data, investmentType, amount, period);
             setResult(calcedResult);
             setIsCalculated(true);
+            trackMetaEvent('Search', { 
+                search_string: 'regret_calculator',
+                content_name: ticker,
+                content_category: period
+            });
         } catch (err) {
             console.error("Calculate error:", err);
             setError("데이터를 가져오는데 실패했습니다.");

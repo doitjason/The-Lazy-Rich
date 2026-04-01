@@ -6,6 +6,7 @@ import { MentorSelector } from "@/components/mentor/MentorSelector";
 import { ChatInterface } from "@/components/mentor/ChatInterface";
 import { AIMentor, getMentorById } from "@/lib/ai-mentors";
 import { useAuth } from "@/contexts/AuthContext";
+import { trackMetaEvent } from "@/lib/analytics";
 
 function GuruPageContent() {
     const searchParams = useSearchParams();
@@ -20,6 +21,12 @@ function GuruPageContent() {
     // Create a new chat session when mentor is selected
     const handleMentorSelect = async (mentor: AIMentor) => {
         setSelectedMentor(mentor);
+
+        // AI 멘토 대화 시작 트래킹 (P0 #2)
+        trackMetaEvent('Lead', {
+            content_name: mentor.name,
+            content_category: 'ai_mentor',
+        });
 
         if (user) {
             try {

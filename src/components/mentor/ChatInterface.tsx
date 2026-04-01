@@ -12,6 +12,7 @@ import { ChartRenderer, ChartData } from "./ChartRenderer";
 import { useRouter } from "next/navigation";
 import { COLUMNS } from "@/data/columns";
 import { RECOMMENDED_BOOKS } from "@/data/books";
+import { trackMetaEvent } from "@/lib/analytics";
 
 interface Message {
     id: string;
@@ -212,6 +213,12 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
         setMessages((prev) => [...prev, userMessage]);
         setIsLoading(true);
         setStreamingContent("");
+        
+        // Track the chat content
+        trackMetaEvent("Contact", {
+            content_name: mentor.name,
+            content_category: "ai_mentor_chat",
+        });
 
         try {
             const response = await fetch("/api/chat", {
@@ -311,9 +318,12 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
             isDataReady &&
             !hasSentInitialRef.current
         ) {
-            console.log(`[ChatInterface] Auto-triggering initial message: "${initialMessage}"`);
+            console.log(`[ChatInterface] Prepared to auto-trigger: "${initialMessage}"`);
             hasSentInitialRef.current = true;
-            sendMessage(initialMessage);
+            // Delay slightly to ensure Analytics scripts & UI are fully ready
+            setTimeout(() => {
+                sendMessage(initialMessage);
+            }, 500);
         }
     }, [initialMessage, sessionId, userId, isHistoryLoading, messages.length]);
 
@@ -753,6 +763,12 @@ export function ChatInterface({ mentor, onBack, userId, sessionId, initialHistor
                                     };
                                     setMessages((prev) => [...prev, userMessage]);
                                     setIsLoading(true);
+                                    
+                                    // Track the chat content via quick suggestion
+                                    trackMetaEvent("Contact", {
+                                        content_name: mentor.name,
+                                        content_category: "ai_mentor_quick_suggestion",
+                                    });
 
                                     // Trigger the API call
                                     fetch("/api/chat", {

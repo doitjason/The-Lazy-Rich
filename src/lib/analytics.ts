@@ -10,8 +10,14 @@ export function trackMetaEvent(
     eventName: string,
     params?: Record<string, any>
 ) {
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`[MetaPixel] Standard Event: ${eventName}`, params);
+    }
+
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
         window.fbq("track", eventName, params);
+    } else {
+        console.warn(`[MetaPixel] fbq is not available for event: ${eventName}`);
     }
 }
 
@@ -20,7 +26,13 @@ export function trackMetaCustomEvent(
     eventName: string,
     params?: Record<string, any>
 ) {
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`[MetaPixel] Custom Event: ${eventName}`, params);
+    }
+
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
         window.fbq("trackCustom", eventName, params);
+    } else {
+        console.warn(`[MetaPixel] fbq is not available for custom event: ${eventName}`);
     }
 }

@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePortfolioStore } from "@/store/usePortfolioStore";
 import { LogIn, PlusCircle, Sparkles, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trackMetaEvent } from "@/lib/analytics";
 
 export default function PortfolioPage() {
     const [isAddOpen, setIsAddOpen] = useState(false);
@@ -39,6 +40,11 @@ export default function PortfolioPage() {
 
     const handleMentorSelect = (mentorId: string) => {
         setIsMentorSelectOpen(false);
+        const mentor = AI_MENTORS.find(m => m.id === mentorId);
+        trackMetaEvent('Subscribe', {
+            content_name: mentor?.name || mentorId,
+            content_category: 'portfolio_ai_diagnosis'
+        });
         router.push(`/mentor?action=analyze_portfolio&mentor=${mentorId}`);
     };
 
@@ -94,7 +100,7 @@ export default function PortfolioPage() {
 
             {/* AI Mentor Quick Select Modal */}
             <Dialog open={isMentorSelectOpen} onOpenChange={setIsMentorSelectOpen}>
-                <DialogContent className="sm:max-w-[425px] bg-white/95 dark:bg-[#1a1c23]/95 backdrop-blur-3xl border-white/20 dark:border-white/10 p-0 overflow-hidden fixed bottom-0 top-auto translate-y-0 translate-x-[-50%] sm:top-[50%] sm:-translate-y-1/2 rounded-t-3xl rounded-b-none sm:rounded-2xl z-50">
+                <DialogContent className="sm:max-w-[425px] bg-white/95 dark:bg-[#1a1c23]/95 backdrop-blur-3xl border-white/20 dark:border-white/10 p-0 overflow-y-auto max-h-[90vh] fixed bottom-0 top-auto translate-y-0 translate-x-[-50%] sm:top-[50%] sm:-translate-y-1/2 rounded-t-3xl rounded-b-none sm:rounded-2xl z-50">
                     <div className="p-6">
                         <DialogHeader className="mb-4 text-center sm:text-left">
                             <DialogTitle className="text-xl font-bold flex items-center justify-center sm:justify-start gap-2">
@@ -133,7 +139,7 @@ export default function PortfolioPage() {
 
             {/* Warning Dialog for Guest/Empty Portfolio */}
             <Dialog open={isWarningOpen} onOpenChange={setIsWarningOpen}>
-                <DialogContent className="sm:max-w-[400px] bg-white/95 dark:bg-[#1a1c23]/95 backdrop-blur-3xl border-white/20 dark:border-white/10 p-0 overflow-hidden fixed bottom-0 top-auto translate-y-0 translate-x-[-50%] sm:top-[50%] sm:-translate-y-1/2 rounded-t-3xl rounded-b-none sm:rounded-2xl z-50">
+                <DialogContent className="sm:max-w-[400px] bg-white/95 dark:bg-[#1a1c23]/95 backdrop-blur-3xl border-white/20 dark:border-white/10 p-0 overflow-y-auto max-h-[90vh] fixed bottom-0 top-auto translate-y-0 translate-x-[-50%] sm:top-[50%] sm:-translate-y-1/2 rounded-t-3xl rounded-b-none sm:rounded-2xl z-50">
                     <div className="p-8 flex flex-col items-center text-center">
                         <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-6">
                             <Sparkles className="w-8 h-8 text-emerald-500" />

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { RECOMMENDED_BOOKS, Book } from "@/data/books";
 
 // Cache key for sessionStorage
@@ -60,12 +61,12 @@ function BookCardItem({ book, idx, coverData }: BookCardItemProps) {
                     <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden shadow-xl bg-gray-100 dark:bg-black/50 border border-gray-200 dark:border-white/10 group-hover:border-emerald-500/30 group-hover:shadow-[0_10px_30px_-10px_rgba(16,185,129,0.3)] transition-all duration-500 flex items-center justify-center">
                         {coverImage ? (
                             <>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
+                                <Image
                                     alt={book.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     src={coverImage}
-                                    loading="lazy"
+                                    fill
+                                    sizes="(max-width: 640px) 96px, 112px"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60 pointer-events-none"></div>
                             </>

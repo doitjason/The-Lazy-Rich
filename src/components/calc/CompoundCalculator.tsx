@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/popover";
 
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { trackMetaEvent } from "@/lib/analytics";
 
 export function CompoundCalculator() {
     const searchParams = useSearchParams();
@@ -128,6 +129,7 @@ export function CompoundCalculator() {
         const results = calculateCompoundInterest(initial, monthly, rate, years, inflation);
         setData(results);
         setIsCalculated(true);
+        trackMetaEvent('Search', { search_string: 'compound_calculator' });
     };
 
     const finalResult = data[data.length - 1];

@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { usePortfolioStore } from "@/store/usePortfolioStore";
 import { useAuth } from "@/contexts/AuthContext";
+import { trackMetaEvent } from "@/lib/analytics";
 
 interface PortfolioAsset {
     ticker: string;
@@ -663,6 +664,10 @@ export function PortfolioRegretCalculator() {
             });
 
             setIsCalculated(true);
+            trackMetaEvent('Search', { 
+                search_string: 'portfolio_regret_calculator',
+                content_category: period
+            });
 
         } catch (err) {
             console.error("Calculation failed", err);

@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session, AuthError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { trackMetaEvent } from "@/lib/analytics";
 
 const supabase = createClient();
 
@@ -104,10 +105,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Listen for auth changes
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        } = supabase.auth.onAuthStateChange((event, session) => {
+            const currentUser = session?.user ?? null;
             setSession(session);
-            updateUserState(session?.user ?? null);
+            updateUserState(currentUser);
             setLoading(false);
+
+            // 회원가입 전송 (P0 #1)
+            // 신규 가입일 경우 created_at과 last_sign_in_at이 거의 동일하거나 null인 경우를 체크합니다.
+            if (event === "SIGNED_IN" && currentUser) {
+                const createdAt = new Date(currentUser.created_at).getTime();
+                const lastSignIn = currentUser.last_sign_in_at 
+                   ? new Date(currentUser.last_sign_in_at).getTime() 
+                   : Date.now();
+                
+                // 가입 정보와 마지막 로그인 정보의 시차가 30초 이내면 신규 가입으로 간주
+                const isNewUser = Math.abs(lastSignIn - createdAt) < 30000;
+                
+                if (isNewUser) {
+                    trackMetaEvent("CompleteRegistration", {
+                        content_name: currentUser.app_metadata.provider || "email",
+                        status: true,
+                    });
+                }
+            }
         });
 
         return () => subscription.unsubscribe();

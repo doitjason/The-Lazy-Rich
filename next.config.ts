@@ -78,6 +78,22 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "ssl.pstatic.net",
+      },
+      {
+        protocol: "https",
+        hostname: "shopping-phinf.pstatic.net",
+      },
+      {
+        protocol: "https",
+        hostname: "*.pstatic.net",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

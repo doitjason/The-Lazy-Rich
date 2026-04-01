@@ -5,6 +5,8 @@ import { Metadata } from "next";
 import { BackButton } from "@/components/insights/BackButton";
 import { fetchNaverBook } from "@/lib/naver-books";
 import { SITE_CONFIG } from "@/lib/constants";
+import { ViewContentTracker } from "@/components/analytics/ViewContentTracker";
+import { OutboundLink } from "@/components/analytics/OutboundLink";
 
 interface PageProps {
     params: Promise<{
@@ -92,7 +94,8 @@ export default async function BookDetailPage({ params, searchParams }: PageProps
 
     return (
         <div className="max-w-md mx-auto relative bg-white dark:bg-[#0b0c10] min-h-screen pb-[160px] sm:border-x sm:border-gray-200 dark:sm:border-white/5 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500">
-            {/* Schema.org Review JSON-LD */}
+            <ViewContentTracker name={book.title} type="book" id={book.id} />
+             {/* Schema.org Review JSON-LD */}
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
@@ -316,10 +319,10 @@ export default async function BookDetailPage({ params, searchParams }: PageProps
             {/* Sticky Bottom CTA */}
             {book.link && (
                 <div className="fixed max-w-md mx-auto left-0 right-0 w-full bottom-16 p-4 pb-4 bg-gradient-to-t from-white dark:from-[#0b0c10] via-white/95 dark:via-[#0b0c10]/95 to-transparent z-50">
-                    <a
+                    <OutboundLink
                         href={book.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        title={book.title}
+                        id={book.id}
                         className="group relative w-full overflow-hidden rounded-2xl flex items-center justify-center transition-all active:scale-[0.98]"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400 group-hover:opacity-90 transition-opacity" />
@@ -332,7 +335,7 @@ export default async function BookDetailPage({ params, searchParams }: PageProps
                             </span>
                             <ExternalLink className="w-5 h-5 text-white drop-shadow-md" />
                         </div>
-                    </a>
+                    </OutboundLink>
                 </div>
             )}
         </div>

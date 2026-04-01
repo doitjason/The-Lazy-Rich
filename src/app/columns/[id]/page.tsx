@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Clock, Tag, ArrowRight } from "lucide-react";
 import { Metadata } from "next";
 import { BackButton } from "@/components/insights/BackButton";
+import { ShareButton } from "@/components/insights/ShareButton";
 import Link from "next/link";
 import { fetchNaverBook } from "@/lib/naver-books";
 import { SITE_CONFIG } from "@/lib/constants";
@@ -11,6 +12,8 @@ import { getColumnContent } from "@/lib/mdx";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { AdSlot } from "@/components/insights/AdSlot";
 import React from "react";
+import Image from "next/image";
+import { ViewContentTracker } from "@/components/analytics/ViewContentTracker";
 
 interface PageProps {
     params: Promise<{
@@ -316,6 +319,7 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
 
     return (
         <div className="max-w-md mx-auto relative bg-white dark:bg-[#0b0c10] min-h-screen pb-24 sm:border-x sm:border-gray-200 dark:sm:border-white/5 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-right-8 duration-500">
+            <ViewContentTracker name={column.title} type="column" id={column.id} />
             {/* Schema.org Article JSON-LD */}
             <script
                 type="application/ld+json"
@@ -356,6 +360,12 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                 <h1 className="text-base font-bold text-foreground flex-1 truncate">
                     {column.title}
                 </h1>
+                <ShareButton 
+                    title={column.title}
+                    text={column.subtitle}
+                    url={`${SITE_CONFIG.url}/columns/${column.id}`}
+                    columnId={column.id}
+                />
             </header>
 
             {/* Content */}
@@ -448,8 +458,13 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                                     <div className="bg-gray-50 dark:bg-white/[0.03] backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-2xl p-4 flex gap-4 items-center group hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors">
                                         <div className="w-10 h-14 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-gray-200 dark:border-white/10 flex items-center justify-center flex-shrink-0 text-lg overflow-hidden relative">
                                             {book.coverUrl ? (
-                                                /* eslint-disable-next-line @next/next/no-img-element */
-                                                <img src={book.coverUrl} alt={book.title} className="w-full h-full object-cover absolute inset-0" />
+                                                <Image 
+                                                    src={book.coverUrl} 
+                                                    alt={book.title} 
+                                                    width={40}
+                                                    height={56}
+                                                    className="w-full h-full object-cover" 
+                                                />
                                             ) : (
                                                 "📖"
                                             )}
