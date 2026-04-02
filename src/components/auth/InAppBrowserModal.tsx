@@ -20,7 +20,7 @@ interface InAppBrowserModalProps {
 
 export function InAppBrowserModal({ open, onOpenChange }: InAppBrowserModalProps) {
     const [copied, setCopied] = useState(false);
-    const url = typeof window !== "undefined" ? window.location.href : "";
+    const url = typeof window !== "undefined" ? `${window.location.origin}/profile` : "";
 
     const handleCopy = () => {
         setCopied(true);
@@ -37,7 +37,7 @@ export function InAppBrowserModal({ open, onOpenChange }: InAppBrowserModalProps
 
                     <DialogHeader className="space-y-3 mb-8 w-full">
                         <DialogTitle className="text-2xl font-black tracking-tight text-center">
-                            앗! 접속 환경 확인
+                            앗! 인앱 브라우저로 접속하셨네요
                         </DialogTitle>
                         <DialogDescription className="text-base font-medium leading-relaxed text-center w-full block">
                             현재 인앱 브라우저(카카오톡, 인스타그램 등)로 <br />
@@ -76,7 +76,7 @@ export function InAppBrowserModal({ open, onOpenChange }: InAppBrowserModalProps
                                             className="flex items-center gap-2 text-foreground"
                                         >
                                             <Copy className="w-5 h-5" />
-                                            현재 화면 링크 복사하기
+                                            프로필 링크 복사하기
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
