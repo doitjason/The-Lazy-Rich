@@ -62,9 +62,9 @@ export function InAppBrowserModal({ open, onOpenChange }: InAppBrowserModalProps
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
                                             exit={{ scale: 0 }}
-                                            className="flex items-center gap-2"
+                                            className="flex items-center justify-center gap-2 whitespace-nowrap"
                                         >
-                                            <CheckCircle2 className="w-5 h-5" />
+                                            <CheckCircle2 className="w-5 h-5 shrink-0" />
                                             링크 복사 완료!
                                         </motion.div>
                                     ) : (
@@ -73,10 +73,10 @@ export function InAppBrowserModal({ open, onOpenChange }: InAppBrowserModalProps
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1 }}
                                             exit={{ scale: 0 }}
-                                            className="flex items-center gap-2 text-foreground"
+                                            className="flex items-center justify-center gap-2 text-foreground whitespace-nowrap text-[14px] sm:text-base tracking-tight"
                                         >
-                                            <Copy className="w-5 h-5" />
-                                            프로필 링크 복사하기
+                                            <Copy className="w-5 h-5 shrink-0" />
+                                            로그인 페이지 URL 복사하기
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
