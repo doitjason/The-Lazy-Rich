@@ -26,6 +26,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { usePortfolioStore } from "@/store/usePortfolioStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { trackMetaEvent } from "@/lib/analytics";
+import { AdSlot } from "@/components/insights/AdSlot";
 
 interface PortfolioAsset {
     ticker: string;
@@ -1211,11 +1212,11 @@ export function PortfolioRegretCalculator() {
                                     <span className="text-[10px] font-medium lowercase italic opacity-50">Contribution Details</span>
                                 </h3>
 
-                                <div className="space-y-4">
+                                <div className="space-y-4 w-full flex flex-col items-center">
                                     {[...result.assets].sort((a, b) => b.finalValue - a.finalValue).map((asset, idx) => (
                                         <div
                                             key={asset.ticker}
-                                            className="relative overflow-hidden p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all duration-300 group shadow-sm hover:shadow-emerald-500/5"
+                                            className="relative flex flex-col justify-center overflow-hidden p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/30 transition-all duration-300 group shadow-sm hover:shadow-emerald-500/5 w-full max-w-[320px] mx-auto h-[100px]"
                                         >
                                             <div className="relative z-10 flex items-center justify-between gap-3">
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -1276,6 +1277,11 @@ export function PortfolioRegretCalculator() {
                                             </div>
                                         </div>
                                     ))}
+
+                                    {/* Advertisement Slot (Styled as an asset card) */}
+                                    <div className="flex justify-center w-full max-w-[320px] mx-auto overflow-hidden rounded-2xl">
+                                        <AdSlot placement="in-article" />
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>

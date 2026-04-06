@@ -13,6 +13,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { cn } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { trackMetaEvent } from "@/lib/analytics";
+import { AdSlot } from "@/components/insights/AdSlot";
 
 interface RegretResult {
     ticker: string;
@@ -910,11 +911,11 @@ export function RegretCalculator() {
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col gap-4 w-full">
+                                    <div className="flex flex-col gap-4 w-full max-w-[320px] mx-auto items-center">
                                         {/* 0. Share Results (Moved to top with natural UI) */}
                                         <button
                                             onClick={handleShare}
-                                            className="group relative flex items-center justify-between p-4 rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 hover:border-emerald-500/30 transition-all text-left shadow-[0_4px_15px_rgba(16,185,129,0.02)] hover:shadow-[0_8px_25px_rgba(16,185,129,0.08)] w-full overflow-hidden"
+                                            className="group relative flex items-center justify-between p-4 h-[100px] rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 hover:border-emerald-500/30 transition-all text-left shadow-[0_4px_15px_rgba(16,185,129,0.02)] hover:shadow-[0_8px_25px_rgba(16,185,129,0.08)] w-full overflow-hidden"
                                         >
                                             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/[0.03] to-transparent group-hover:from-emerald-500/[0.08] transition-all" />
                                             <div className="flex items-center gap-4 relative z-10">
@@ -932,7 +933,7 @@ export function RegretCalculator() {
                                         {/* 1. Switch Mode */}
                                         <button
                                             onClick={handleSwitchMode}
-                                            className="group relative flex items-center justify-between p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-blue-500/10 hover:border-blue-500/40 transition-all text-left shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_25px_rgba(59,130,246,0.1)] w-full overflow-hidden"
+                                            className="group relative flex items-center justify-between p-4 h-[100px] rounded-2xl bg-white/40 dark:bg-white/5 border border-blue-500/10 hover:border-blue-500/40 transition-all text-left shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_25px_rgba(59,130,246,0.1)] w-full overflow-hidden"
                                         >
                                             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/[0.03] to-transparent group-hover:from-blue-500/[0.08] transition-all" />
                                             <div className="flex items-center gap-4 relative z-10">
@@ -985,7 +986,7 @@ export function RegretCalculator() {
                                             return (
                                                 <a
                                                     href={guruUrl}
-                                                    className="group relative flex items-center justify-between p-4 rounded-2xl bg-white/40 dark:bg-white/5 border border-violet-500/10 hover:border-violet-500/40 transition-all text-left shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_25px_rgba(139,92,246,0.1)] w-full overflow-hidden"
+                                                    className="group relative flex items-center justify-between p-4 h-[100px] rounded-2xl bg-white/40 dark:bg-white/5 border border-violet-500/10 hover:border-violet-500/40 transition-all text-left shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_25px_rgba(139,92,246,0.1)] w-full overflow-hidden"
                                                 >
                                                     <div className="absolute inset-0 bg-gradient-to-r from-violet-500/[0.03] to-transparent group-hover:from-violet-500/[0.08] transition-all" />
                                                     <div className="flex items-center gap-4 relative z-10">
@@ -993,7 +994,7 @@ export function RegretCalculator() {
                                                             <span className="text-xl leading-none">{mentorEmoji}</span>
                                                         </div>
                                                         <div>
-                                                            <div className="text-[14px] font-bold text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">AI 투자 멘토와 이어서 대화하기</div>
+                                            <div className="text-[14px] font-bold text-foreground group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">AI 투자 멘토와 이어서 대화하기</div>
                                                             <div className="text-[11px] text-muted-foreground mt-1 whitespace-nowrap overflow-hidden text-ellipsis opacity-80">"{cleanTicker}의 미래 전망은 어떨까요?"</div>
                                                         </div>
                                                     </div>
@@ -1001,6 +1002,11 @@ export function RegretCalculator() {
                                                 </a>
                                             );
                                         })()}
+
+                                        {/* Advertisement Slot */}
+                                        <div className="w-full flex justify-center overflow-hidden rounded-2xl">
+                                            <AdSlot placement="in-article" />
+                                        </div>
 
                                         {/* 3. Future Projection (Combined) */}
                                         {result.cagr > 0 && (() => {

@@ -18,6 +18,7 @@ import {
 
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { trackMetaEvent } from "@/lib/analytics";
+import { AdSlot } from "@/components/insights/AdSlot";
 
 export function CompoundCalculator() {
     const searchParams = useSearchParams();
@@ -716,6 +717,11 @@ export function CompoundCalculator() {
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
+                        </div>
+
+                        {/* Advertisement Slot */}
+                        <div className="mt-10 flex justify-center w-full max-w-[320px] mx-auto overflow-hidden rounded-2xl">
+                            <AdSlot placement="large-box" />
                         </div>
                     </CardContent>
                 </Card>
