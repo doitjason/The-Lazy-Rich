@@ -930,6 +930,11 @@ export function RegretCalculator() {
                                             <span className="relative z-10 text-muted-foreground/30 group-hover:text-emerald-500 transition-all text-lg font-light translate-x-0 group-hover:translate-x-1">→</span>
                                         </button>
 
+                                        {/* Advertisement Slot (Moved under Share Button) */}
+                                        <div className="w-full h-[100px] flex items-center justify-center overflow-hidden rounded-2xl bg-white/40 dark:bg-white/5 border border-foreground/5 shadow-[0_4px_15px_rgba(0,0,0,0.02)] transition-all">
+                                            <AdSlot placement="in-article" className="!rounded-2xl" />
+                                        </div>
+
                                         {/* 1. Switch Mode */}
                                         <button
                                             onClick={handleSwitchMode}
@@ -1002,11 +1007,6 @@ export function RegretCalculator() {
                                                 </a>
                                             );
                                         })()}
-
-                                        {/* Advertisement Slot */}
-                                        <div className="w-full flex justify-center overflow-hidden rounded-2xl">
-                                            <AdSlot placement="in-article" />
-                                        </div>
 
                                         {/* 3. Future Projection (Combined) */}
                                         {result.cagr > 0 && (() => {

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { RECOMMENDED_BOOKS, Book } from "@/data/books";
+import { AdSlot } from "@/components/insights/AdSlot";
 
 // Cache key for sessionStorage
 const BOOK_COVERS_CACHE_KEY = "bookCoversCache";
@@ -210,7 +211,18 @@ export function RecommendedBooks() {
 
             <div className="space-y-4">
                 {filteredBooks.map((book, idx) => (
-                    <BookCardItem key={book.id} book={book} idx={idx} coverData={book.naverQuery ? bookCovers[book.naverQuery] : null} />
+                    <React.Fragment key={book.id}>
+                        <BookCardItem book={book} idx={idx} coverData={book.naverQuery ? bookCovers[book.naverQuery] : null} />
+                        
+                        {/* 4번째 책마다 광고 삽입 */}
+                        {idx > 0 && (idx + 1) % 4 === 0 && (
+                            <div className="w-full flex justify-center py-2">
+                                <div className="w-full overflow-hidden rounded-3xl bg-white/40 dark:bg-[#12141a]/60 backdrop-blur-xl border border-gray-200 dark:border-white/5 shadow-sm transition-all relative h-[100px] flex items-center justify-center">
+                                    <AdSlot placement="in-feed" className="!rounded-3xl" />
+                                </div>
+                            </div>
+                        )}
+                    </React.Fragment>
                 ))}
 
                 {filteredBooks.length === 0 && (

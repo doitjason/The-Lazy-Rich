@@ -115,8 +115,9 @@ export function AdSlot({ placement, className = "", index }: AdSlotProps) {
     if (!adUnit) return null;
 
     // 카카오 스크립트가 로드되어 렌더링 될 실제 영역
+    // overflow-hidden과 rounded-2xl을 주어 사각형 배너의 모서리가 강제로 잘려 둥글게 보이도록 유도
     return (
-        <div className={cn("flex items-center justify-center w-full relative z-10 overflow-hidden", className)}>
+        <div className={cn("flex items-center justify-center w-full relative z-10 overflow-hidden rounded-2xl", className)}>
             <ins 
                 className="kakao_ad_area" 
                 style={{ display: "none" }}
@@ -125,6 +126,13 @@ export function AdSlot({ placement, className = "", index }: AdSlotProps) {
                 data-ad-height={adHeight}
                 ref={insRef}
             />
+            
+            {/* 네이티브 뱃지 (AD) - 전역 공통 적용 */}
+            <div className="absolute bottom-[4px] right-[10px] z-20 pointer-events-none">
+                <span className="text-[8px] font-bold px-1.5 py-[1px] rounded bg-white/90 dark:bg-black/80 text-gray-400 dark:text-gray-500 uppercase tracking-widest backdrop-blur-md shadow-sm border border-black/5 dark:border-white/5">
+                    AD
+                </span>
+            </div>
         </div>
     );
 }

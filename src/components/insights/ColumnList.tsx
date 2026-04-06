@@ -210,8 +210,8 @@ export function ColumnList() {
                         <ColumnCard column={column} idx={idx} />
                         {/* Insert ad slot after every AD_INTERVAL cards */}
                         {(idx + 1) % AD_INTERVAL === 0 && idx < filteredColumns.length - 1 && (
-                            <div className="mt-4">
-                                <AdSlot placement="in-feed" />
+                            <div className="mt-4 overflow-hidden rounded-3xl w-full border border-gray-200 dark:border-white/5 bg-white/80 dark:bg-[#12141a]/60 shadow-sm transition-all hover:shadow-md">
+                                <AdSlot placement="in-feed" index={Math.floor(idx / AD_INTERVAL)} className="!rounded-3xl" />
                             </div>
                         )}
                     </div>
