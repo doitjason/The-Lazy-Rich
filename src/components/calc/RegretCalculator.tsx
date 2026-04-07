@@ -473,7 +473,7 @@ export function RegretCalculator() {
                             <StockSearchInput
                                 value={ticker.replace(".KS", "")}
                                 onChange={handleStockSelect}
-                                placeholder="종목 검색 (예: AAPL, samsung)..."
+                                placeholder="종목 검색 (예: META, APPL, GOOGL)"
                             />
                         </div>
                     </div>
@@ -1052,7 +1052,7 @@ export function RegretCalculator() {
                                                         >
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <span className="text-[14px] shrink-0">📉</span>
-                                                                <span className="text-[12px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">과거 수익률 보수적 반영 (50%)</span>
+                                                                <span className="text-[12px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">과거 수익률 보수적 반영</span>
                                                             </div>
                                                             <div className="flex items-center gap-2 shrink-0">
                                                                 <span className="text-[11px] font-extrabold bg-amber-500/10 dark:bg-amber-500/20 px-2.5 py-1 rounded-lg tabular-nums">약 {Math.round(conservativeCagr)}%</span>
