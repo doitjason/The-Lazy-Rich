@@ -214,11 +214,11 @@ export function RecommendedBooks() {
                     <React.Fragment key={book.id}>
                         <BookCardItem book={book} idx={idx} coverData={book.naverQuery ? bookCovers[book.naverQuery] : null} />
                         
-                        {/* 4번째 책마다 광고 삽입 */}
-                        {idx > 0 && (idx + 1) % 4 === 0 && (
+                        {/* 3번째 책마다 광고 삽입, 최대 2개까지 (전체 4개 한도 준수) */}
+                        {((idx + 1) % 3 === 0) && (Math.floor((idx + 1) / 3) <= 2) && (
                             <div className="w-full flex justify-center py-2">
                                 <div className="w-full overflow-hidden rounded-3xl bg-white/40 dark:bg-[#12141a]/60 backdrop-blur-xl border border-gray-200 dark:border-white/5 shadow-sm transition-all relative h-[100px] flex items-center justify-center">
-                                    <AdSlot placement="in-feed" className="!rounded-3xl" />
+                                    <AdSlot placement="in-article" index={Math.floor((idx + 1) / 3) - 1} className="!rounded-3xl" />
                                 </div>
                             </div>
                         )}

@@ -22,112 +22,100 @@ interface AdSlotProps {
 
 export function AdSlot({ placement, className = "", index }: AdSlotProps) {
     const insRef = useRef<HTMLModElement>(null);
+    const safeIndex = index !== undefined ? index : 0;
 
-    // 카카오 애드핏 규격 및 ID 매핑
-    let dimensions = "";
-    let label = "";
+    // 카카오 애드핏 320x100 고유 ID들 (총 7개)
+    const IN_FEED_AD_UNITS = [
+        "DAN-kOTelEMEPDP1qCHe", // Index 0 (칼럼 리스트 #1)
+        "DAN-wpYTcEe8fjHqsskB", // Index 1 (칼럼 리스트 #2)
+        "DAN-DUfbCwUCbe93OEq8", // Index 2 (추천 도서 #1)
+        "DAN-AJ9zVTZuDky9LUZV", // Index 3 (추천 도서 #2)
+        "DAN-7VYGE7BjSdeSlFfc", // Index 4 (인피드 여분 #3)
+        "DAN-WbMPZiSrARY0K1y1", // Index 5 (인피드 여분 #4)
+        "DAN-Urm2QboTYALHG9wI"  // Index 6 (스티키 배너)
+    ];
+
+    // 카카오 애드핏 300x250 고유 ID들
+    const RECT_AD_UNITS = [
+        "DAN-HzRosdX8sKoJM5o2", // 본문 하단 / 대형 박스 #1
+        "DAN-HzRosdX8sKoJM5o2", // 본문 하단 / 대형 박스 #2 (나중에 추가 생성 시 교체)
+    ];
+
+    let dimensions = "w-[320px] h-[100px]";
     let adUnit = ""; 
-    let adWidth = 0;
-    let adHeight = 0;
+    let adWidth = 320;
+    let adHeight = 100;
 
+    // 영역마다 고유한 아이디 범위를 '예약'하여 중복을 절대적으로 방지합니다.
     switch (placement) {
         case "in-feed":
+            // 칼럼 목록: Index 0, 1 할당
+            adUnit = IN_FEED_AD_UNITS[safeIndex % 2];
+            break;
         case "in-article":
-            dimensions = "w-[320px] h-[100px]"; // 모바일 가로형
-            label = "Kakao AdFit (320x100)";
-            adUnit = "DAN-kOTelEMEPDP1qCHe"; // 발급된 320x100 광고 단위 아이디
-            adWidth = 320;
-            adHeight = 100;
+            // 추천 도서 등 목록형: Index 2, 3 할당
+            adUnit = IN_FEED_AD_UNITS[(safeIndex % 2) + 2];
             break;
         case "bottom":
-            dimensions = "w-[300px] h-[250px]"; // PC/M 겸용 네모형
-            label = "Kakao AdFit (300x250)";
-            adUnit = "DAN-HzRosdX8sKoJM5o2";
+        case "large-box":
+            // 계산기 하급 혹은 개별 페이지 하단: 300x250 전용 ID 사용
+            adUnit = RECT_AD_UNITS[safeIndex % RECT_AD_UNITS.length];
+            dimensions = "w-[300px] h-[250px]";
             adWidth = 300;
             adHeight = 250;
             break;
         case "sticky-bottom":
-            dimensions = "w-[320px] h-[50px]"; // 모바일 띠배너 (향후 계산기 하단 등에 쓰일 용도)
-            label = "Kakao AdFit (320x50)";
-            adWidth = 320;
+            // 하단 스티키 배너: Index 6 할당
+            adUnit = IN_FEED_AD_UNITS[6];
+            dimensions = "w-[320px] h-[50px]";
             adHeight = 50;
             break;
-        case "large-box":
-            dimensions = "w-[300px] h-[250px]";
-            label = "Kakao AdFit (300x250)";
-            adUnit = "DAN-HzRosdX8sKoJM5o2";
-            adWidth = 300;
-            adHeight = 250;
-            break;
+        default:
+            adUnit = IN_FEED_AD_UNITS[0];
     }
 
-    const placementDescriptions = {
-        "in-feed": "인피드 광고",
-        "in-article": `본문 중간 광고 ${index !== undefined ? index + 1 : ""}`,
-        "bottom": "본문 최하단 광고",
-        "sticky-bottom": "하단 스티키 고정 광고",
-        "large-box": "대형 박스 광고",
-    };
-
-    // 카카오 광고 스크립트 동적 주입 (실제 환경 및 발급된 ID가 있을 때)
+    // 카카오 광고 스크립트 동적 주입
     useEffect(() => {
-        if (!adUnit) return;
+        if (!adUnit || typeof window === 'undefined') return;
         
         const insElement = insRef.current;
-        if (insElement && insElement.children.length === 0) {
+        if (!insElement) return;
+
+        const loadTimer = setTimeout(() => {
+            // 기존 내용 초기화
+            insElement.innerHTML = "";
+
+            // 개별 슬롯 로드용 스크립트
             const script = document.createElement("script");
             script.type = "text/javascript";
             script.src = "//t1.daumcdn.net/kas/static/ba.min.js";
             script.async = true;
+
             insElement.appendChild(script);
-        }
-    }, [adUnit]);
+        }, 200);
 
-    // 개발 모드이면서 아직 ID가 없는 규격(예: 300x250)은 더미 렌더링 유지
-    if (process.env.NODE_ENV === "development" && !adUnit) {
-        return (
-            <div className={cn("flex justify-center w-full", className)}>
-                {/* 고정된 사이즈를 갖는 실제 박스 */}
-                <div 
-                    className={cn(
-                        "border-2 border-dashed border-emerald-500/40 dark:border-emerald-500/30 rounded-2xl flex flex-col items-center justify-center bg-emerald-50/50 dark:bg-emerald-900/10 relative overflow-hidden",
-                        dimensions
-                    )}
-                >
-                    {/* 배경 패턴 장식 */}
-                    <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] opacity-[0.08] [background-size:12px_12px]" />
-                    
-                    {/* 텍스트 내용 */}
-                    <div className="relative z-10 flex flex-col items-center gap-1.5 p-2 text-center text-emerald-700 dark:text-emerald-400">
-                        <span className="text-[12px] font-black tracking-wider uppercase bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 rounded-full">
-                            {label}
-                        </span>
-                        <span className="text-[11px] font-medium opacity-80">
-                            {placementDescriptions[placement]}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+        return () => {
+            clearTimeout(loadTimer);
+            if (insElement) insElement.innerHTML = "";
+        };
+    }, [adUnit, placement, safeIndex]);
 
-    // 프로덕션인데 ID가 아직 없으면 공간 아예 숨김 처리
     if (!adUnit) return null;
 
-    // 카카오 스크립트가 로드되어 렌더링 될 실제 영역
-    // overflow-hidden과 rounded-2xl을 주어 사각형 배너의 모서리가 강제로 잘려 둥글게 보이도록 유도
     return (
-        <div className={cn("flex items-center justify-center w-full relative z-10 overflow-hidden rounded-2xl", className)}>
+        <div 
+            key={`${placement}-${safeIndex}`} 
+            className={cn("flex items-center justify-center w-full relative z-10 overflow-hidden rounded-2xl", className)}
+        >
             <ins 
-                className="kakao_ad_area" 
-                style={{ display: "none" }}
-                data-ad-unit={adUnit}
-                data-ad-width={adWidth}
-                data-ad-height={adHeight}
                 ref={insRef}
+                className="kakao_ad_area" 
+                data-ad-unit={adUnit} 
+                data-ad-width={adWidth} 
+                data-ad-height={adHeight}
             />
             
-            {/* 네이티브 뱃지 (AD) - 전역 공통 적용 */}
+            {/* 네이티브 뱃지 (AD) */}
             <div className="absolute bottom-[4px] right-[10px] z-20 pointer-events-none">
                 <span className="text-[8px] font-bold px-1.5 py-[1px] rounded bg-white/90 dark:bg-black/80 text-gray-400 dark:text-gray-500 uppercase tracking-widest backdrop-blur-md shadow-sm border border-black/5 dark:border-white/5">
                     AD

@@ -205,17 +205,22 @@ export function ColumnList() {
                 {showFeatured && <FeaturedColumnCard column={featuredColumn} />}
 
                 {/* Regular Cards with Ad Slots */}
-                {filteredColumns.map((column, idx) => (
-                    <div key={column.id}>
-                        <ColumnCard column={column} idx={idx} />
-                        {/* Insert ad slot after every AD_INTERVAL cards */}
-                        {(idx + 1) % AD_INTERVAL === 0 && idx < filteredColumns.length - 1 && (
-                            <div className="mt-4 overflow-hidden rounded-3xl w-full border border-gray-200 dark:border-white/5 bg-white/80 dark:bg-[#12141a]/60 shadow-sm transition-all hover:shadow-md">
-                                <AdSlot placement="in-feed" index={Math.floor(idx / AD_INTERVAL)} className="!rounded-3xl" />
-                            </div>
-                        )}
-                    </div>
-                ))}
+                {filteredColumns.map((column, idx) => {
+                    const adIndex = Math.floor((idx + 1) / AD_INTERVAL) - 1;
+                    const showAd = (idx + 1) % AD_INTERVAL === 0 && adIndex < 2; // 최대 2개로 축소 (총합 4개 제한 준수)
+
+                    return (
+                        <div key={column.id}>
+                            <ColumnCard column={column} idx={idx} />
+                            {/* Insert ad slot after every AD_INTERVAL cards, up to 2 slots */}
+                            {showAd && idx < filteredColumns.length - 1 && (
+                                <div className="mt-4 overflow-hidden rounded-3xl w-full border border-gray-200 dark:border-white/5 bg-white/80 dark:bg-[#12141a]/60 shadow-sm transition-all hover:shadow-md">
+                                    <AdSlot placement="in-feed" index={adIndex} className="!rounded-3xl" />
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
 
                 {filteredColumns.length === 0 && !showFeatured && (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-white/40 border border-gray-200 dark:border-white/5 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02]">
