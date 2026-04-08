@@ -207,7 +207,7 @@ export function ColumnList() {
                 {/* Regular Cards with Ad Slots */}
                 {filteredColumns.map((column, idx) => {
                     const adIndex = Math.floor((idx + 1) / AD_INTERVAL) - 1;
-                    const showAd = (idx + 1) % AD_INTERVAL === 0 && adIndex < 2; // 최대 2개로 축소 (총합 4개 제한 준수)
+                    const showAd = (idx + 1) % AD_INTERVAL === 0 && adIndex < 3; // 최대 3개로 확대 (각각 고유 ID 사용)
 
                     return (
                         <div key={column.id}>

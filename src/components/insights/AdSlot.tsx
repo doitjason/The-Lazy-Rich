@@ -49,12 +49,20 @@ export function AdSlot({ placement, className = "", index }: AdSlotProps) {
     // 영역마다 고유한 아이디 범위를 '예약'하여 중복을 절대적으로 방지합니다.
     switch (placement) {
         case "in-feed":
-            // 칼럼 목록: Index 0, 1 할당
-            adUnit = IN_FEED_AD_UNITS[safeIndex % 2];
+            // 칼럼 목록: Index 0, 1번 사용 + 2번 호출 시 여분 4번 할당 (총 3개)
+            if (safeIndex === 2) {
+                adUnit = IN_FEED_AD_UNITS[4];
+            } else {
+                adUnit = IN_FEED_AD_UNITS[safeIndex % 2];
+            }
             break;
         case "in-article":
-            // 추천 도서 등 목록형: Index 2, 3 할당
-            adUnit = IN_FEED_AD_UNITS[(safeIndex % 2) + 2];
+            // 추천 도서/본문: Index 2, 3번 사용 + 2번 호출 시 여분 5번 할당 (총 3개)
+            if (safeIndex === 2) {
+                adUnit = IN_FEED_AD_UNITS[5];
+            } else {
+                adUnit = IN_FEED_AD_UNITS[(safeIndex % 2) + 2];
+            }
             break;
         case "bottom":
         case "large-box":
