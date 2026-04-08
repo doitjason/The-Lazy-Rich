@@ -935,29 +935,7 @@ export function RegretCalculator() {
                                             <AdSlot placement="in-article" className="!rounded-2xl" />
                                         </div>
 
-                                        {/* 1. Switch Mode */}
-                                        <button
-                                            onClick={handleSwitchMode}
-                                            className="group relative flex items-center justify-between p-4 h-[100px] rounded-2xl bg-white/40 dark:bg-white/5 border border-blue-500/10 hover:border-blue-500/40 transition-all text-left shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_25px_rgba(59,130,246,0.1)] w-full overflow-hidden"
-                                        >
-                                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/[0.03] to-transparent group-hover:from-blue-500/[0.08] transition-all" />
-                                            <div className="flex items-center gap-4 relative z-10">
-                                                <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all shrink-0 shadow-inner">
-                                                    <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-[14px] font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                                        {investmentType === "LUMP_SUM" ? "적립식으로 투자했다면 어땠을까?" : "거치식으로 투자했다면 어땠을까?"}
-                                                    </div>
-                                                    <div className="text-[11px] text-muted-foreground mt-1 whitespace-nowrap overflow-hidden text-ellipsis opacity-80">
-                                                        {investmentType === "LUMP_SUM" ? "꾸준한 월 적립 매수 시 수익률 확인하기" : "목돈을 한 번에 다 매수했을 때 수익률 확인하기"}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <span className="relative z-10 text-muted-foreground/30 group-hover:text-blue-500 transition-all text-lg font-light translate-x-0 group-hover:translate-x-1">→</span>
-                                        </button>
-
-                                        {/* 2. AI Mentor */}
+                                        {/* 1. AI Mentor */}
                                         {(() => {
                                             const ticker = result.ticker;
                                             const isEtf = result.isEtf || result.quoteType === "ETF";
@@ -1007,6 +985,28 @@ export function RegretCalculator() {
                                                 </a>
                                             );
                                         })()}
+
+                                        {/* 2. Switch Mode */}
+                                        <button
+                                            onClick={handleSwitchMode}
+                                            className="group relative flex items-center justify-between p-4 h-[100px] rounded-2xl bg-white/40 dark:bg-white/5 border border-blue-500/10 hover:border-blue-500/40 transition-all text-left shadow-[0_4px_15px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_25px_rgba(59,130,246,0.1)] w-full overflow-hidden"
+                                        >
+                                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/[0.03] to-transparent group-hover:from-blue-500/[0.08] transition-all" />
+                                            <div className="flex items-center gap-4 relative z-10">
+                                                <div className="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all shrink-0 shadow-inner">
+                                                    <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                                </div>
+                                                <div>
+                                                    <div className="text-[14px] font-bold text-foreground group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                        {investmentType === "LUMP_SUM" ? "적립식으로 투자했다면 어땠을까?" : "거치식으로 투자했다면 어땠을까?"}
+                                                    </div>
+                                                    <div className="text-[11px] text-muted-foreground mt-1 whitespace-nowrap overflow-hidden text-ellipsis opacity-80">
+                                                        {investmentType === "LUMP_SUM" ? "꾸준한 월 적립 매수 시 수익률 확인하기" : "목돈을 한 번에 다 매수했을 때 수익률 확인하기"}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="relative z-10 text-muted-foreground/30 group-hover:text-blue-500 transition-all text-lg font-light translate-x-0 group-hover:translate-x-1">→</span>
+                                        </button>
 
                                         {/* 3. Future Projection (Combined) */}
                                         {result.cagr > 0 && (() => {

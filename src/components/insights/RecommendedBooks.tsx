@@ -38,6 +38,32 @@ function setBookCoversToCache(data: BookCoverData) {
     } catch { /* sessionStorage full, ignore */ }
 }
 
+function BookCardSkeleton({ idx }: { idx: number }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05, duration: 0.5 }}
+            className="bg-white/80 dark:bg-[#12141a]/60 backdrop-blur-xl border border-gray-200 dark:border-white/5 rounded-3xl p-4 flex gap-5 animate-pulse"
+        >
+            <div className="w-24 sm:w-28 flex-shrink-0 relative">
+                <div className="aspect-[2/3] rounded-xl bg-gray-200 dark:bg-white/5 shadow-sm" />
+            </div>
+            <div className="flex flex-col justify-between flex-grow py-1.5">
+                <div>
+                    <div className="h-5 w-20 bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full mb-3" />
+                    <div className="h-6 w-3/4 bg-gray-200 dark:bg-white/5 rounded-lg mb-2" />
+                    <div className="h-4 w-1/3 bg-gray-200 dark:bg-white/5 rounded-lg mb-4" />
+                    <div className="h-3 w-full bg-gray-100 dark:bg-white/[0.02] rounded-md" />
+                </div>
+                <div className="flex justify-end pt-2">
+                    <div className="h-4 w-24 bg-gray-100 dark:bg-white/[0.02] rounded-md" />
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
 interface BookCardItemProps {
     book: Book;
     idx: number;
@@ -110,6 +136,7 @@ export function RecommendedBooks() {
     const [filterLevel, setFilterLevel] = useState<"all" | "beginner" | "intermediate" | "advanced">("all");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [bookCovers, setBookCovers] = useState<BookCoverData>({});
+    const [isLoading, setIsLoading] = useState(true);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const filteredBooks = RECOMMENDED_BOOKS.filter(book => filterLevel === "all" || book.level === filterLevel);
@@ -135,10 +162,18 @@ export function RecommendedBooks() {
 
         if (cached && missingQueries.length === 0) {
             setBookCovers(cached);
+            setIsLoading(false);
             return;
         }
 
-        // If there's a cache but some are missing, merge them
+        // If all books already have hardcoded imgUrl, we don't strictly need to "load"
+        const booksWithoutStaticUrl = RECOMMENDED_BOOKS.filter(b => !b.imgUrl && b.naverQuery);
+        if (booksWithoutStaticUrl.length === 0 && cached) {
+            setBookCovers(cached);
+            setIsLoading(false);
+            // Still fetch in background to refresh cache if needed
+        }
+
         const queriesToFetch = cached ? missingQueries : RECOMMENDED_BOOKS.filter(b => b.naverQuery).map(b => b.naverQuery!);
 
         if (queriesToFetch.length > 0) {
@@ -150,9 +185,11 @@ export function RecommendedBooks() {
                     setBookCovers(mergedData);
                     setBookCoversToCache(mergedData);
                 })
-                .catch(err => console.error("Batch book fetch failed:", err));
-        } else if (cached) {
-            setBookCovers(cached);
+                .catch(err => console.error("Batch book fetch failed:", err))
+                .finally(() => setIsLoading(false));
+        } else {
+            if (cached) setBookCovers(cached);
+            setIsLoading(false);
         }
     }, []);
 
@@ -210,22 +247,28 @@ export function RecommendedBooks() {
             </div>
 
             <div className="space-y-4">
-                {filteredBooks.map((book, idx) => (
-                    <React.Fragment key={book.id}>
-                        <BookCardItem book={book} idx={idx} coverData={book.naverQuery ? bookCovers[book.naverQuery] : null} />
-                        
-                        {/* 4번째 책마다 광고 삽입, 최대 3개까지 */}
-                        {((idx + 1) % 4 === 0) && (Math.floor((idx + 1) / 4) <= 3) && (
-                            <div className="w-full flex justify-center py-2">
-                                <div className="w-full overflow-hidden rounded-3xl bg-white/40 dark:bg-[#12141a]/60 backdrop-blur-xl border border-gray-200 dark:border-white/5 shadow-sm transition-all relative h-[100px] flex items-center justify-center">
-                                    <AdSlot placement="in-article" index={Math.floor((idx + 1) / 4) - 1} className="!rounded-3xl" />
+                {isLoading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                        <BookCardSkeleton key={i} idx={i} />
+                    ))
+                ) : (
+                    filteredBooks.map((book, idx) => (
+                        <React.Fragment key={book.id}>
+                            <BookCardItem book={book} idx={idx} coverData={book.naverQuery ? bookCovers[book.naverQuery] : null} />
+                            
+                            {/* 4번째 책마다 광고 삽입, 최대 3개까지 */}
+                            {((idx + 1) % 4 === 0) && (Math.floor((idx + 1) / 4) <= 3) && (
+                                <div className="w-full flex justify-center py-2">
+                                    <div className="w-full overflow-hidden rounded-3xl bg-white/40 dark:bg-[#12141a]/60 backdrop-blur-xl border border-gray-200 dark:border-white/5 shadow-sm transition-all relative h-[100px] flex items-center justify-center">
+                                        <AdSlot placement="in-article" index={Math.floor((idx + 1) / 4) - 1} className="!rounded-3xl" />
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </React.Fragment>
-                ))}
+                            )}
+                        </React.Fragment>
+                    ))
+                )}
 
-                {filteredBooks.length === 0 && (
+                {!isLoading && filteredBooks.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-white/40 border border-gray-200 dark:border-white/5 rounded-3xl bg-gray-50/50 dark:bg-white/[0.02]">
                         <span className="text-4xl mb-3">🔍</span>
                         <p className="text-sm font-medium">새로운 추천 도서가 곧 업데이트될 예정입니다.</p>

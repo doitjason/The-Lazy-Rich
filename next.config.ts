@@ -85,8 +85,8 @@ const nextConfig: NextConfig = {
         hostname: "ssl.pstatic.net",
       },
       {
-        protocol: "https",
-        hostname: "shopping-phinf.pstatic.net",
+        protocol: "http",
+        hostname: "*.pstatic.net",
       },
       {
         protocol: "https",
