@@ -12,7 +12,7 @@ import { StockSearchInput } from "@/components/ui/StockSearchInput";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { trackMetaEvent } from "@/lib/analytics";
+import { trackMetaEvent, trackMetaCustomEvent } from "@/lib/analytics";
 import { AdSlot } from "@/components/insights/AdSlot";
 
 interface RegretResult {
@@ -116,6 +116,14 @@ export function RegretCalculator() {
                 console.error('Failed to copy', err);
             }
         }
+
+        // Meta Pixel 맞춤 이벤트 발화
+        trackMetaCustomEvent('ShareCalculatorResult', {
+            content_name: result.name,
+            content_type: 'calculator_result',
+            content_ids: [result.ticker],
+            return_rate: result.returnRate
+        });
     }, [result, amount, period]);
 
     // State to track if the current amount was set by URL or manual interaction
