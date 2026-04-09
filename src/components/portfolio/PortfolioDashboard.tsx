@@ -62,28 +62,28 @@ function PortfolioDashboardSkeleton() {
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-20 px-2 mt-4">
             {/* Balance Card Skeleton */}
-            <Skeleton className="h-44 w-full rounded-2xl bg-white/20 dark:bg-white/5" />
+            <Skeleton className="h-44 w-full rounded-2xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
 
             {/* Benchmark Card Skeleton */}
-            <Skeleton className="h-[72px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
+            <Skeleton className="h-[72px] w-full rounded-2xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
 
             {/* 2-Grid Skeleton */}
             <div className="grid grid-cols-2 gap-3">
-                <Skeleton className="h-[120px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
-                <Skeleton className="h-[120px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
-                <Skeleton className="h-[120px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
-                <Skeleton className="h-[120px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
+                <Skeleton className="h-[120px] w-full rounded-2xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
+                <Skeleton className="h-[120px] w-full rounded-2xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
+                <Skeleton className="h-[120px] w-full rounded-2xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
+                <Skeleton className="h-[120px] w-full rounded-2xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
             </div>
 
             {/* Donut Chart Skeleton */}
-            <Skeleton className="h-[400px] w-full rounded-2xl bg-white/40 dark:bg-white/5" />
+            <Skeleton className="h-[400px] w-full rounded-2xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
 
             {/* List Header Skeleton */}
             <div className="space-y-4 mt-8">
                 <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-24 w-full rounded-xl bg-white/40 dark:bg-white/5" />
-                <Skeleton className="h-24 w-full rounded-xl bg-white/40 dark:bg-white/5" />
-                <Skeleton className="h-24 w-full rounded-xl bg-white/40 dark:bg-white/5" />
+                <Skeleton className="h-24 w-full rounded-xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
+                <Skeleton className="h-24 w-full rounded-xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
+                <Skeleton className="h-24 w-full rounded-xl bg-black/5 dark:bg-white/5 border border-black/[0.03] dark:border-white/[0.05]" />
             </div>
         </div>
     );
