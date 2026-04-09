@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
+import { stockRateLimiter, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 // Allow Vercel Data Cache
 export const dynamic = "auto";
@@ -31,6 +32,12 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        const clientIp = getClientIp(request);
+        const rateCheck = stockRateLimiter.check(clientIp);
+        if (!rateCheck.allowed) {
+            return rateLimitResponse(rateCheck.retryAfterMs);
+        }
+
         // Calculate date range based on period
         let years = 10;
         if (period === "all") {
@@ -174,7 +181,6 @@ export async function GET(request: NextRequest) {
         );
     } catch (error: unknown) {
         console.error("[Historical] Error:", error);
-        const message = error instanceof Error ? error.message : "Failed to fetch historical data";
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: "과거 금융 데이터를 가져오는데 실패했습니다." }, { status: 500 });
     }
 }

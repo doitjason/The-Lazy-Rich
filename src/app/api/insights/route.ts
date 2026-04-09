@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import OpenAI from "openai";
+import { insightsRateLimiter, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 // Mark as dynamic to avoid build-time issues with environment variables
 export const dynamic = "force-dynamic";
@@ -8,14 +9,23 @@ export const dynamic = "force-dynamic";
 // Save insight (summarize conversation to 3 lines)
 export async function POST(req: NextRequest) {
     try {
-        const { userId, sessionId, messages } = await req.json();
+        const clientIp = getClientIp(req);
+        
+        const body = await req.json();
+        const { userId, sessionId, messages } = body;
 
-        if (!userId || !messages || messages.length === 0) {
+        if (!userId || !messages || !Array.isArray(messages) || messages.length === 0) {
             return NextResponse.json(
-                { error: "userId and messages are required" },
+                { error: "올바른 요청 데이터가 필요합니다." },
                 { status: 400 }
             );
         }
+
+        // Limit message length
+        const sanitizedMessages = messages.map((m: any) => ({
+            role: m.role,
+            content: typeof m.content === "string" ? m.content.slice(0, 2000) : "",
+        })).slice(-20); // Only use the last 20 messages for insights
 
         const supabase = await createClient();
 
@@ -23,23 +33,32 @@ export async function POST(req: NextRequest) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user || user.id !== userId) {
             return NextResponse.json(
-                { error: "Unauthorized: Invalid user session" },
+                { error: "인증되지 않은 사용자입니다." },
                 { status: 401 }
             );
         }
 
+        // Rate limit check
+        const rateCheck = insightsRateLimiter.check(user.id || clientIp);
+        if (!rateCheck.allowed) {
+            return rateLimitResponse(rateCheck.retryAfterMs);
+        }
+
+        if (!process.env.OPENAI_API_KEY) {
+            return NextResponse.json(
+                { error: "AI 서비스가 현재 설정되지 않았습니다." },
+                { status: 503 }
+            );
+        }
+
         const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY || "placeholder",
+            apiKey: process.env.OPENAI_API_KEY,
         });
 
         // Use GPT to summarize the conversation into 3 lines
-        const conversationText = messages
+        const conversationText = sanitizedMessages
             .map((m: { role: string; content: string }) => `${m.role}: ${m.content}`)
             .join("\n");
-
-        if (!process.env.OPENAI_API_KEY) {
-            throw new Error("OPENAI_API_KEY is not configured.");
-        }
 
         const summaryResponse = await openai.chat.completions.create({
             model: "gpt-4o-mini",
@@ -79,7 +98,7 @@ export async function POST(req: NextRequest) {
         if (error) {
             console.error("Insight save error:", error);
             return NextResponse.json(
-                { error: "Failed to save insight" },
+                { error: "인사이트 저장 중 오류가 발생했습니다." },
                 { status: 500 }
             );
         }
@@ -88,7 +107,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         console.error("Insights API Error:", error);
         return NextResponse.json(
-            { error: "Internal server error" },
+            { error: "서버 내부 오류가 발생했습니다." },
             { status: 500 }
         );
     }
@@ -100,7 +119,7 @@ export async function GET(req: NextRequest) {
 
     if (!userId) {
         return NextResponse.json(
-            { error: "userId is required" },
+            { error: "사용자 ID가 필요합니다." },
             { status: 400 }
         );
     }
@@ -111,7 +130,7 @@ export async function GET(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user || user.id !== userId) {
         return NextResponse.json(
-            { error: "Unauthorized: Invalid user session" },
+            { error: "인증되지 않은 사용자입니다." },
             { status: 401 }
         );
     }

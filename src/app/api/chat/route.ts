@@ -2,26 +2,60 @@ import { NextRequest } from "next/server";
 import OpenAI from "openai";
 import { getMentorById } from "@/lib/ai-mentors";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { getMentorMarketContext, extractTickersFromMessage, extractDatesFromMessage, fetchHistoricalPrice } from "@/lib/market-data";
 import { LAZY_RICH_CONSTITUTION } from "@/constants/constitution";
 import { getAppEcosystemMap } from "@/lib/ai-ecosystem";
+import { chatRateLimiter, chatAuthRateLimiter, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 // Mark as dynamic to avoid build-time pre-rendering issues with environment variables
 export const dynamic = "force-dynamic";
 
+// Max message constraints to prevent abuse
+const MAX_MESSAGES = 50;
+const MAX_MESSAGE_LENGTH = 2000;
+
 export async function POST(req: NextRequest) {
-    // Initialize OpenAI inside the handler to prevent build-time crashes if API key is missing
+    // Rate limiting check
+    const clientIp = getClientIp(req);
+
+    if (!process.env.OPENAI_API_KEY) {
+        return new Response(JSON.stringify({ error: "AI 서비스가 현재 설정되지 않았습니다." }), {
+            status: 503,
+            headers: { "Content-Type": "application/json" },
+        });
+    }
+
     const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY || "placeholder",
+        apiKey: process.env.OPENAI_API_KEY,
     });
 
     // Create Supabase client for server-side
     const supabase = await createClient();
 
     try {
-        const { messages, mentorId, sessionId, userId } = await req.json();
-        console.log(`[ChatAPI] POST called for session: ${sessionId}, user: ${userId}`);
+        const body = await req.json();
+        const { messages, mentorId, sessionId, userId } = body;
+
+        // Input validation
+        if (!messages || !Array.isArray(messages) || messages.length === 0) {
+            return new Response(JSON.stringify({ error: "메시지가 필요합니다." }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
+        if (messages.length > MAX_MESSAGES) {
+            return new Response(JSON.stringify({ error: "대화가 너무 깁니다. 새 대화를 시작해주세요." }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
+        // Truncate overly long messages
+        const sanitizedMessages = messages.map((m: { role: string; content: string }) => ({
+            role: m.role,
+            content: typeof m.content === "string" ? m.content.slice(0, MAX_MESSAGE_LENGTH) : "",
+        }));
 
         // Get AI Mentor
         const mentor = getMentorById(mentorId);
@@ -33,24 +67,25 @@ export async function POST(req: NextRequest) {
         }
 
         // Get authenticated user ID from session for security
-        let authUserId = null;
+        let authUserId: string | null = null;
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 authUserId = user.id;
             }
         } catch (authErr) {
-            console.error("[ChatAPI] Auth check failed:", authErr);
+            // Auth check failed — treat as unauthenticated
         }
 
-        // Validate client provided userId matches authenticated user (if provided)
-        if (userId && userId !== authUserId) {
-            console.warn(`[ChatAPI] Security Warning: Client provided userId (${userId}) does not match authenticated user (${authUserId})`);
-            // Optional: You could reject here, but for now we'll just use the authenticated ID if available
+        // Apply rate limiting based on auth status
+        const limiter = authUserId ? chatAuthRateLimiter : chatRateLimiter;
+        const rateCheck = limiter.check(authUserId || clientIp);
+        if (!rateCheck.allowed) {
+            return rateLimitResponse(rateCheck.retryAfterMs);
         }
 
-        // Use authenticated ID if available, fallback to client provided (or null)
-        const effectiveUserId = authUserId || userId;
+        // Security: Only use the server-verified auth ID, never trust client-provided userId
+        const effectiveUserId = authUserId;
 
         // Fetch user's portfolio for context injection
         let portfolioContext = "";
@@ -96,7 +131,7 @@ ${holdings}
         }
 
         // 질문에서 종목 추출 (포트폴리오에 없어도 데이터 가져오기 위함)
-        const lastMessage = messages[messages.length - 1];
+        const lastMessage = sanitizedMessages[sanitizedMessages.length - 1];
         const questionTickers = extractTickersFromMessage(lastMessage.content || "");
 
         // 포트폴리오 종목 + 질문 종목 합치기 (중복 제거, 질문한 종목 우선)
@@ -105,7 +140,7 @@ ${holdings}
         // 💡 UX 향상 및 속도 최적화: 마켓 데이터 Lazy Execution (조건부 로딩)
         // 유저 질문에 특정 시장/투자 관련 뉘앙스가 있을 때만 데이터를 로딩합니다.
         const marketKeywords = ["시장", "시황", "주식", "주가", "전망", "금리", "환율", "비트코인", "투자", "포트폴리오", "펀드", "섹터", "배당", "매수", "매도", "수익", "어때", "분석", "종목"];
-        const messageUpper = (lastMessage.content || "").toUpperCase();
+        const messageUpper = (lastMessage?.content || "").toUpperCase();
         const hasMarketKeyword = marketKeywords.some(kw => messageUpper.includes(kw.toUpperCase()));
         
         // 질의에서 명시적으로 언급한 티커가 있거나, 투자 관련 키워드가 있을 경우에만 조회
@@ -179,7 +214,7 @@ ${ecosystemMap}${firstMessageCTA}`;
 
         // Save user message to database (Non-blocking으로 변경하여 OpenAI 응답을 기다리게 하지 않음)
         if (sessionId && messages.length > 0) {
-            const lastUserMessage = messages[messages.length - 1];
+            const lastUserMessage = sanitizedMessages[sanitizedMessages.length - 1];
             if (lastUserMessage.role === "user") {
                 supabase.from("chat_messages").insert({
                     session_id: sessionId,
@@ -193,15 +228,12 @@ ${ecosystemMap}${firstMessageCTA}`;
         }
 
         // Call OpenAI with streaming (gpt-4o-mini is efficient)
-        if (!process.env.OPENAI_API_KEY) {
-            throw new Error("OPENAI_API_KEY is not configured in environment variables.");
-        }
 
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
                 { role: "system", content: systemMessage },
-                ...messages.map((m: { role: string; content: string }) => ({
+                ...sanitizedMessages.map((m: { role: string; content: string }) => ({
                     role: m.role as "user" | "assistant",
                     content: m.content,
                 })),
@@ -257,7 +289,7 @@ ${ecosystemMap}${firstMessageCTA}`;
     } catch (error) {
         console.error("Chat API Error:", error);
         return new Response(
-            JSON.stringify({ error: "Failed to process chat request" }),
+            JSON.stringify({ error: "채팅 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요." }),
             {
                 status: 500,
                 headers: { "Content-Type": "application/json" },

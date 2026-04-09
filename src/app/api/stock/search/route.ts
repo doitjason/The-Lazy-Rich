@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
+import { stockRateLimiter, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 // Allow Vercel Data Cache
 export const dynamic = "auto";
@@ -37,6 +38,12 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        const clientIp = getClientIp(request);
+        const rateCheck = stockRateLimiter.check(clientIp);
+        if (!rateCheck.allowed) {
+            return rateLimitResponse(rateCheck.retryAfterMs);
+        }
+
         console.log(`[Stock Search] Searching for: ${query}`);
 
         // 1. Check local Korean Stock Dictionary for Exact/Partial matches
@@ -149,7 +156,6 @@ export async function GET(request: NextRequest) {
         );
     } catch (error: unknown) {
         console.error("[Stock Search] Error:", error);
-        const message = error instanceof Error ? error.message : "Unknown error";
-        return NextResponse.json({ results: [], error: message });
+        return NextResponse.json({ results: [], error: "주식 검색에 유효하지 않은 결과가 반환되었습니다." });
     }
 }

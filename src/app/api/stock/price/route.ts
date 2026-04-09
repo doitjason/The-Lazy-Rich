@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import YahooFinance from "yahoo-finance2";
+import { stockRateLimiter, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,12 @@ export async function GET(request: NextRequest) {
     }
 
     try {
+        const clientIp = getClientIp(request);
+        const rateCheck = stockRateLimiter.check(clientIp);
+        if (!rateCheck.allowed) {
+            return rateLimitResponse(rateCheck.retryAfterMs);
+        }
+
         const quote = await fetchQuoteWithFallback(ticker);
 
         if (!quote || !quote.regularMarketPrice) {
@@ -78,9 +85,8 @@ export async function GET(request: NextRequest) {
         });
     } catch (error: unknown) {
         console.error("Yahoo Finance Error:", error);
-        const message = error instanceof Error ? error.message : "Failed to fetch stock data";
         return NextResponse.json(
-            { error: message },
+            { error: "주식 데이터를 가져오는데 실패했습니다." },
             { status: 500 }
         );
     }

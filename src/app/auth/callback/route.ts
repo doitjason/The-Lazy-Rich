@@ -1,13 +1,43 @@
 
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
+
+// Allowed redirect path prefixes (prevent open redirect attacks)
+const ALLOWED_REDIRECT_PREFIXES = [
+    '/portfolio',
+    '/mentor',
+    '/columns',
+    '/books',
+    '/profile',
+    '/calc',
+    '/about',
+    '/privacy',
+    '/terms',
+];
+
+function getSafeRedirectPath(next: string | null): string {
+    const defaultPath = '/portfolio';
+    if (!next) return defaultPath;
+
+    // Block: protocol-relative URLs (//evil.com), absolute URLs, data: URLs
+    if (next.startsWith('//') || next.includes('://') || next.startsWith('data:')) {
+        return defaultPath;
+    }
+
+    // Ensure it starts with /
+    if (!next.startsWith('/')) {
+        return defaultPath;
+    }
+
+    // Check against allowlist
+    const isAllowed = ALLOWED_REDIRECT_PREFIXES.some(prefix => next.startsWith(prefix));
+    return isAllowed ? next : defaultPath;
+}
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
-    // if "next" is in param, use it as the redirect URL
-    const next = searchParams.get('next') ?? '/portfolio'
+    const next = getSafeRedirectPath(searchParams.get('next'))
 
     if (code) {
         const supabase = await createClient()
