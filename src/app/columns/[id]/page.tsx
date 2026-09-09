@@ -15,6 +15,7 @@ import React from "react";
 import Image from "next/image";
 import { ViewContentTracker } from "@/components/analytics/ViewContentTracker";
 import { RelatedBooksSection, RelatedBooksSkeleton } from "@/components/insights/RelatedBooksSection";
+import { AuthorBox } from "@/components/insights/AuthorBox";
 import { Suspense } from "react";
 
 interface PageProps {
@@ -452,6 +453,10 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
 
                 {/* Bottom Ad Slot */}
                 <AdSlot placement="bottom" />
+
+                {/* 작성자 및 편집 기준 — YMYL 콘텐츠는 책임 주체가 본문 페이지에서
+                    바로 확인되어야 한다. bio 는 사실 확인된 내용만 채운다. */}
+                <AuthorBox author={column.author} publishedAt={column.publishedAt} />
 
                 {/* Investment Disclaimer
                     모든 칼럼에 공통 적용된다. 개별 MDX 에 면책 조항을 다시 넣으면
