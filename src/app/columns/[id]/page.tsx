@@ -252,18 +252,32 @@ function splitContentIntoParts(rawContent: string) {
     }
 
     const bodyContent = lines.slice(bodyStartIndex).join("\n").trim();
-    
-    // Split body into sections for ad placement
-    // More robust split that handles CRLF and simple newlines
+
     const paragraphs = bodyContent.split(/\r?\n\r?\n+/).filter(p => p.trim() !== "");
+
+    // 광고 삽입 구간 수는 문단 개수가 아니라 '실제 본문 분량'으로 정한다.
+    // 문단 수로만 나누면 짧은 글에도 광고가 3개 붙어 본문 대비 광고 밀도가 과해지고,
+    // 이는 AdSense 의 저품질/광고 과다 판정 위험을 키운다.
+    // 글이 길어질수록 광고가 늘어나는 구조라, 본문을 보강하면 자동으로 회복된다.
+    const textLength = bodyContent
+        .replace(/\[[^\]]*\]\([^)]*\)/g, "")  // 링크(긴 URL)는 분량에서 제외
+        .replace(/^#+\s*/gm, "")              // 헤딩 마크업 제외
+        .replace(/\s+/g, "")                  // 공백 제외
+        .length;
+
+    // 광고 1개당 최소 확보 분량 기준 (한글 공백 제외 기준).
+    // 이 두 상수만 조정하면 전체 칼럼의 광고 밀도가 한 번에 바뀐다.
+    const THREE_PART_MIN = 1600; // 3분할 -> 본문 광고 2 + 하단 1 = 3개
+    const TWO_PART_MIN = 900;    // 2분할 -> 본문 광고 1 + 하단 1 = 2개
+
     const resultParts: string[] = [];
-    
-    if (paragraphs.length >= 10) { // Lowered slightly from 12 to ensure 3 ads on most columns
+
+    if (textLength >= THREE_PART_MIN && paragraphs.length >= 10) {
         const partSize = Math.ceil(paragraphs.length / 3);
         resultParts.push(paragraphs.slice(0, partSize).join("\n\n"));
         resultParts.push(paragraphs.slice(partSize, partSize * 2).join("\n\n"));
         resultParts.push(paragraphs.slice(partSize * 2).join("\n\n"));
-    } else if (paragraphs.length >= 5) { // Lowered slightly from 6 for better coverage
+    } else if (textLength >= TWO_PART_MIN && paragraphs.length >= 5) {
         const mid = Math.ceil(paragraphs.length / 2);
         resultParts.push(paragraphs.slice(0, mid).join("\n\n"));
         resultParts.push(paragraphs.slice(mid).join("\n\n"));
@@ -316,10 +330,12 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                         "@type": "Article",
                         headline: column.title,
                         description: column.subtitle,
+                        // YMYL(금융) 콘텐츠는 작성 주체가 명확할수록 평가에 유리하다.
+                        // 조직이 아니라 개인 저자로 선언하고 소개 페이지를 연결한다.
                         author: {
-                            "@type": "Organization",
-                            name: "The Lazy Rich",
-                            url: SITE_CONFIG.url,
+                            "@type": "Person",
+                            name: column.author,
+                            url: `${SITE_CONFIG.url}/about`,
                         },
                         publisher: {
                             "@type": "Organization",
