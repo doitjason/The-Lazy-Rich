@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { SearchParamsListener } from "@/components/common/SearchParamsListener";
 import { QuoteCard } from "@/components/insights/QuoteCard";
 import { MarketContext } from "@/components/insights/MarketContext";
 import { RecommendedBooks } from "@/components/insights/RecommendedBooks";
@@ -11,16 +11,15 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 function InsightsContent() {
-    const searchParams = useSearchParams();
     const [selectedTab, setSelectedTab] = useState<"market" | "blog" | "community" | "recommended">("blog");
 
     // Load tab from URL param
-    useEffect(() => {
-        const urlTab = searchParams.get("tab");
+    const applyTabFromUrl = (params: URLSearchParams) => {
+        const urlTab = params.get("tab");
         if (urlTab && ["market", "blog", "community", "recommended"].includes(urlTab)) {
             setSelectedTab(urlTab as any);
         }
-    }, [searchParams]);
+    };
 
     // Update active tab
     const handleTabChange = (tab: "market" | "blog" | "community" | "recommended") => {
@@ -29,6 +28,7 @@ function InsightsContent() {
 
     return (
         <div className="flex min-h-screen flex-col p-4 max-w-md mx-auto space-y-8 pb-24">
+            <SearchParamsListener onChange={applyTabFromUrl} />
             <header className="pt-8">
                 <h1 className="text-3xl font-bold tracking-tight">인사이트</h1>
                 <p className="text-muted-foreground">시장을 꿰뚫어보는 통찰력</p>
@@ -98,9 +98,7 @@ function InsightsContent() {
 }
 
 export default function InsightsPage() {
-    return (
-        <Suspense fallback={<div className="text-center py-20 opacity-50">Loading...</div>}>
-            <InsightsContent />
-        </Suspense>
-    );
+    // Suspense 로 감싸지 않는다. 감싸면 정적 HTML 이 fallback 만 담게 되어
+    // 크롤러가 칼럼 목록도 h1 도 없는 빈 홈을 보게 된다.
+    return <InsightsContent />;
 }

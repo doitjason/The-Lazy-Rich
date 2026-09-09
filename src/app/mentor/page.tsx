@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { SearchParamsListener } from "@/components/common/SearchParamsListener";
 import { MentorSelector } from "@/components/mentor/MentorSelector";
 import { ChatInterface } from "@/components/mentor/ChatInterface";
 import { AIMentor, getMentorById } from "@/lib/ai-mentors";
@@ -9,7 +10,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { trackMetaEvent } from "@/lib/analytics";
 
 function GuruPageContent() {
-    const searchParams = useSearchParams();
     const router = useRouter();
 
     const [selectedMentor, setSelectedMentor] = useState<AIMentor | null>(null);
@@ -53,10 +53,10 @@ function GuruPageContent() {
     };
 
     // Handle auto-selection based on URL query param
-    useEffect(() => {
-        const action = searchParams.get("action");
-        const mentorId = searchParams.get("mentor") || searchParams.get("persona");
-        const queryMessage = searchParams.get("q");
+    const applyDeepLink = (params: URLSearchParams) => {
+        const action = params.get("action");
+        const mentorId = params.get("mentor") || params.get("persona");
+        const queryMessage = params.get("q");
 
         if (mentorId) {
             const autoMentor = getMentorById(mentorId);
@@ -86,7 +86,7 @@ function GuruPageContent() {
                 }
             }
         }
-    }, [searchParams, selectedMentor, router]);
+    };
 
     // Scroll to top when view changes
     useEffect(() => {
@@ -112,6 +112,7 @@ function GuruPageContent() {
             }
             style={selectedMentor ? { bottom: "calc(4rem + env(safe-area-inset-bottom))" } : undefined}
         >
+            <SearchParamsListener onChange={applyDeepLink} />
             {selectedMentor ? (
                 <ChatInterface
                     mentor={selectedMentor}
@@ -135,9 +136,7 @@ function GuruPageContent() {
 }
 
 export default function Home() {
-    return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">AI 투자 멘토 로딩 중...</div>}>
-            <GuruPageContent />
-        </Suspense>
-    );
+    // 페이지 전체를 Suspense 로 감싸면 정적 HTML 에 로딩 문구만 남는다.
+    // 쿼리 처리는 SearchParamsListener 안쪽으로 격리해 두었다.
+    return <GuruPageContent />;
 }

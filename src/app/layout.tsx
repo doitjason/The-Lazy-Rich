@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -93,6 +94,7 @@ export default function RootLayout({
             >
               <main className="pb-20">
                 {children}
+                <SiteFooter />
               </main>
               <BottomNav />
               {process.env.NODE_ENV !== "production" && (
