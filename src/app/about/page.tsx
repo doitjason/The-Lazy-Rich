@@ -6,7 +6,7 @@ import { SITE_CONFIG } from "@/lib/constants";
 export const metadata: Metadata = {
     title: "에디터 소개 | The Lazy Rich",
     description:
-        "The Lazy Rich 에디터 팀은 올바른 장기투자 문화를 만들기 위해 데이터 기반의 투자 인사이트를 전달합니다.",
+        "The Lazy Rich 는 금융업에 종사하지 않는 개인 투자자가 직접 운영합니다. 공개된 데이터와 원문을 확인해 장기투자 인사이트를 정리합니다.",
 };
 
 export default function AboutEditorPage() {
@@ -74,15 +74,20 @@ export default function AboutEditorPage() {
                     <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 space-y-4 relative overflow-hidden border-l-2 border-l-emerald-500/50">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/8 rounded-full blur-[30px] translate-x-6 -translate-y-6" />
                         <p className="text-[14px] sm:text-[15px] text-white/70 leading-[1.85] font-medium break-keep relative z-10">
-                            The Lazy Rich 에디터 팀은 하나의 원칙을 따릅니다.
-                            데이터가 뒷받침하지 않는 주장은 싣지 않는다는
-                            것입니다.
+                            먼저 밝혀 둘 것이 있습니다. 저는 금융업에 종사하지
+                            않는 개인 투자자입니다. 자격을 갖춘 전문가가 아니며,
+                            이곳의 글은 투자 자문이 아닙니다.
                         </p>
                         <p className="text-[14px] sm:text-[15px] text-white/70 leading-[1.85] font-medium break-keep relative z-10">
-                            투자 세계에는 근거 없는 의견과 감정적 판단이
-                            넘쳐납니다. 저희는 역사적 시장 데이터, 학술 연구,
-                            그리고 검증된 투자 원칙에 기반한 콘텐츠만을
-                            제공합니다.
+                            그래서 더 지키는 원칙이 하나 있습니다. 데이터가
+                            뒷받침하지 않는 주장은 싣지 않는다는 것입니다.
+                            제 의견이 아니라 확인 가능한 근거를 남기려 합니다.
+                        </p>
+                        <p className="text-[14px] sm:text-[15px] text-white/70 leading-[1.85] font-medium break-keep relative z-10">
+                            수치는 원문 통계나 법령을 직접 확인해 적고, 확인하지
+                            못한 내용은 확인하지 못했다고 적습니다. 제 돈으로
+                            인덱스 중심의 장기투자를 이어가면서 알게 된 것들을
+                            함께 정리합니다.
                         </p>
                     </div>
                 </div>
@@ -193,7 +198,7 @@ export default function AboutEditorPage() {
                     </div>
                     <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-5 flex items-center justify-between group hover:bg-white/5 transition-colors">
                         <div className="space-y-1">
-                            <p className="text-[12px] text-white/40 font-medium">에디터 팀 이메일</p>
+                            <p className="text-[12px] text-white/40 font-medium">에디터 이메일</p>
                             <p className="text-[15px] text-white/90 font-bold">{SITE_CONFIG.supportEmail}</p>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-white/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">

@@ -18,6 +18,16 @@ interface AuthorBoxProps {
     bio?: string;
 }
 
+/**
+ * 기본 약력. 자격증이나 업계 경력을 주장하지 않는다.
+ *
+ * 금융 콘텐츠에서 비전문가가 전문가인 척하는 것이 가장 큰 감점 요인이다.
+ * 반대로 "전문가가 아니다"를 먼저 밝히고 근거를 붙이는 글은 감점 대상이
+ * 아니다. 아래 문장은 전부 사실이어야 하며, 사실이 바뀌면 같이 고친다.
+ */
+export const EDITOR_BIO =
+    "금융업에 종사하지 않는 개인 투자자입니다. 제 돈으로 인덱스 중심의 장기투자를 이어가면서, 공개된 통계와 법령 원문을 직접 확인해 정리합니다.";
+
 const EDITORIAL_PRINCIPLES = [
     "데이터와 통계는 공신력 있는 출처를 기반으로 합니다.",
     "특정 종목이나 금융 상품의 매수·매도를 추천하지 않습니다.",
@@ -25,7 +35,7 @@ const EDITORIAL_PRINCIPLES = [
     "오류가 발견되면 확인 즉시 정정합니다.",
 ];
 
-export function AuthorBox({ author, publishedAt, bio }: AuthorBoxProps) {
+export function AuthorBox({ author, publishedAt, bio = EDITOR_BIO }: AuthorBoxProps) {
     return (
         <section
             aria-label="작성자 정보"

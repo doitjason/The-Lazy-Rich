@@ -27,22 +27,6 @@ export const CATEGORY_OPTIONS = [
 
 export const COLUMNS: Column[] = [
     {
-        id: "ria-account-tax-savings",
-        title: "해외주식 세금 0원 시대: RIA 계좌로 100% 절세하고 안락한 투자 이어가기",
-        subtitle: "수익을 지키는 것도 투자의 핵심입니다. 22%의 양도소득세를 0원으로 만드는 한시적 마법을 놓치지 마세요.",
-        category: "guide",
-        categoryLabel: "실전 가이드",
-        categoryColor: "text-emerald-400",
-        categoryBg: "bg-emerald-500/10",
-        thumbnailEmoji: "💸",
-        author: "The Lazy Rich 에디터",
-        publishedAt: "2026-04-07",
-        readTime: 7,
-        tags: ["RIA계좌", "양도소득세", "절세", "국내주식복귀"],
-        featured: true,
-        relatedBookIds: ["psychology-of-money", "intelligent-investor"],
-    },
-    {
         id: "isa-legal-tax-reduction",
         title: "ISA 계좌의 재발견: 대한민국 직장인이 '합법적으로' 세금을 안 내는 유일한 방법",
         subtitle: "비과세 1,000만 원 시대의 생존 전략과 인덱스 투자자를 위한 최고의 절세 방패",

@@ -4,6 +4,13 @@ const nextConfig: NextConfig = {
   /* config options here */
   async redirects() {
     return [
+      // 게재 중단한 칼럼. 색인에 남은 URL 이 404 로 떨어지지 않도록 목록으로 보낸다.
+      // (RIA 제도의 감면율/적용 기한을 1차 출처로 확인할 수 없어 글을 내렸다)
+      {
+        source: "/columns/ria-account-tax-savings",
+        destination: "/",
+        permanent: true,
+      },
       {
         source: "/insights/columns/:id",
         destination: "/columns/:id",
