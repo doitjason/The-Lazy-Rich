@@ -83,7 +83,26 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://t1.kakaocdn.net https://t1.daumcdn.net https://*.kakao.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://rttphluffayixqppypvs.supabase.co wss://rttphluffayixqppypvs.supabase.co https://api.openai.com https://*.pstatic.net https://*.kakao.com https://*.daumcdn.net; frame-src 'self' https://*.kakao.com https://*.daumcdn.net; frame-ancestors 'none';"
+            // 광고/애널리틱스는 스크립트 호스트와 그 스크립트가 다시 부르는
+            // 호스트가 서로 다르다. 한쪽만 열어 두면 조용히 실패한다.
+            //
+            //   카카오 애드핏 : 스크립트 t1.daumcdn.net
+            //                   -> iframe  t1.kakaocdn.net   (frame-src)
+            //                   -> 광고 요청 *.daum.net       (connect-src)
+            //   GA4          : 스크립트 www.googletagmanager.com
+            //                   -> 수집    www.google-analytics.com
+            //
+            // 도메인을 추가할 때는 배포 후 콘솔에 CSP 위반이 남지 않는지
+            // 반드시 확인할 것. 위반은 에러 페이지 없이 빈 화면으로만 나타난다.
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://www.googletagmanager.com https://*.kakaocdn.net https://*.daumcdn.net https://*.kakao.com",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https: blob:",
+              "connect-src 'self' https://rttphluffayixqppypvs.supabase.co wss://rttphluffayixqppypvs.supabase.co https://api.openai.com https://*.pstatic.net https://*.kakao.com https://*.kakaocdn.net https://*.daumcdn.net https://*.daum.net https://www.googletagmanager.com https://www.google-analytics.com https://*.analytics.google.com",
+              "frame-src 'self' https://*.kakao.com https://*.kakaocdn.net https://*.daumcdn.net https://*.daum.net",
+              "frame-ancestors 'none'",
+            ].join("; ") + ";"
           }
         ],
       },

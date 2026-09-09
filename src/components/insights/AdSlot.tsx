@@ -96,7 +96,9 @@ export function AdSlot({ placement, className = "", index }: AdSlotProps) {
             // 개별 슬롯 로드용 스크립트
             const script = document.createElement("script");
             script.type = "text/javascript";
-            script.src = "//t1.daumcdn.net/kas/static/ba.min.js";
+            // 프로토콜 상대 경로(//...)를 쓰면 http 로 뜬 개발 서버에서
+            // http:// 로 요청이 나가 CSP(https 만 허용)에 걸린다. https 로 고정한다.
+            script.src = "https://t1.daumcdn.net/kas/static/ba.min.js";
             script.async = true;
 
             insElement.appendChild(script);
