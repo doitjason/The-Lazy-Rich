@@ -4,7 +4,10 @@ import Link from "next/link";
 import { SITE_CONFIG } from "@/lib/constants";
 
 export const metadata: Metadata = {
-    title: "에디터 소개 | The Lazy Rich",
+    // 루트 layout 의 template 이 " | The Lazy Rich" 를 붙인다.
+    // 여기에 또 적으면 "에디터 소개 | The Lazy Rich | The Lazy Rich" 가 된다.
+    title: "에디터 소개",
+    alternates: { canonical: "/about" },
     description:
         "The Lazy Rich 는 금융업에 종사하지 않는 개인 투자자가 직접 운영합니다. 공개된 데이터와 원문을 확인해 장기투자 인사이트를 정리합니다.",
 };

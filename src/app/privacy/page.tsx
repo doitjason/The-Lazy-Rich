@@ -83,8 +83,8 @@ export default function PrivacyPage() {
                             <h3 className="font-bold text-white/90 text-[13px]">제6조 (광고 쿠키 및 웹 비컨 기술 고지)</h3>
                             <p className="text-white/80">
                                 1. 본 서비스는 제3자 광고 사업자(Google, Meta 등)가 제공하는 맞춤형 광고 기술을 사용합니다.
-                                <br />2. **Google AdSense**: Google을 포함한 제3자 공급업체는 쿠키를 사용하여 이용자의 본 사이트 및 다른 사이트 방문 기록을 바탕으로 맞춤 광고를 게재합니다. 이용자는 Google의 광고 설정에서 이를 해제할 수 있습니다.
-                                <br />3. **Meta Pixel (Facebook Pixel)**: 본 서비스는 Meta(Facebook)가 제공하는 픽셀 기술을 사용하여 이용자의 서비스 이용 행태(페이지 뷰, 클릭 등)를 수집합니다. 수집된 정보는 Meta의 서버로 전송되어 광고 최적화 및 맞춤 타겟팅 광고 게재를 위해 활용됩니다. 이용자는 Facebook 광고 설정을 통해 이를 관리할 수 있습니다.
+                                <br />2. <strong className="font-bold text-white">Google AdSense</strong>: Google을 포함한 제3자 공급업체는 쿠키를 사용하여 이용자의 본 사이트 및 다른 사이트 방문 기록을 바탕으로 맞춤 광고를 게재합니다. 이용자는 Google의 광고 설정에서 이를 해제할 수 있습니다.
+                                <br />3. <strong className="font-bold text-white">Meta Pixel (Facebook Pixel)</strong>: 본 서비스는 Meta(Facebook)가 제공하는 픽셀 기술을 사용하여 이용자의 서비스 이용 행태(페이지 뷰, 클릭 등)를 수집합니다. 수집된 정보는 Meta의 서버로 전송되어 광고 최적화 및 맞춤 타겟팅 광고 게재를 위해 활용됩니다. 이용자는 Facebook 광고 설정을 통해 이를 관리할 수 있습니다.
                             </p>
                         </div>
 
