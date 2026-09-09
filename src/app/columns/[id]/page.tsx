@@ -437,10 +437,12 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                 {/* Bottom Ad Slot */}
                 <AdSlot placement="bottom" />
 
-                {/* Investment Disclaimer */}
+                {/* Investment Disclaimer
+                    모든 칼럼에 공통 적용된다. 개별 MDX 에 면책 조항을 다시 넣으면
+                    한 페이지에 두 번 노출되므로 본문에는 넣지 않는다. */}
                 <div className="border-t border-gray-200 dark:border-white/5 pt-5 mt-2">
                     <p className="text-[11px] text-gray-400 dark:text-white/20 leading-relaxed font-medium break-keep">
-                        본 콘텐츠는 정보 제공 목적으로 작성되었으며, 특정 금융 상품에 대한 투자 권유나 매매 추천이 아닙니다. 투자 판단은 본인의 책임하에 이루어져야 하며, 투자 결과에 대한 법적 책임은 투자자 본인에게 있습니다.
+                        본 콘텐츠는 일반적인 금융 정보 제공 및 교육 목적으로 작성되었으며, 특정 종목이나 금융 상품에 대한 매수 또는 매도 권유를 포함하지 않습니다. 모든 투자 결정의 책임은 투자자 본인에게 있으며, 과거의 운용 실적이나 통계 수치가 미래의 수익을 보장하지 않습니다. 시장 상황에 따라 원금 손실이 발생할 수 있으므로, 본인의 상황에 맞는 신중한 판단과 전문가 상담을 병행하시기 바랍니다.
                     </p>
                 </div>
 
