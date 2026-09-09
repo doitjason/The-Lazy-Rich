@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:columns": "node scripts/check-columns.mjs"
+    "check:columns": "node scripts/check-columns.mjs",
+    "check:books": "node scripts/check-books.mjs",
+    "check:content": "node scripts/check-columns.mjs && node scripts/check-books.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.16",
