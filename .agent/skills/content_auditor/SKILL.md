@@ -1,4 +1,4 @@
-# Skill: Column Auditor
+# Skill: Content Auditor
 
 'The Lazy Rich' 의 칼럼(`src/content/columns/*.mdx`)과 도서 소개글
 (`src/data/books.ts`)을 검증하고 교정한다.
