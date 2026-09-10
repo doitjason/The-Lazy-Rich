@@ -9,7 +9,8 @@
     "lint": "eslint",
     "check:columns": "node scripts/check-columns.mjs",
     "check:books": "node scripts/check-books.mjs",
-    "check:content": "node scripts/check-columns.mjs && node scripts/check-books.mjs"
+    "check:content": "node scripts/check-columns.mjs && node scripts/check-books.mjs && node scripts/check-prose.mjs",
+    "check:prose": "node scripts/check-prose.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.16",
