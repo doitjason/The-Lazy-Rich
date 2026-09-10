@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
         destination: "/",
         permanent: true,
       },
+      // AI 멘토의 옛 경로. 페이지는 /mentor 로 옮겼는데 리다이렉트를 두지 않아
+      // 서치 콘솔에 404 로 남아 있었다.
+      {
+        source: "/guru",
+        destination: "/mentor",
+        permanent: true,
+      },
+      {
+        source: "/guru/:path*",
+        destination: "/mentor",
+        permanent: true,
+      },
       {
         source: "/insights/columns/:id",
         destination: "/columns/:id",
