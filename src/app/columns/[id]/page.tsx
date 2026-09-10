@@ -42,6 +42,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
         title: `${column.title} | 올바른 장기투자`,
         description: column.subtitle,
+        // 이 줄이 없으면 루트 레이아웃의 canonical(홈)을 그대로 물려받아
+        // 모든 칼럼이 홈페이지의 중복 페이지라고 선언하게 된다.
+        alternates: { canonical: `/columns/${column.id}` },
         openGraph: {
             title: column.title,
             description: column.subtitle,

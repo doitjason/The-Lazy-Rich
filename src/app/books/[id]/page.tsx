@@ -42,6 +42,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return {
         title: `${book.title} 리뷰 | 올바른 장기투자`,
         description: book.description,
+        // 없으면 루트의 canonical(홈)을 상속해 홈의 중복 페이지가 된다.
+        alternates: { canonical: `/books/${book.id}` },
         openGraph: {
             title: `${book.title} 리뷰`,
             description: book.description,

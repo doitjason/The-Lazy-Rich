@@ -48,7 +48,13 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://thelazyrich.me",
+    // 상대 경로로 둔다. 절대 주소를 박아 두면 하위 페이지가 자기 canonical 을
+    // 선언하지 않았을 때 전부 "홈의 중복 페이지"가 된다. 실제로 칼럼 34편과
+    // 도서 21권이 그 상태였고, 색인이 생성되지 않는 주요 원인이었다.
+    //
+    // 색인 대상 경로는 모두 자기 canonical 을 갖고 있어야 한다.
+    // 새 라우트를 추가할 때 alternates.canonical 을 함께 넣을 것.
+    canonical: "/",
   },
 };
 
