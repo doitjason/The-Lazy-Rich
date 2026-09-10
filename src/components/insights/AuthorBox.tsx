@@ -14,6 +14,8 @@ import Link from "next/link";
 interface AuthorBoxProps {
     author: string;
     publishedAt: string;
+    /** 본문을 고친 날. 발행 이후 개정이 없었으면 비운다. */
+    updatedAt?: string;
     /** 저자 배경 한두 줄. 사실인 내용만 넣는다. 비우면 표시하지 않는다. */
     bio?: string;
 }
@@ -35,7 +37,8 @@ const EDITORIAL_PRINCIPLES = [
     "오류가 발견되면 확인 즉시 정정합니다.",
 ];
 
-export function AuthorBox({ author, publishedAt, bio = EDITOR_BIO }: AuthorBoxProps) {
+export function AuthorBox({ author, publishedAt, updatedAt, bio = EDITOR_BIO }: AuthorBoxProps) {
+    const revised = updatedAt && updatedAt !== publishedAt ? updatedAt : null;
     return (
         <section
             aria-label="작성자 정보"
@@ -56,6 +59,7 @@ export function AuthorBox({ author, publishedAt, bio = EDITOR_BIO }: AuthorBoxPr
                     )}
                     <p className="text-[11px] text-gray-400 dark:text-white/30 font-medium mt-1">
                         {publishedAt} 작성
+                        {revised && ` · ${revised} 개정`}
                     </p>
                 </div>
             </div>

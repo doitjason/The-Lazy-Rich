@@ -13,6 +13,15 @@ export interface Book {
     level?: 'beginner' | 'intermediate' | 'advanced';
 }
 
+/**
+ * 도서 소개글을 마지막으로 손본 날. sitemap 의 lastModified 에 쓴다.
+ *
+ * 빌드 시각(new Date())을 넣으면 배포할 때마다 모든 페이지가 방금 바뀐 것처럼
+ * 보고된다. 실제로 바뀐 적 없는 페이지까지 그러면 신호로서 의미가 없다.
+ * 소개글을 고칠 때 이 값도 함께 고친다.
+ */
+export const BOOKS_UPDATED_AT = "2026-09-10";
+
 export const RECOMMENDED_BOOKS: Book[] = [
     {
         "id": "psychology-of-money",

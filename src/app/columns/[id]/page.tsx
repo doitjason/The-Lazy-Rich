@@ -344,7 +344,9 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                             url: SITE_CONFIG.url,
                         },
                         datePublished: column.publishedAt,
-                        dateModified: column.publishedAt,
+                        // 개정한 적이 있으면 그 날짜를 쓴다. publishedAt 을 그대로
+                        // 넣으면 발행 이후 손대지 않았다고 알리는 셈이 된다.
+                        dateModified: column.updatedAt ?? column.publishedAt,
                         mainEntityOfPage: {
                             "@type": "WebPage",
                             "@id": `${SITE_CONFIG.url}/columns/${column.id}`,
@@ -401,6 +403,12 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
                         <span>{column.readTime}분 읽기</span>
                         <span>·</span>
                         <span>{column.publishedAt}</span>
+                        {column.updatedAt && column.updatedAt !== column.publishedAt && (
+                            <>
+                                <span>·</span>
+                                <span>{column.updatedAt} 개정</span>
+                            </>
+                        )}
                     </div>
 
                     <div className="flex flex-wrap gap-2 justify-center">
@@ -456,7 +464,11 @@ export default async function ColumnDetailPage({ params, searchParams }: PagePro
 
                 {/* 작성자 및 편집 기준 — YMYL 콘텐츠는 책임 주체가 본문 페이지에서
                     바로 확인되어야 한다. bio 는 사실 확인된 내용만 채운다. */}
-                <AuthorBox author={column.author} publishedAt={column.publishedAt} />
+                <AuthorBox
+                    author={column.author}
+                    publishedAt={column.publishedAt}
+                    updatedAt={column.updatedAt}
+                />
 
                 {/* Investment Disclaimer
                     모든 칼럼에 공통 적용된다. 개별 MDX 에 면책 조항을 다시 넣으면
