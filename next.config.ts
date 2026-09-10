@@ -96,7 +96,10 @@ const nextConfig: NextConfig = {
             // 반드시 확인할 것. 위반은 에러 페이지 없이 빈 화면으로만 나타난다.
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://www.googletagmanager.com https://*.kakaocdn.net https://*.daumcdn.net https://*.kakao.com",
+              //   AdSense : 스크립트 pagead2.googlesyndication.com
+              //             -> iframe  googleads.g.doubleclick.net, tpc.googlesyndication.com
+              //             -> 검증    *.adtrafficquality.google
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://www.googletagmanager.com https://*.kakaocdn.net https://*.daumcdn.net https://*.kakao.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://partner.googleadservices.com https://www.googletagservices.com https://adservice.google.com https://*.adtrafficquality.google",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               // GA4 는 수집 요청을 한 곳으로만 보내지 않는다. 실제로 관측된 것만
@@ -104,8 +107,8 @@ const nextConfig: NextConfig = {
               // www.google.com 세 곳이다. 와일드카드는 상위 도메인 자체를
               // 포함하지 않으므로(*.analytics.google.com 은 analytics.google.com
               // 을 커버하지 않는다) 둘 다 적는다.
-              "connect-src 'self' https://rttphluffayixqppypvs.supabase.co wss://rttphluffayixqppypvs.supabase.co https://api.openai.com https://*.pstatic.net https://*.kakao.com https://*.kakaocdn.net https://*.daumcdn.net https://*.daum.net https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net",
-              "frame-src 'self' https://*.kakao.com https://*.kakaocdn.net https://*.daumcdn.net https://*.daum.net",
+              "connect-src 'self' https://rttphluffayixqppypvs.supabase.co wss://rttphluffayixqppypvs.supabase.co https://api.openai.com https://*.pstatic.net https://*.kakao.com https://*.kakaocdn.net https://*.daumcdn.net https://*.daum.net https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://www.google.com https://stats.g.doubleclick.net https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google https://adservice.google.com",
+              "frame-src 'self' https://*.kakao.com https://*.kakaocdn.net https://*.daumcdn.net https://*.daum.net https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google https://www.google.com",
               "frame-ancestors 'none'",
             ].join("; ") + ";"
           }

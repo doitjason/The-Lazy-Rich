@@ -74,6 +74,27 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <head>
         <meta name="naver-site-verification" content="02fca866070cd76f8d7ec03e32bb2fb30a90dea7" />
+        {/*
+          Google AdSense 게재 코드.
+
+          심사를 받으려면 이 코드가 사이트에 실제로 붙어 있어야 한다. 2026-03-08
+          에 넣었다가 2026-03-16 커밋에서 빠진 뒤로 없는 상태였다.
+
+          클라이언트 ID 는 public/ads.txt 의 퍼블리셔 ID 와 같아야 한다.
+          (pub-9935065185301028) 둘이 어긋나면 소유 확인이 되지 않는다.
+
+          next/script 대신 순수 script 태그를 쓴다. 이 태그는 <head> 에 그대로
+          들어가야 하고, 크롤러가 HTML 만 받아도 보여야 하기 때문이다.
+
+          주의: next.config.ts 의 CSP 에 googlesyndication 계열 도메인이 열려
+          있어야 한다. 스크립트만 붙이고 CSP 를 빼먹으면 광고가 에러 없이
+          빈 화면으로만 나타난다. 카카오 애드핏이 5개월간 그 상태였다.
+        */}
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9935065185301028"
+          crossOrigin="anonymous"
+        />
       </head>
       <body
         className={cn(
